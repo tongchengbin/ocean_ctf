@@ -1,0 +1,65 @@
+<div class="header">
+{#    <div class="container header-wrap">#}
+{#    <div class="nav left">#}
+{#         <ul class="nav">#}
+{#            <li class="item" style="display: flex;align-items: center;justify-content: center">#}
+{#                <embed style="display: flex" src="static/images/logo.svg" width="30" height="30" type="image/svg+xml" />#}
+{#                <span style="display: flex;margin-left: 5px;">Ocean</span>#}
+{#            </li>#}
+{#        </ul>#}
+{#    </div>#}
+{#    <div class="nav right">#}
+{#        <ul>#}
+{#            <li class="item user">#}
+{#                {% if user %}#}
+{#                    <Dropdown v-if="username" @on-click="userDropdown">#}
+{#                    <a href="javascript:void(0)">#}
+{#                        {{ username }}#}
+{#                    </a>#}
+{#                    <dropdown-menu slot="list">#}
+{#                        <dropdown-item name="logout">退出登录</dropdown-item>#}
+{#                    </dropdown-menu>#}
+{#                </Dropdown>#}
+{#                {% else %}#}
+{#                    <i-button size="small" type="primary"  v-else @click="handleLogin" href="">登录</i-button></li>#}
+{#                {% endif %}#}
+{#        </ul>#}
+{#    </div>#}
+{#</div>#}
+
+<nav class="navbar navbar-dark">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+        <a class="navbar-brand" href="/" style="display: flex;align-items: center;justify-content: center;">
+            <img height="130%" src="/static/images/logo.svg">
+            <span style="font-size: 20px">Ocean</span>
+        </a>
+    </div>
+
+    <!-- Collect the nav links, forms, and other content for toggling -->
+    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+      <ul class="nav navbar-nav navbar-right">
+          {% if user %}
+              <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                    {{ user.username }} <span class="caret"></span></a>
+                <ul class="dropdown-menu">
+                <li><a href="/logout">退出登录</a></li>
+              </ul>
+            </li>
+
+          {% else %}
+             <li><a href="/login">登录</a></li>
+          {% endif %}
+      </ul>
+    </div><!-- /.navbar-collapse -->
+  </div><!-- /.container-fluid -->
+</nav>
+</div>
+

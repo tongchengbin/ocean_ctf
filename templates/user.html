@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <!-- import Vue.js -->
+    <script type="text/javascript" src="static/vue.min.js"></script>
+    <link rel="icon" href="/static/favicon.ico" type="image/x-icon" />
+    <!-- import stylesheet -->
+    <link rel="stylesheet" href="static/iview.css">
+    <!-- import iView -->
+    <link rel="stylesheet" href="static/index.css">
+    <script src="static/iview.min.js"></script>
+    <script src="static/iview.dist.js"></script>
+    <script src="static/axios.js"></script>
+    <script src="static/chart.min.js"></script>
+    <title>Ocean</title>
+</head>
+<body>
+<div id="app">
+    <div class="header">
+    <div class="container header-wrap">
+        <div class="nav-left">
+             <ul class="nav">
+                <li class="item" style="display: flex;align-items: center;justify-content: center">
+                    <embed style="display: flex" src="static/images/logo.svg" width="30" height="30" type="image/svg+xml" />
+                    <span style="display: flex;margin-left: 5px;">Ocean</span>
+                </li>
+            </ul>
+        </div>
+        <div class="nav">
+            <ul>
+                <li class="item user">
+                   <Dropdown v-if="username" @on-click="userDropdown">
+                        <a href="javascript:void(0)">
+                            {{ username }}
+                        </a>
+                        <dropdown-menu slot="list">
+                            <dropdown-item name="logout">退出登录</dropdown-item>
+                        </dropdown-menu>
+                    </Dropdown>
+                    <i-button size="small" type="primary"  v-else @click="handleLogin" href="">登录</i-button></li>
+            </ul>
+        </div>
+    </div>
+    </div>
+    <div class="container" style="margin-top: 30px">
+        <div v-show="!loading">
+             <Tabs value="name1">
+                <tab-pane label="积分走势" name="name1">
+
+
+                    <canvas id="myChart" width="400" height="400"></canvas>
+
+                </tab-pane>
+                <tab-pane label="做题记录" name="name2">标签一的内容</tab-pane>
+             </Tabs>
+        </div>
+        <Spin v-if="loading"></Spin>
+    </div>
+</div>
+</body>
+<script type="text/javascript">
+    new Vue({
+        el: '#app',
+        data: function () {
+            return {
+                loading:true,
+                activeType:'',
+                liActive:0,
+                username:null,
+                loginForm:{},
+                dialogItem:{},
+                showDialog:false,
+                showLogin:false,
+                challenges:[],
+                typeChallenges:{},
+                title:"this is title",
+                types:["Web",'Misc','Pwn','Reverse','Crypto'],
+                visible: false,
+                inputFlag:""
+            }
+        },
+        created(){
+            // 判断是否有token
+            this.getUserInfo()
+            this.getList()
+            let ctx = document.getElementById("myChart").getContext("2d");
+            let myChart = echarts.init(ctx);
+             let option = {
+            title: {
+                text: 'ECharts 入门示例'
+            },
+            tooltip: {},
+            legend: {
+                data:['销量']
+            },
+            xAxis: {
+                data: ["衬衫","羊毛衫","雪纺衫","裤子","高跟鞋","袜子"]
+            },
+            yAxis: {},
+            series: [{
+                name: '销量',
+                type: 'bar',
+                data: [5, 20, 36, 10, 10, 20]
+            }]
+        };
+             myChart.setOption(option);
+        },
+        mounted(){
+
+        },
+        methods:{
+            getUserInfo(){
+                axios({
+                    method:'get',
+                    url:"/userinfo",
+                }).then(res=>{
+                    this.username = res.data.username
+                }).catch(err=>{
+                    console.log(err.response.msg)
+                })
+            },
+            getList(type){
+                this.loading = true
+                this.activeType=type;
+                axios({
+                    methods: 'get',
+                    url: '/challenges',
+                    params: {type: type}
+                }).then(res=>{
+                    this.loading = false
+                    this.challenges = res.data.data;
+                })
+            },
+            changeType(e){
+                this.getList(e)
+            },
+            handleLogin(){
+                this.showLogin=true;
+            },
+            logout(){
+                console.log("logout")
+                axios({
+                    method:'POST',
+                    url:'/logout',
+                }).then(res=>{
+                    this.username = null;
+                })
+            },
+            userDropdown(name){
+                if(name==='logout'){
+                    this.logout()
+                }
+            },
+            handleSubmit(){
+            // 提交登录表单
+                axios({
+                    method:'post',
+                    url:'/login',
+                    data:this.loginForm
+                }).then(res=>{
+                    this.username = res.data.username
+                    this.showLogin = false;
+                    this.$Notice.success({
+                        title:"登录成功"
+                    })
+                }).catch(err=>{
+                    if(err.response.status===403){
+                        this.$Notice.error({
+                                title:err.response.data.msg
+                            })
+                    }else if(err.response.state===400){
+                            this.$Notice.error({
+                                title:err.response.data.msg
+                            })
+                        }
+                    })
+            },
+            redirectChallenge(item){
+                if(!this.username){
+                    this.showLogin = true;
+                    return
+                }
+                axios({
+                    methods:'get',
+                    url:`/challenge/${item.id}`
+                }).then(res=>{
+                    this.dialogItem =res.data.data;
+                    this.showDialog = true;
+                })
+
+            },
+            removeContainer(){
+                axios({
+                    methods:'post',
+                    url:`/challenge/${this.dialogItem.id}/destroy`
+                }).then(res=>{
+                    this.redirectChallenge(this.dialogItem)
+                })
+            },
+            startContainer(){
+            //    开始一个容器 答题
+                axios({
+                    methods:'post',
+                    url:`/challenge/${this.dialogItem.id}/start`
+                }).then(res=>{
+                    this.redirectChallenge(this.dialogItem)
+                }).catch(err=>{
+                    this.$Message({
+                        message:err.response.data.msg,
+                        type:"error"
+                    })
+                })
+            },
+            submitFlag(){
+        // 提交flag
+                let data ={"flag":this.inputFlag};
+                console.log(data)
+            axios({
+                method:'POST',
+                data:data,
+                url:`/challenge/${this.dialogItem.id}/answer`
+            }).then(res=>{
+                this.$Notice.success({
+                    title:res.data.msg
+                })
+                this.showDialog = false;
+            }).catch(err=>{
+                this.$Notice.error({
+                    title:err.response.data.msg
+                })
+            })
+        },
+        },
+        components: {
+            // Modal
+        }
+    })
+</script>
+</html>
