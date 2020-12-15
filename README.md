@@ -1,7 +1,3 @@
----
-typora-root-url: ./
----
-
 # Ocean CTF
 > 一个动态flag练习靶场平台
 
