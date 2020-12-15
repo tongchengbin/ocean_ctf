@@ -2,8 +2,7 @@ import logging
 from typing import Dict, Tuple, Any, Union, List
 
 from flask_sqlalchemy import SQLAlchemy as SQLAlchemyBase  # type: ignore
-from sqlalchemy import Column, Integer, func, DateTime
-
+from sqlalchemy import Column, Integer, func, DateTime,Date
 log = logging.getLogger(__name__)
 
 

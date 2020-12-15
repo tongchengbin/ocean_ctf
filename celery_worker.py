@@ -8,4 +8,4 @@ db = DEFAULT_DATABASE.db
 sys.path.append(sys.path[0])
 app = Celery('ocean')
 app.autodiscover_tasks(['app'])
-app.config_from_object('cfg')
+app.config_from_object('config.config')

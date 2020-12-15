@@ -13,6 +13,7 @@
             integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
             crossorigin="anonymous"></script>
     <script src="/static/lib_bootstrap_message.js"></script>
+    <script type="text/javascript" src="/static/js/lib.js"></script>
     <title>Ocean</title>
 </head>
 <body>
@@ -70,8 +71,10 @@
 </div>
 <script type="text/javascript">
     function showDetail(item){
-        // document.getElementById(`model-${item}`).style.display = 'block'
-
+        let isLogin= getCookie('token');
+        if(!isLogin){
+            return window.location.href='/login'
+        }
         $.ajax({url:`/challenge/${item}/detail`,method:'get',success:function (res) {
              let ele = $("#models");
              ele.append(res);

@@ -210,11 +210,14 @@ def state():
     today_register = db.session.query(User).filter(
         func.date(ContainerResource.date_created) == datetime.today().date()).count()
     today_create_cnt = today_query.count()
-    ip_cnt = random.randint(100, 500)
+    today = datetime.today().strftime("%Y%m%d")
+    ip_count = cache.scard('ip-%s' % today)
+    req_count = int(cache.get("req-%s" % today).decode())
     return jsonify({
-        "data": {"today_create_cnt": today_create_cnt,
-                 "ip_cnt": ip_cnt,
-                 "challenges_cnt": challenges_cnt,
-                 "today_register": today_register,
-                 "user_cnt": user_cnt}
-    })
+            "data": {"today_create_cnt": today_create_cnt,
+                     "ip_cnt": ip_count,
+                     "req_count":req_count,
+                     "challenges_cnt": challenges_cnt,
+                     "today_register": today_register,
+                     "user_cnt": user_cnt}
+        })

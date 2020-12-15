@@ -2,42 +2,20 @@
 import logging.handlers
 import os
 
+from celery.schedules import crontab
+
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 DEBUG = False
 
-ENV = 'DEV'
-if ENV == 'DEV':
-    SECRET_KEY = "#dsf!9dd0sfn7sd4fa5s-sdf"
-    DEBUG = False
-    MYSQL_USER = os.getenv("MYSQL_USER")
-    MYSQL_PASS = os.getenv("MYSQL_PASS")
-else:
-    SECRET_KEY = "#dsf!9dd0sfn7sd4fa5s-sdf"
-    DEBUG = False
-    MYSQL_USER = os.getenv("MYSQL_USER")
-    MYSQL_PASS = os.getenv("MYSQL_PASS")
 
-MYSQL_CONNECTION_NAME = 'ocean'
+DB_CONFIG = {
+    "user": 'root',
+    "password": '123456',
+    "host": '127.0.0.1',
+    "port": "3306",
+    "db":"ocean"
+}
 
-
-def gen_connection_string():
-    # 获取数据库连接地址 传递给sql db
-    use_name = 'root'
-    use_pass = '123456'
-    use_host = "127.0.0.1"
-    use_port = 3306
-
-    return (f"mysql+mysqldb://{use_name}:{use_pass}@{use_host}:{use_port}"
-            "/ocean")
-
-
-SQLALCHEMY_DATABASE_URI = gen_connection_string()
-
-SQLALCHEMY_ECHO = False
-DATABASE_CONNECT_OPTIONS = {}
-SQLALCHEMY_TRACK_MODIFICATIONS = False
-
-THREADS_PER_PAGE = 2
 
 # 跨域配置
 CSRF_ENABLED = True
@@ -75,14 +53,14 @@ LOGGING = {
         'info_file': {
             'class': 'logging.handlers.RotatingFileHandler',
             'formatter': 'full',
-            'filename': os.path.join(BASE_DIR, 'info.log'),
+            'filename': os.path.join(BASE_DIR, '../info.log'),
             'maxBytes': 100000,
             'backupCount': 1,
         },
         'error_file': {
             'class': 'logging.handlers.RotatingFileHandler',
             'formatter': 'full',
-            'filename': os.path.join(BASE_DIR, 'error.log'),
+            'filename': os.path.join(BASE_DIR, '../error.log'),
             'maxBytes': 100000,
             'backupCount': 1,
             'level': logging.WARNING,
@@ -100,15 +78,33 @@ LOGGING = {
         }
     }
 }
-BROKER_URL = 'redis://127.0.0.1:6379/1'
+
+
 REDIS_CONFIG = {
     "host":'127.0.0.1',
     'password':""
 }
 
+# end config
 
 try:
-    from local_cfg import *
+    from local_config import *
 except ImportError:
     pass
 
+THREADS_PER_PAGE = 2
+SQLALCHEMY_ECHO = False
+DATABASE_CONNECT_OPTIONS = {}
+SQLALCHEMY_TRACK_MODIFICATIONS = False
+SQLALCHEMY_DATABASE_URI = "mysql+mysqldb://{user}:{password}@{host}:{port}/{db}".format(**DB_CONFIG)
+
+#  定时任务
+timezone = 'Asia/Shanghai'
+beat_schedule = {
+    "day_upload_req":{
+        "task":"app.tasks.task_base.day_upload_req",
+        "schedule":crontab(hour=0,minute=2),
+    }
+
+}
+broker_url = 'redis://{host}:6379/1'.format(**REDIS_CONFIG)

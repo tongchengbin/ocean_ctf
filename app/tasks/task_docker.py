@@ -1,14 +1,15 @@
 import json
+from datetime import datetime, timedelta
 from io import BytesIO
 
 from docker import APIClient, errors as docker_error
 
 from data.database import DEFAULT_DATABASE as db
 from data.models import Host
-from data.models.admin import TaskList, TaskLog
+from data.models.admin import TaskList, TaskLog, RequestState
 from lib.app_factory import cache
 from celery_worker import app,flask_app
-
+from lib.cache import ConstCacheKey
 
 
 def docker_out_format(data):
@@ -66,3 +67,4 @@ def build_delay(task:int,host, build_type, tag, admin, pt=None, dockerfile=None)
                 task.status = task.STATUS_ERROR
                 task.remark = str(e)
         db.session.commit()
+

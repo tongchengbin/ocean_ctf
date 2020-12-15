@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Boolean, Integer, ForeignKey, DateTime
+from sqlalchemy import Column, String, Boolean, Integer, ForeignKey, DateTime,Date
 from sqlalchemy.orm import relationship
 
 from data.models.base import MainBase
@@ -52,3 +52,10 @@ class TaskLog(MainBase):
     content = Column(String(1024), comment="内容")
 
 
+class RequestState(MainBase):
+    """
+        每日请求统计
+    """
+    ip_count = Column(Integer)
+    req_count = Column(Integer)
+    day = Column(Date,comment="日期")

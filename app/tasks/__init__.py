@@ -1,1 +1,2 @@
-from . import task_docker
+from .task_base import *
+from .task_docker import *

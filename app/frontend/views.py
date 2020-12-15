@@ -65,8 +65,10 @@ def index():
             "date_created": item.date_created.strftime("%y-%m-%d"),
             "has_solved": True if item.id in solved_qid else False
         })
-
-    return render_template('index.html', user=g.user, challenges=data,subjects=subjects,subject=subject)
+    response = make_response(render_template('index.html', user=g.user, challenges=data,subjects=subjects,subject=subject))
+    if not g.user:
+        response.delete_cookie('token')
+    return response
 
 
 @bp.route('/login', methods=['get', 'post'])
@@ -133,6 +135,7 @@ def challenge_detail(question):
         "desc": instance.desc,
         "active_flag": instance.active_flag,
         "type": instance.type,
+        "solved":db.session.query(Answer).filter(Answer.question_id==instance.id,Answer.correct==1).count(),
         "date_created": instance.date_created.strftime("%y-%m-%d")
     }
     return render_template('challengeDetail.html',item = data)

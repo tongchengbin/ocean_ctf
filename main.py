@@ -3,7 +3,7 @@ import logging.config
 import sys
 import alembic.runtime.environment
 import alembic.script
-import cfg
+from config import config
 from data.database import DEFAULT_DATABASE
 from lib.app_factory import app,register_blueprints
 db = DEFAULT_DATABASE.db
@@ -64,7 +64,7 @@ def check_db_state():
 
 
 def main():
-    logging.config.dictConfig(cfg.LOGGING)
+    logging.config.dictConfig(config.LOGGING)
     app.run(host='127.0.0.1', port=5000, debug=True)
 
 

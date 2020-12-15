@@ -1,17 +1,18 @@
 import logging
 from urllib.parse import urljoin, urlparse
 
-import redis
-from flask import Flask
+from flask import Flask, send_from_directory
 from flask import g
 from flask import request
 from flask import url_for
 from werkzeug import Response
 from werkzeug.exceptions import Forbidden
 
-import cfg
+from config import config
 from data.database import init_app as init_db
 from lib import command as command_app
+from lib.middlewares import before_req_cache_ip
+from lib.cache import cache
 
 
 def create_app(test_config=None):
@@ -21,17 +22,21 @@ def create_app(test_config=None):
     Application factory.
     """
     flask_app = Flask('main')
-    flask_app.config.from_object(cfg)
+    flask_app.config.from_object(config)
 
     if flask_app.debug:
         # 日志传递
         flask_app.logger.propagate = True
+    # 注册缓存
+    cache.init_app(flask_app)
     register_extensions(flask_app, test_config=test_config)
     register_custom_helpers(flask_app)
 
     # Connect to the database and initialize SQLAlchemy.
     init_db(flask_app)
     command_app.init_app(flask_app)
+    flask_app.before_request_funcs.setdefault(None, []).append(before_req_cache_ip)
+
     return flask_app
 
 
@@ -88,6 +93,7 @@ def register_extensions(app, test_config=None):
     app.after_request(check_or_404)
 
 
+
 def register_blueprints(flask_app):
     """
         这里如果在开头引用回出现循环引用的问题
@@ -106,6 +112,15 @@ def register_blueprints(flask_app):
     flask_app.register_blueprint(admin_ctf_bp)
     flask_app.register_blueprint(admin_docker_bp)
 
+    # 注册静态文件
+    def send_manager_file(filename):
+        cache_timeout = None
+        manager_folder = 'install/manager/dist/'
+        return send_from_directory(manager_folder, filename, cache_timeout=cache_timeout)
+    flask_app.add_url_rule(r"/manager/<path:filename>",
+                           endpoint="manager",
+                           host=False,
+                           view_func=send_manager_file)
+
 
 app = create_app()
-cache = redis.Redis(**app.config["REDIS_CONFIG"])
