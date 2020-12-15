@@ -9,6 +9,7 @@ from app.auth.acls import admin_required
 from data.database import DEFAULT_DATABASE as db
 from data.models import (Admin, TaskList, User
                          )
+from data.models.admin import RequestState
 from data.models.ctf import ContainerResource, Question
 from lib.app_factory import cache
 from lib.utils.authlib import create_token
@@ -213,8 +214,41 @@ def state():
     today = datetime.today().strftime("%Y%m%d")
     ip_count = cache.scard('ip-%s' % today)
     req_count = int(cache.get("req-%s" % today).decode())
+
+    # 统计半月用户访问情况
+    req_state = db.session.query(RequestState).order_by(RequestState.day)
+    req_data = {
+        "x_data":[],
+        "lines":[
+            {"label":"活跃IP","data":[]},{"label":"处理请求","data":[]}
+        ]
+    }
+    """
+     # {
+    #     x_data: ['1', '2', '3', '4', '5'],
+    #     lines: [
+    #         {
+    #             label: "2",
+    #             data: [1, 2, 3, 4, 5]
+    #         },
+    #         {
+    #             label: "1",
+    #             data: [5, 2, 3, 4, 5]
+    #         }
+    #     ]
+    # }
+    """
+    for dy in req_state:
+        req_data["x_data"].append(dy.day.strftime("%m-%d"))
+        req_data["lines"][0]["data"].append(dy.ip_count)
+        req_data["lines"][1]["data"].append(dy.req_count)
+    req_data["x_data"].append(datetime.today().strftime("%m-%d"))
+    req_data["lines"][0]["data"].append(ip_count)
+    req_data["lines"][1]["data"].append(req_count)
     return jsonify({
-            "data": {"today_create_cnt": today_create_cnt,
+            "data": {
+                "req_data":req_data,
+                "today_create_cnt": today_create_cnt,
                      "ip_cnt": ip_count,
                      "req_count":req_count,
                      "challenges_cnt": challenges_cnt,

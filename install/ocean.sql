@@ -193,6 +193,20 @@ CREATE TABLE `task_log`  (
   CONSTRAINT `task_log_ibfk_1` FOREIGN KEY (`task_id`) REFERENCES `task_list` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE = InnoDB AUTO_INCREMENT = 9724 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
 
+DROP TABLE IF EXISTS `request_state`;
+CREATE TABLE `request_state`  (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `date_created` datetime(0) NULL DEFAULT NULL,
+  `date_modified` datetime(0) NULL DEFAULT NULL,
+  `ip_count` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `req_count` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `day` date NULL DEFAULT NULL,
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `uni`(`day`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+
+SET FOREIGN_KEY_CHECKS = 1;
+
 -- ----------------------------
 -- Table structure for user
 -- ----------------------------

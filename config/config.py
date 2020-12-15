@@ -88,7 +88,7 @@ REDIS_CONFIG = {
 # end config
 
 try:
-    from local_config import *
+    from .local_config import *
 except ImportError:
     pass
 
