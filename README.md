@@ -20,79 +20,79 @@
 
 
 
-# 安装
+# 快速安装
 
 > 后台地址/manager 默认管理员密码superuser/admin
-### 脚本安装
+
+#### 环境依赖
+
 ```
-# 测试环境 centos8(最小化安装)
-cd /opt
-git clone git@github.com:tongchengbin/ocean_ctf.git
-chmod +x ocean_ctf/install/install.sh
-./ocean_ctf/install/install.sh
+Python3.6+
+mysql
+redis
+nginx(可选)
 ```
 
-### 手动安装
+#### 下载代码
 
-- 安装nginx redis 以及mysql依赖
 ```
-yum install -y mysql-devel  nginx redis git libffi-devel 
+git clone https://github.com/tongchengbin/ocean_ctf.git
 ```
-- 安装mysql
+#### 修改配置文件
+
 ```
-yum install -y mariadb mariadb-server
-```
-- 启动mariadb
-```
-systemctl start mariadb
-```
-- 配置密码
-```
-mysql_secure_installation
-```
-- Python 依赖 Python3.6+ 自行安装
-> 使用Centos8 自带Python3.6可以跳过安装Python
-- Centos 安装Python3.8
-```
-wget https://www.python.org/ftp/python/3.8.3/Python-3.8.3rc1.tgz
-tar -zxvf Python-3.8.3rc1.tgz
-./configure --prefix=/usr/local/python38
-make && make install
-ln -s /usr/local/python38/bin/python3.8 /usr/bin/python38
-ln -s /usr/local/python38/bin/pip3.8 /usr/bin/pip38
+# vim config/config.py
+# mysql/mariadb 配置文件  当然也可以替换其他数据库
+DB_CONFIG = {
+    "user": 'root',
+    "password": '123456',
+    "host": '127.0.0.1',
+    "port": "3306",
+    "db":"ocean"
+}
+# redis配置
+REDIS_CONFIG = {
+    "host":'127.0.0.1',
+    'password':""
+}
+
 ```
 
-- clone
-```
-git clone  https://github.com/tongchengbin/ocean_ctf.git /opt/ocean_ctf
-cd /opt/ocean_ctf
-```
-- 初始化数据库
+#### 初始化数据库
+
 ```
 mysql -uroot -p123456 -e "source install/ocean.sql"
 ```
-> mysql和nginx 配置文件修改项目cfg.py即可
-- 启动redis
+#### 安装Python依赖
+
+```
+pip install -r requirements.txt
+```
+
+#### 启动redis
+
 ```
 systemctl start redis
 ```
-- 安装依赖文件
-```
-pip3 install -r requirements.txt
-```
-- 启动应用
-```
-/usr/local/python38/bin/gunicorn -w 3 -b 127.0.0.1:5000 main:app --access-logfile 
-access.log
-```
-> check app : curl 127.0.0.1:5000
+#### 快速运行
 
-- 启动异步任务
-```
-/usr/local/python38/bin/celery -A celery_worker worker -l info &
+```sh
+# 其中manager后台通过静态文件可以访问
+python main.py
+# 启动celery
+celery -A celery_worker worker -l info &
+celery -A celery_worker beat -l info &
 ```
 
-- 配置nginx
+#### 生产部署
+
+```shell
+gunicorn -w 3 -b 127.0.0.1:5000 main:app --access-logfile=access.log
+celery -A celery_worker worker -l info &
+celery -A celery_worker beat -l info &
+```
+#### 生产模式配置nginx
+
 ```
 # vim /etc/nginx/conf.d/ctf.conf
 server {
@@ -104,22 +104,15 @@ server {
     location /manager {
         alias /opt/ocean_ctf/install/manager/dist;
     }
-
     }
 ```
-#### 启动nginx
+-  启动nginx
+
 ```
 systemctl start ngnx
-
-#### 访问地址
-> ip：8080
-
-### Docker安装
-- [ ] todo
-# 开始
-- docker服务器配置API(如果不需要动态flag跳过)
 ```
-####  2375 端口做安全防护 限制访问ip
+# 安全防护
+#### 2375 端口防护
 ```
 vim /usr/lib/systemd/system/docker.servicsystemctl restart dockere
 ExecStart=/usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock -H tcp://0.0.0.0:2375
@@ -128,6 +121,8 @@ systemctl restart docker
 
 # check: curl 127.0.0.1:2375/_ping
 ```
+# 其他截图
+
 - 添加容器主机
 
   ![添加容器主机](/doc/image/添加容器主机.png)
@@ -163,7 +158,7 @@ systemctl restart docker
 
   ![]()![动态靶场](/doc/image/动态靶场.png)
 
-#### 其他截图
+# 
 
 ![](/doc/image/1.png)
 
