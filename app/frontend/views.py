@@ -10,6 +10,7 @@ from app.auth.acls import auth_cookie
 from data.database import DEFAULT_DATABASE as db
 from data.models import Question, User
 from data.models.ctf import ImageResource, ContainerResource, Answer
+from lib.tools import get_ip
 from lib.utils.authlib import create_token
 
 bp = Blueprint("view", __name__, url_prefix='')
@@ -252,7 +253,7 @@ def submit_flag(question):
         :param  question: 题目ID
         :data flag: 提交的flag
     """
-    ip = request.remote_addr
+    ip = get_ip()
     instance = db.query(Question).get(question)
     flag = request.get_json().get('flag')
     if not flag:
@@ -260,12 +261,25 @@ def submit_flag(question):
     if not g.user:
         return make_response(jsonify({"msg": "请登录"}), 403)
     answer = Answer(question_id=instance.id, user_id=g.user.id, flag=flag, ip=ip)
+    # 判断是否有正确的提交记录
+    is_answer = db.session.query(Answer).filter(question_id=instance.id,stauts=Answer.status_ok).count()
+
     if instance.active_flag:
         # 获取镜像资源
         container = db.session.query(ContainerResource).join(ImageResource,
                                                              ImageResource.id == ContainerResource.image_resource_id) \
             .filter(ImageResource.question_id == instance.id, ContainerResource.user_id == g.user.id) \
             .order_by(ContainerResource.id.desc()).first()
+        # 判断是否是作弊
+        ok_container = db.session.query(ContainerResource)\
+            .join(ImageResource,ContainerResource.image_resource_id == ImageResource.id)\
+            .filter(ContainerResource.flag == flag,ImageResource.question_id == instance.id).forst()
+        if ok_container != container:
+            # 作弊
+            answer.status = answer.status_cheat
+            db.session.add(answer)
+            db.session.commit()
+            return make_response(jsonify({"msg": "请勿作弊"}), 400)
         # 获取用户容器
         if container:
             try:
@@ -274,7 +288,8 @@ def submit_flag(question):
             except docker_error.DockerException:
                 return make_response(jsonify({"msg": "容器不在线"}), 502)
             if container.flag == flag:
-                answer.correct = True
+                # 判断是否作弊
+                answer.status = answer.status_repeat if is_answer else answer.status_ok
                 # 销毁容器
                 docker_container.kill()
                 docker_container.remove()
@@ -282,18 +297,18 @@ def submit_flag(question):
                 db.session.add(answer)
                 db.session.commit()
             else:
-                answer.correct = False
+                answer.status = answer.status_error
                 db.session.add(answer)
                 db.session.commit()
                 return make_response(jsonify({"msg": "Flag错误"}), 400)
         else:
             return make_response({"msg": "容器损坏，请联系管理员或重启生成!"})
     elif instance.flag == flag:
-        answer.correct = True
+        answer.status = answer.status_repeat if is_answer else answer.status_ok
         db.session.add(answer)
         db.session.commit()
     else:
-        answer.correct = False
+        answer.status = answer.status_error
         db.session.add(answer)
         db.session.commit()
         return jsonify({"status": 400})
