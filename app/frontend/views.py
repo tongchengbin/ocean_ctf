@@ -190,7 +190,7 @@ def question_start(question):
     command_response = docker_container.exec_run(cmd=command, detach=True)
     # 创建容器记录
     container = ContainerResource(image_resource_id=image_resource.id, flag=flag)
-    container.addr = image_resource.host.addr.split(":")[0]
+    container.addr = image_resource.host.ip
     container.container_id = docker_container_response.attrs["Id"]
     container.image_id = image.attrs["Id"]
     container.container_name = container_name

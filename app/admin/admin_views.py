@@ -157,7 +157,6 @@ def task_log(task):
         "end": False if task.status in (1, 3) else True
     })
 
-
 @bp.route('/users', methods=['get'])
 @admin_required
 def users():

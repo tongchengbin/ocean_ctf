@@ -55,6 +55,7 @@ def add_host():
     data = request.get_json()
     name = data.get("name", "").strip()
     addr = data.get("addr", "").strip()
+    ip = data.get("ip","").strip()
     remark = data.get("remark")
     # 判断重复
     if not name:
@@ -63,6 +64,8 @@ def add_host():
         return make_response(jsonify({'error': '该主机名称已存在！', 'code': 400}), 400)
     if not addr:
         return make_response(jsonify({'error': '主机地址不允许为空！', 'code': 400}), 400)
+    if not ip:
+        return make_response(jsonify({'error': 'IP不允许为空！', 'code': 400}), 400)
     if db.session.query(Host).filter(Host.addr == addr).first():
         return make_response(jsonify({'error': '该主机地址已存在！', 'code': 400}), 400)
     # 测试主机连通性
@@ -71,7 +74,7 @@ def add_host():
         requests.get(uri, timeout=2)
     except requests.exceptions.ConnectionError:
         return make_response(jsonify({'error': '该主机不在线！', 'code': 400}), 400)
-    db.session.add(Host(name=name, addr=addr, remark=remark, online_time=datetime.now()))
+    db.session.add(Host(name=name, addr=addr, remark=remark,ip=ip, online_time=datetime.now()))
     db.session.commit()
     return jsonify({"status": "ok"})
 
@@ -88,6 +91,21 @@ def host_update(host):
     instance = db.session.query(Host).get(host)
     if active is not None:
         instance.active = active
+    db.session.commit()
+    return jsonify({})
+
+
+@bp.route('/host/<int:host>/delete', methods=['post'])
+@admin_required
+def host_delete(host):
+    """
+    删除主机
+    :param :host :主机ID
+    :return
+    """
+    data = request.get_json()
+    instance = db.session.query(Host).get(host)
+    db.session.delete(instance)
     db.session.commit()
     return jsonify({})
 
@@ -144,6 +162,7 @@ def host_list():
             "id": item.id,
             "name": item.name,
             "addr": item.addr,
+            "ip":item.ip,
             "remark": item.remark,
             "active":item.active,
             "info": info
