@@ -302,7 +302,7 @@ def submit_flag(question):
         # 判断是否是作弊
         ok_container = db.session.query(ContainerResource)\
             .join(ImageResource,ContainerResource.image_resource_id == ImageResource.id)\
-            .filter(ContainerResource.flag == flag,ImageResource.question_id == instance.id).forst()
+            .filter(ContainerResource.flag == flag,ImageResource.question_id == instance.id).first()
         if ok_container != container:
             # 作弊
             answer.status = answer.status_cheat

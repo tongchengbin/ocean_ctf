@@ -49,8 +49,9 @@ def build_delay(task:int,host, build_type, tag, admin, pt=None, dockerfile=None)
         instance = db.session.query(Host).filter(Host.id == host).one_or_none()
         cli = APIClient(base_url='tcp://{}'.format(instance.addr))
         if build_type == 'tar':
-            f = open(pt,'rb')
+            f = open(pt, 'rb')
             for line in cli.build(fileobj=f, rm=True, tag=tag, custom_context=True):
+                print(line)
                 task_add_log(task.id,line)
             task.status = task.STATUS_DONE
         elif build_type == 'pull':

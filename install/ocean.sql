@@ -39,6 +39,7 @@ CREATE TABLE `answer`  (
   `date_created` datetime(0) NULL DEFAULT NULL,
   `date_modified` datetime(0) NULL DEFAULT NULL,
   `user_id` int(11) NULL DEFAULT NULL,
+    `status` tinyint(4) NOT NULL  default 1 comment '状态',
   `question_id` int(11) NULL DEFAULT NULL,
   `flag` varchar(64) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
   `correct` tinyint(4) NULL DEFAULT NULL,
