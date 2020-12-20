@@ -426,3 +426,14 @@ a:focus, a:hover {
     background-color: #ed4014!important;
     color: #fff!important;
 }
+
+.header .user-btn{
+    font-weight: 600;
+}
+.header .user-btn:hover{
+    font-size: 125%;
+}
+.user-login{
+    color: #fff;
+    background-color: #409EFF;
+}

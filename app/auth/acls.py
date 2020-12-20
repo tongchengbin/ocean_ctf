@@ -21,6 +21,9 @@ def admin_required(func):
     @wraps(func)
     def inner(*args, **kwargs):
         authorization = request.headers.environ.get('HTTP_AUTHORIZATION')
+        if not authorization:
+            g.user = None
+            return func(*args,**kwargs)
         admin = db.session.query(Admin).filter(Admin.token == authorization).one_or_none()
         if admin:
             g.user = admin

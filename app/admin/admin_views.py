@@ -1,4 +1,3 @@
-import random
 from datetime import datetime
 
 from flask import Blueprint, make_response, jsonify, request, g
@@ -9,7 +8,7 @@ from app.auth.acls import admin_required
 from data.database import DEFAULT_DATABASE as db
 from data.models import (Admin, TaskList, User
                          )
-from data.models.admin import RequestState
+from data.models.admin import RequestState, Role
 from data.models.ctf import ContainerResource, Question
 from lib.app_factory import cache
 from lib.utils.authlib import create_token
@@ -108,6 +107,7 @@ def admin_list():
             "id": item.id,
             "login_time": item.login_time.strftime("%Y-%m-%d %H:%M:%S") if item.login_time else None,
             "username": item.username,
+            "role":item.role_id,
             "role_name": item.role.name
         })
     return jsonify({
@@ -116,46 +116,70 @@ def admin_list():
     })
 
 
-@bp.route('/task', methods=['get'])
+@bp.route('/sys_user', methods=['post', 'get'])
 @admin_required
-def task_list():
-    """
-        任务列表
-    """
-    page = int(request.args.get('page', 1))
-    page_size = int(request.args.get("page_size", 10))
-    page = db.session.query(TaskList).order_by(TaskList.id.desc()).paginate(page=page, per_page=page_size)
-    data = []
-    for item in page.items:
-        data.append({
-            "id": item.id,
-            "date_created": item.date_created.strftime("%Y-%m-%d %H:%M:%S") if item.date_created else None,
-            "date_modified": item.date_modified.strftime("%Y-%m-%d %H:%M:%S") if item.date_modified else None,
-            "title": item.title,
-            "username": item.admin.username,
-            "status_name": item.status_name,
-            "remark": item.remark
-        })
-    return jsonify({
-        "total": page.total,
-        "results": data
-    })
+def admin_create():
+    data = request.get_json()
+    username = data.get('username')
+    password = data.get('password')
+    role = data.get('role')
+    if db.session.query(Admin).filter(Admin.username == username).count():
+        return make_response(jsonify({"msg": "管理员已存在"}), 400)
+    safe_password = generate_password_hash(password)
+    admin = Admin(username=username, password=safe_password, role_id=role)
+    db.session.add(admin)
+    db.session.commit()
+    return jsonify({})
 
 
-@bp.route('/task/<int:task>/log', methods=['get'])
+@bp.route('/rest_pass',methods=['post'])
 @admin_required
-def task_log(task):
+def admin_rest_pass():
+    data = request.get_json()
+    old_pass = data.get("old_pass")
+    new_pass = data.get("pass")
+    if not all([old_pass,new_pass]):
+        return make_response(jsonify({"msg":"参数错误"}),400)
+    user = g.user
+    if check_password_hash(user.password,old_pass):
+        user.password = generate_password_hash(new_pass)
+        db.session.commit()
+        return jsonify({})
+    else:
+        return make_response(jsonify({"msg":"旧密码错误"}),400)
+
+
+@bp.route('/sys_user/<int:admin_id>', methods=['post', 'get','delete','PUT'])
+@admin_required
+def admin_action(admin_id):
     """
-        任务执行日志
+        获取管理员详情 修改管理员信息
+        :param admin_id:管理员ID
     """
-    index = request.args.get('index', 0)
-    lines = cache.lrange("task_%s" % task, index, -1)
-    task = db.session.query(TaskList).get(task)
-    data = [i.decode() for i in lines]
-    return jsonify({
-        "data": data,
-        "end": False if task.status in (1, 3) else True
-    })
+    data = request.get_json()
+    if request.method == 'GET':
+        pass
+        # todo
+    elif request.method == 'DELETE':
+        admin = db.session.query(Admin).get(admin_id)
+        db.session.delete(admin)
+        db.session.commit()
+        return jsonify({})
+    else:
+        # 修改信息
+        username = data.get('username')
+        password = data.get('password')
+        role = data.get('role')
+        admin = db.session.query(Admin).get(admin_id)
+        if username:
+            admin.username = username
+        if role:
+            admin.role_id = role
+        if password:
+            admin.password = generate_password_hash(password)
+        db.session.commit()
+        return jsonify({})
+
 
 @bp.route('/users', methods=['get'])
 @admin_required
@@ -171,7 +195,8 @@ def users():
         data.append({
             "id": item.id,
             "username": item.username,
-            "date_created": item.date_modified.strftime("%Y-%m-%d %H:%M:%S") if item.date_modified else None,
+            "date_created": item.date_created.strftime("%Y-%m-%d %H:%M:%S") if item.date_created else None,
+            "date_modified":item.date_modified.strftime("%Y-%m-%d %H:%M:%S") if item.date_modified else None,
             "active": item.active
         })
     return jsonify({
@@ -208,7 +233,7 @@ def state():
     challenges_cnt = db.session.query(Question).count()
     user_cnt = db.session.query(User).count()
     today_register = db.session.query(User).filter(
-        func.date(ContainerResource.date_created) == datetime.today().date()).count()
+        func.date(User.date_created) == datetime.today().date()).count()
     today_create_cnt = today_query.count()
     today = datetime.today().strftime("%Y%m%d")
     ip_count = cache.scard('ip-%s' % today)
@@ -245,12 +270,28 @@ def state():
     req_data["lines"][0]["data"].append(ip_count)
     req_data["lines"][1]["data"].append(req_count)
     return jsonify({
-            "data": {
-                "req_data":req_data,
-                "today_create_cnt": today_create_cnt,
-                     "ip_cnt": ip_count,
-                     "req_count":req_count,
-                     "challenges_cnt": challenges_cnt,
-                     "today_register": today_register,
-                     "user_cnt": user_cnt}
+        "data": {
+            "req_data": req_data,
+            "today_create_cnt": today_create_cnt,
+            "ip_cnt": ip_count,
+            "req_count": req_count,
+            "challenges_cnt": challenges_cnt,
+            "today_register": today_register,
+            "user_cnt": user_cnt}
+    })
+
+
+@bp.route('/roles', methods=['get'])
+@admin_required
+def roles():
+    """
+        角色列表 不分页
+    """
+    query = db.session.query(Role)
+    data = []
+    for item in query:
+        data.append({
+            "id": item.id,
+            "name": item.name
         })
+    return jsonify({"data":data})

@@ -13,10 +13,7 @@
 > http://47.107.75.121:8080
 >
 > 用户账号 test/test
->
-> 后台地址 /manager
->
-> 后台账号 superuser/admin
+
 
 
 

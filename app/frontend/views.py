@@ -4,7 +4,7 @@ import string
 import docker
 from docker import errors as docker_error
 from flask import Blueprint, jsonify, render_template, request, make_response, g, redirect
-from werkzeug.security import check_password_hash
+from werkzeug.security import check_password_hash, generate_password_hash
 
 from app.auth.acls import auth_cookie
 from data.database import DEFAULT_DATABASE as db
@@ -95,6 +95,33 @@ def login():
     return render_template('login.html')
 
 
+@bp.route('/register', methods=['get', 'post'])
+def register():
+    """
+    用户注册
+    """
+    if request.method == 'POST':
+        username = request.form.get("username")
+        password = request.form.get("password")
+        password2 = request.form.get("password2")
+        if not all([username, password,password2]):
+            return render_template('login.html', error="用户名或密码不允许为空")
+        user = db.query(User).filter(User.username == username).one_or_none()
+        if user:
+            return render_template('register.html',error="该用户名已注册")
+        if password2 != password:
+            return render_template('register.html',error="两次输入的密码不匹配")
+        token = create_token()
+        user = User(username=username,password=generate_password_hash(password),active=True,token=token)
+        db.session.add(user)
+        db.session.commit()
+        response = make_response(redirect('/'))
+        response.set_cookie("token", token)
+        return response
+    return render_template('register.html')
+
+
+
 @bp.route('/logout', methods=['get'])
 @auth_cookie
 def logout():
@@ -120,7 +147,8 @@ def challenge_detail(question):
         container = db.session.query(ContainerResource) \
             .join(ImageResource, ImageResource.id == ContainerResource.image_resource_id
                   ) \
-            .join(User, User.id == ContainerResource.user_id).filter(ImageResource.question_id == instance.id) \
+            .join(User, User.id == ContainerResource.user_id).filter(ImageResource.question_id == instance.id,\
+                                                                     User.id==g.user.id) \
             .order_by(ContainerResource.id.desc()).first()
         # 获取用户容器
         if container:
@@ -139,6 +167,7 @@ def challenge_detail(question):
         "solved":db.session.query(Answer).filter(Answer.question_id==instance.id,Answer.correct==1).count(),
         "date_created": instance.date_created.strftime("%y-%m-%d")
     }
+    print(data)
     return render_template('challengeDetail.html',item = data)
 
 
@@ -262,7 +291,7 @@ def submit_flag(question):
         return make_response(jsonify({"msg": "请登录"}), 403)
     answer = Answer(question_id=instance.id, user_id=g.user.id, flag=flag, ip=ip)
     # 判断是否有正确的提交记录
-    is_answer = db.session.query(Answer).filter(question_id=instance.id,stauts=Answer.status_ok).count()
+    is_answer = db.session.query(Answer).filter(Answer.question_id == instance.id, Answer.status == Answer.status_ok).count()
 
     if instance.active_flag:
         # 获取镜像资源

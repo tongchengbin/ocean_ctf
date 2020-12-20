@@ -13,16 +13,20 @@
         <div class="login-box">
             <div class="title-wrap">
                  <embed style="display: flex" src="static/images/logo.svg" width="30" height="30" type="image/svg+xml" />
-                 <span style="display: flex;margin-left: 5px;font-size: 22px;color: #fff">Ocean 登录</span>
+                 <span style="display: flex;margin-left: 5px;font-size: 22px;color: #fff">Ocean 注册</span>
              </div>
              <form  class="login-form" method="post">
                  <div>
                     <label><i class="fa fa-user"></i></label>
-                     <input type="text" name="username" placeholder="Username">
+                     <input type="text" name="username" placeholder="用户名">
                  </div>
                  <div>
                      <label><i class="fa fa-key"></i></label>
-                     <input type="password" name="password" placeholder="Password">
+                     <input type="password" name="password" placeholder="密码">
+                 </div>
+                 <div>
+                     <label><i class="fa fa-key"></i></label>
+                     <input type="password" name="password2" placeholder="确认密码">
                  </div>
                  <div>
                      {% if error %}
@@ -33,7 +37,7 @@
                      {% endif %}
                  </div>
                  <div>
-                     <button class="user-login"   type="submit">登录</button>
+                     <button class="user-login"  type="submit">注册</button>
                  </div>
             </form>
             </div>

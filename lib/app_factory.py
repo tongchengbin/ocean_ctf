@@ -75,7 +75,7 @@ def register_extensions(app, test_config=None):
 
     def cors(environ):
         environ.headers['Access-Control-Allow-Origin'] = '*'
-        environ.headers['Access-Control-Allow-Method'] = '*'
+        environ.headers['Access-Control-Allow-MethodS'] = 'DELETE,PUT,OPTIONS,GET,POST'
         environ.headers['Access-Control-Allow-Headers'] = 'x-requested-with,content-type,Authorization,Token'
         return environ
 

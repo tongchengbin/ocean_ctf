@@ -64,10 +64,21 @@ class Answer(MainBase):
     status_error = 2 # "无效"
     status_cheat = 3 # "作弊"
     status_repeat = 4 # "有效不计分"
+
+    status_choices = (
+        (status_ok,"有效"),
+        (status_error,"无效"),
+        (status_cheat,"作弊"),
+        (status_repeat,"有效不计分")
+    )
     __tablename__ = 'answer'
-    status = Column(String(32),default=1,comment="状态")
+    status = Column(Integer,default=1,comment="状态")
     user_id = Column(Integer, ForeignKey('user.id'), comment="关联用户")
     question_id = Column(Integer, ForeignKey('ctf_question.id'), comment="对应的题库")
     flag = Column(String(64), comment="提交内容")
     correct = Column(Boolean(), default=True, comment="是否正确")
     ip = Column(String(64), comment="提交答案IP")
+
+    @property
+    def status_name(self):
+        return dict(self.status_choices).get(self.status)

@@ -1,32 +1,4 @@
 <div class="header">
-{#    <div class="container header-wrap">#}
-{#    <div class="nav left">#}
-{#         <ul class="nav">#}
-{#            <li class="item" style="display: flex;align-items: center;justify-content: center">#}
-{#                <embed style="display: flex" src="static/images/logo.svg" width="30" height="30" type="image/svg+xml" />#}
-{#                <span style="display: flex;margin-left: 5px;">Ocean</span>#}
-{#            </li>#}
-{#        </ul>#}
-{#    </div>#}
-{#    <div class="nav right">#}
-{#        <ul>#}
-{#            <li class="item user">#}
-{#                {% if user %}#}
-{#                    <Dropdown v-if="username" @on-click="userDropdown">#}
-{#                    <a href="javascript:void(0)">#}
-{#                        {{ username }}#}
-{#                    </a>#}
-{#                    <dropdown-menu slot="list">#}
-{#                        <dropdown-item name="logout">退出登录</dropdown-item>#}
-{#                    </dropdown-menu>#}
-{#                </Dropdown>#}
-{#                {% else %}#}
-{#                    <i-button size="small" type="primary"  v-else @click="handleLogin" href="">登录</i-button></li>#}
-{#                {% endif %}#}
-{#        </ul>#}
-{#    </div>#}
-{#</div>#}
-
 <nav class="navbar navbar-dark">
   <div class="container-fluid">
     <div class="navbar-header">
@@ -55,7 +27,8 @@
             </li>
 
           {% else %}
-             <li><a href="/login">登录</a></li>
+             <li><a class="user-btn" href="/login">登录</a></li>
+              <li><a class="user-btn" href="/register">注册</a></li>
           {% endif %}
       </ul>
     </div><!-- /.navbar-collapse -->

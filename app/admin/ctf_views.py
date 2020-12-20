@@ -8,6 +8,7 @@ from data.models import (Question, User
                          )
 from data.models.ctf import QType, ImageResource, ContainerResource, Answer
 
+
 bp = Blueprint("admin_ctf", __name__, url_prefix="/admin/ctf")
 
 
@@ -292,11 +293,14 @@ def answers():
     page = int(request.args.get('page', 1))
     page_size = int(request.args.get("page_size", 10))
     _type = request.args.get("q_type")
+    status = request.args.get("status")
     query = db.session.query(Answer, Question, User) \
         .join(Question, Question.id == Answer.question_id) \
         .join(User, User.id == Answer.user_id)
     if _type:
         query = query.filter(Question.type == _type)
+    if status:
+        query = query.filter(Answer.status==status)
     page = query.order_by(Answer.id.desc()).paginate(page=page, per_page=page_size)
     data = []
     for item in page.items:
@@ -306,6 +310,8 @@ def answers():
             "date_created": answer.date_created.strftime("%Y-%m-%d %H:%M:%S") if answer.date_created else None,
             "date_modified": answer.date_modified.strftime("%Y-%m-%d %H:%M:%S") if answer.date_modified else None,
             "correct": answer.correct,
+            "status":answer.status,
+            "status_name":answer.status_name,
             "question": {
                 "type": question.type,
                 "name": question.name
@@ -319,3 +325,12 @@ def answers():
         "total": page.total,
         "data": data
     })
+
+
+@bp.route('/answers/status_list',methods=['get'])
+@admin_required
+def answer_status_list():
+    """
+        回答题目的类别
+    """
+    return jsonify({"data":list(Answer.status_choices)})
