@@ -294,4 +294,20 @@ def roles():
             "id": item.id,
             "name": item.name
         })
-    return jsonify({"data":data})
+    return jsonify({"data": data})
+
+
+@bp.route('/task/<int:task>/log', methods=['get'])
+@admin_required
+def task_log(task):
+    """
+        任务执行日志
+    """
+    index = request.args.get('index', 0)
+    lines = cache.lrange("task_%s" % task, index, -1)
+    task = db.session.query(TaskList).get(task)
+    data = [i.decode() for i in lines]
+    return jsonify({
+        "data": data,
+        "end": False if task.status in (1, 3) else True
+    })
