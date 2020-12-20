@@ -81,6 +81,11 @@ celery -A celery_worker worker -l info &
 celery -A celery_worker beat -l info &
 ```
 
+#### 创建上传文件目录
+```
+mkdir temp
+```
+
 #### 生产部署
 
 ```shell

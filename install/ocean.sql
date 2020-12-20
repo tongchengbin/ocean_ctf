@@ -99,6 +99,7 @@ CREATE TABLE `docker_host`  (
   `date_created` datetime(0) NULL DEFAULT NULL,
   `date_modified` datetime(0) NULL DEFAULT NULL,
   `name` varchar(64) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT '用户名',
+  `ip` varchar(32) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT '外部访问IP地址',
   `addr` varchar(64) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT '地址',
   `remark` varchar(64) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '备注',
   `online_time` datetime(0) NULL DEFAULT NULL COMMENT '最后一次在线时间',
