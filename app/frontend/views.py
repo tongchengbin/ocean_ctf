@@ -368,7 +368,7 @@ def notice():
     """
     # 公告
     notices = []
-    notice_query = db.session.query(Notice).all()
+    notice_query = db.session.query(Notice).order_by(Notice.id.desc()).all()
     for item in notice_query:
         notices.append({
             "id": item.id,
