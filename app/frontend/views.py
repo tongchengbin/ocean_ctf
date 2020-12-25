@@ -392,7 +392,7 @@ def user_rank():
     sum(answer.score) as score,
      max(answer.date_created) as last_ans
      from `user` left join answer 
-    on user.id=answer.user_id where answer.`status`=1 group by user.id''')
+    on user.id=answer.user_id where answer.`status`=1 group by user.id order by score desc''')
     result = cursor.fetchall()
     data = []
     for rank, item in enumerate(result):
@@ -403,7 +403,7 @@ def user_rank():
             "username": username,
             "solved_cnt": solved_cnt,
             "date_created": date_created.strftime("%Y-%m-%d %H:%M"),
-            "score": score,
+            "score": score or 0,
             "last_ans": last_ans
         })
     return render_template('user_rank.html', data=data, user=g.user)
