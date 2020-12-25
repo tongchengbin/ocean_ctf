@@ -7,15 +7,13 @@ from celery.schedules import crontab
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 DEBUG = False
 
-
 DB_CONFIG = {
     "user": 'root',
     "password": '123456',
     "host": '127.0.0.1',
     "port": "3306",
-    "db":"ocean"
+    "db": "ocean"
 }
-
 
 # 跨域配置
 CSRF_ENABLED = True
@@ -79,10 +77,9 @@ LOGGING = {
     }
 }
 
-
 REDIS_CONFIG = {
-    "host":'127.0.0.1',
-    'password':""
+    "host": '127.0.0.1',
+    'password': ""
 }
 
 # end config
@@ -101,9 +98,9 @@ SQLALCHEMY_DATABASE_URI = "mysql+mysqldb://{user}:{password}@{host}:{port}/{db}"
 #  定时任务
 timezone = 'Asia/Shanghai'
 beat_schedule = {
-    "day_upload_req":{
-        "task":"app.tasks.task_base.day_upload_req",
-        "schedule":crontab(hour=0,minute=2),
+    "day_upload_req": {
+        "task": "app.tasks.task_base.day_upload_req",
+        "schedule": crontab(hour=0, minute=2),
     }
 
 }

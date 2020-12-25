@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Boolean, Integer, ForeignKey, DateTime,Date
+from sqlalchemy import Column, String, Boolean, Integer, ForeignKey, DateTime, Date
 from sqlalchemy.orm import relationship
 
 from data.models.base import MainBase
@@ -58,4 +58,11 @@ class RequestState(MainBase):
     """
     ip_count = Column(Integer)
     req_count = Column(Integer)
-    day = Column(Date,comment="日期")
+    day = Column(Date, comment="日期")
+
+
+class Notice(MainBase):
+    __tablename__ = 'notice'
+    active = Column(Boolean(), default=True)
+    is_top = Column(Boolean(), default=False)
+    content = Column(String(1024), comment="内容")

@@ -1,8 +1,6 @@
 import redis
 
 
-
-
 class Cache(object):
     """
         缓存  代理模式避免循环引入
@@ -11,7 +9,7 @@ class Cache(object):
     def __init__(self):
         self._cache = None
 
-    def init_app(self,app):
+    def init_app(self, app):
         _cache = redis.Redis(**app.config["REDIS_CONFIG"])
         self._cache = _cache
 
@@ -19,7 +17,7 @@ class Cache(object):
         try:
             return object.__getattribute__(self, item)
         except AttributeError:
-            return object.__getattribute__(self._cache,item)
+            return object.__getattribute__(self._cache, item)
 
 
 cache = Cache()

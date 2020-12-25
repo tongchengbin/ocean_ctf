@@ -23,7 +23,7 @@ def admin_required(func):
         authorization = request.headers.environ.get('HTTP_AUTHORIZATION')
         if not authorization:
             g.user = None
-            return func(*args,**kwargs)
+            return func(*args, **kwargs)
         admin = db.session.query(Admin).filter(Admin.token == authorization).one_or_none()
         if admin:
             g.user = admin
@@ -40,6 +40,7 @@ def auth_user(func):
     :param func
     :return
     """
+
     @wraps(func)
     def inner(*args, **kwargs):
         token = request.headers.get('Token')
@@ -49,6 +50,7 @@ def auth_user(func):
             if user:
                 g.user = user
         return func(*args, **kwargs)
+
     return inner
 
 
@@ -58,6 +60,7 @@ def auth_cookie(func):
     :param func
     :return inner
     """
+
     @wraps(func)
     def inner(*args, **kwargs):
         token = request.cookies.get('token')

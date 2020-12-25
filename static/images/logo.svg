@@ -1,1 +1,10 @@
-<?xml version="1.0" standalone="no"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"><svg t="1604671116822" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="789" xmlns:xlink="http://www.w3.org/1999/xlink" width="200" height="200"><defs><style type="text/css"></style></defs><path d="M512 96C282.592 96 96 282.624 96 512h160a256 256 0 1 1 256 256v160c229.408 0 416-186.624 416-416S741.408 96 512 96z m0 672v-192h-192v192h192z m-192 0H192v128h128v-128z m-128 0v-96H96v96h96z" p-id="790" fill="#1296db"></path></svg>
+<?xml version="1.0" standalone="no"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+        "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg t="1604671116822" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="789"
+     width="200" height="200">
+    <defs>
+        <style type="text/css"></style>
+    </defs>
+    <path d="M512 96C282.592 96 96 282.624 96 512h160a256 256 0 1 1 256 256v160c229.408 0 416-186.624 416-416S741.408 96 512 96z m0 672v-192h-192v192h192z m-192 0H192v128h128v-128z m-128 0v-96H96v96h96z"
+          p-id="790" fill="#1296db"></path>
+</svg>

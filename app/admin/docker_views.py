@@ -55,7 +55,7 @@ def add_host():
     data = request.get_json()
     name = data.get("name", "").strip()
     addr = data.get("addr", "").strip()
-    ip = data.get("ip","").strip()
+    ip = data.get("ip", "").strip()
     remark = data.get("remark")
     # 判断重复
     if not name:
@@ -74,7 +74,7 @@ def add_host():
         requests.get(uri, timeout=2)
     except requests.exceptions.ConnectionError:
         return make_response(jsonify({'error': '该主机不在线！', 'code': 400}), 400)
-    db.session.add(Host(name=name, addr=addr, remark=remark,ip=ip, online_time=datetime.now()))
+    db.session.add(Host(name=name, addr=addr, remark=remark, ip=ip, online_time=datetime.now()))
     db.session.commit()
     return jsonify({"status": "ok"})
 
@@ -152,7 +152,7 @@ def host_list():
     for item in page.items:
         if item.active:
             try:
-                client = docker.DockerClient("http://{}".format(item.addr),timeout=1.5)
+                client = docker.DockerClient("http://{}".format(item.addr), timeout=1.5)
                 info = client.info()
             except docker_error.DockerException:
                 info = {}
@@ -162,9 +162,9 @@ def host_list():
             "id": item.id,
             "name": item.name,
             "addr": item.addr,
-            "ip":item.ip,
+            "ip": item.ip,
             "remark": item.remark,
-            "active":item.active,
+            "active": item.active,
             "info": info
         })
     return jsonify({
@@ -378,20 +378,20 @@ def build(host):
         编译是一个比较耗时的任务 这里回采取延迟执行方式
     """
     build_type = request.args.get('build_type')
-    task = TaskList(admin_id=g.user.id,target_id=host, title="build image for %s"%build_type)
+    task = TaskList(admin_id=g.user.id, target_id=host, title="build image for %s" % build_type)
     db.session.add(task)
     db.session.commit()
     tag = request.args.get('tag')
-    args = (task.id,host, build_type, tag, g.user.id)
+    args = (task.id, host, build_type, tag, g.user.id)
     if build_type == 'tar':
         file = request.files.get('files')
-        pt = os.path.join('temp',file.filename)
+        pt = os.path.join('temp', file.filename)
         file.save(pt)
         kwargs = {"pt": pt}
     elif build_type == 'dockerfile':
         kwargs = {"dockerfile": request.get_json().get("dockerfile")}
     else:
         kwargs = {}
-    task_docker.build_delay.apply_async(args=args,kwargs=kwargs)
+    task_docker.build_delay.apply_async(args=args, kwargs=kwargs)
     # task_docker.build_delay(*args,**kwargs)
-    return jsonify({"status": 'ok', 'data': {"task":task.id}})
+    return jsonify({"status": 'ok', 'data': {"task": task.id}})

@@ -11,8 +11,8 @@ from werkzeug.exceptions import Forbidden
 from config import config
 from data.database import init_app as init_db
 from lib import command as command_app
-from lib.middlewares import before_req_cache_ip
 from lib.cache import cache
+from lib.middlewares import before_req_cache_ip
 
 
 def create_app(test_config=None):
@@ -93,7 +93,6 @@ def register_extensions(app, test_config=None):
     app.after_request(check_or_404)
 
 
-
 def register_blueprints(flask_app):
     """
         这里如果在开头引用回出现循环引用的问题
@@ -117,6 +116,7 @@ def register_blueprints(flask_app):
         cache_timeout = None
         manager_folder = 'install/manager/dist/'
         return send_from_directory(manager_folder, filename, cache_timeout=cache_timeout)
+
     flask_app.add_url_rule(r"/manager/<path:filename>",
                            endpoint="manager",
                            host=False,

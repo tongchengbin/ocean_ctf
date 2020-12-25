@@ -9,6 +9,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from app.auth.acls import auth_cookie
 from data.database import DEFAULT_DATABASE as db
 from data.models import Question, User
+from data.models.admin import Notice
 from data.models.ctf import ImageResource, ContainerResource, Answer
 from lib.tools import get_ip
 from lib.utils.authlib import create_token
@@ -32,20 +33,20 @@ def index():
         :return :首页 后端渲染
     """
     subject = request.args.get('subject')
-    subjects = ("Web","Crypto","Pwn","Iot","Misc")
+    subjects = ("Web", "Crypto", "Pwn", "Iot", "Misc")
     query = db.session.query(Question)
     if subject:
         query = query.filter(Question.type == subject.lower()).order_by(Question.id.desc())
     solved_qid = []
     if g.user:
         # 我已解决的题目
-        solved_question = db.query(Answer.question_id).filter(Answer.user_id == g.user.id, Answer.correct == True).all()
+        solved_question = db.query(Answer.question_id).filter(Answer.user_id == g.user.id, Answer.status == 1).all()
         solved_qid = [i[0] for i in solved_question]
     data = []
     links = {}
     if g.user:
         # 获取镜像资源
-        containers = db.session.query(ContainerResource,ImageResource.question_id) \
+        containers = db.session.query(ContainerResource, ImageResource.question_id) \
             .join(ImageResource, ImageResource.id == ContainerResource.image_resource_id
                   ) \
             .join(User, User.id == ContainerResource.user_id).order_by(ContainerResource.id.desc()).all()
@@ -55,18 +56,30 @@ def index():
             links[question_id] = ["%s:%s" % (container.addr, container.container_port)]
     for item in query:
         data.append({
-            "active_flag":item.active_flag,
+            "active_flag": item.active_flag,
             "id": item.id,
-            "links":links.get(item.id,[]),
+            "links": links.get(item.id, []),
             "type": item.type,
-            "desc":item.desc,
+            "desc": item.desc,
             "name": item.name,
             "integral": item.integral,
             "solved": 100,
             "date_created": item.date_created.strftime("%y-%m-%d"),
             "has_solved": True if item.id in solved_qid else False
         })
-    response = make_response(render_template('index.html', user=g.user, challenges=data,subjects=subjects,subject=subject))
+    # 公告
+    notices = []
+    notice_query = db.session.query(Notice).all()
+    for item in notice_query:
+        notices.append({
+            "id": item.id,
+            "content": item.content,
+            "date_create": item.date_created.strftime("%Y-%m-%d %H:%M")
+        })
+    response = make_response(render_template('index.html', user=g.user, challenges=data,
+                                             subjects=subjects,
+                                             subject=subject,
+                                             notices=notices))
     if not g.user:
         response.delete_cookie('token')
     return response
@@ -104,22 +117,21 @@ def register():
         username = request.form.get("username")
         password = request.form.get("password")
         password2 = request.form.get("password2")
-        if not all([username, password,password2]):
+        if not all([username, password, password2]):
             return render_template('login.html', error="用户名或密码不允许为空")
         user = db.query(User).filter(User.username == username).one_or_none()
         if user:
-            return render_template('register.html',error="该用户名已注册")
+            return render_template('register.html', error="该用户名已注册")
         if password2 != password:
-            return render_template('register.html',error="两次输入的密码不匹配")
+            return render_template('register.html', error="两次输入的密码不匹配")
         token = create_token()
-        user = User(username=username,password=generate_password_hash(password),active=True,token=token)
+        user = User(username=username, password=generate_password_hash(password), active=True, token=token)
         db.session.add(user)
         db.session.commit()
         response = make_response(redirect('/'))
         response.set_cookie("token", token)
         return response
     return render_template('register.html')
-
 
 
 @bp.route('/logout', methods=['get'])
@@ -147,8 +159,8 @@ def challenge_detail(question):
         container = db.session.query(ContainerResource) \
             .join(ImageResource, ImageResource.id == ContainerResource.image_resource_id
                   ) \
-            .join(User, User.id == ContainerResource.user_id).filter(ImageResource.question_id == instance.id,\
-                                                                     User.id==g.user.id) \
+            .join(User, User.id == ContainerResource.user_id).filter(ImageResource.question_id == instance.id, \
+                                                                     User.id == g.user.id) \
             .order_by(ContainerResource.id.desc()).first()
         # 获取用户容器
         if container:
@@ -164,11 +176,11 @@ def challenge_detail(question):
         "desc": instance.desc,
         "active_flag": instance.active_flag,
         "type": instance.type,
-        "solved":db.session.query(Answer).filter(Answer.question_id==instance.id,Answer.correct==1).count(),
+        "solved": db.session.query(Answer).filter(Answer.question_id == instance.id,
+                                                  Answer.status == Answer.status_ok).count(),
         "date_created": instance.date_created.strftime("%y-%m-%d")
     }
-    print(data)
-    return render_template('challengeDetail.html',item = data)
+    return render_template('challengeDetail.html', item=data)
 
 
 @bp.route('/challenge/<int:question>/start', methods=['POST'])
@@ -231,7 +243,7 @@ def question_start(question):
     db.session.add(container)
     db.session.commit()
     return jsonify({
-        "status":0
+        "status": 0
     })
 
 
@@ -267,6 +279,7 @@ def question_destroy(question):
 
 
 @bp.route('/user', methods=['get'])
+@auth_cookie
 def user_center():
     """
         用户中心 # todo
@@ -291,7 +304,8 @@ def submit_flag(question):
         return make_response(jsonify({"msg": "请登录"}), 403)
     answer = Answer(question_id=instance.id, user_id=g.user.id, flag=flag, ip=ip)
     # 判断是否有正确的提交记录
-    is_answer = db.session.query(Answer).filter(Answer.question_id == instance.id, Answer.status == Answer.status_ok).count()
+    is_answer = db.session.query(Answer).filter(Answer.question_id == instance.id, Answer.user_id == g.user.id,
+                                                Answer.status == Answer.status_ok).count()
 
     if instance.active_flag:
         # 获取镜像资源
@@ -300,9 +314,9 @@ def submit_flag(question):
             .filter(ImageResource.question_id == instance.id, ContainerResource.user_id == g.user.id) \
             .order_by(ContainerResource.id.desc()).first()
         # 判断是否是作弊
-        ok_container = db.session.query(ContainerResource)\
-            .join(ImageResource,ContainerResource.image_resource_id == ImageResource.id)\
-            .filter(ContainerResource.flag == flag,ImageResource.question_id == instance.id).first()
+        ok_container = db.session.query(ContainerResource) \
+            .join(ImageResource, ContainerResource.image_resource_id == ImageResource.id) \
+            .filter(ContainerResource.flag == flag, ImageResource.question_id == instance.id).first()
         if ok_container != container:
             # 作弊
             answer.status = answer.status_cheat
@@ -317,6 +331,7 @@ def submit_flag(question):
             except docker_error.DockerException:
                 return make_response(jsonify({"msg": "容器不在线"}), 502)
             if container.flag == flag:
+                answer.score = instance.integral
                 # 判断是否作弊
                 answer.status = answer.status_repeat if is_answer else answer.status_ok
                 # 销毁容器
@@ -333,6 +348,7 @@ def submit_flag(question):
         else:
             return make_response({"msg": "容器损坏，请联系管理员或重启生成!"})
     elif instance.flag == flag:
+        answer.score = instance.integral
         answer.status = answer.status_repeat if is_answer else answer.status_ok
         db.session.add(answer)
         db.session.commit()
@@ -342,3 +358,50 @@ def submit_flag(question):
         db.session.commit()
         return jsonify({"status": 400})
     return jsonify({"status": 0})
+
+
+@bp.route('notice', methods=['get'])
+@auth_cookie
+def notice():
+    """
+        公告中心
+    """
+    # 公告
+    notices = []
+    notice_query = db.session.query(Notice).all()
+    for item in notice_query:
+        notices.append({
+            "id": item.id,
+            "content": item.content,
+            "date_created": item.date_created.strftime("%Y-%m-%d %H:%M")
+        })
+    return render_template('notice.html', notices=notices, user=g.user)
+
+
+@bp.route('user_rank', methods=['get'])
+@auth_cookie
+def user_rank():
+    """
+        公告中心
+    """
+    # 公告
+    cursor = db.session.execute('''select user.id,user.username,user.date_created,
+    count(answer.id),
+    sum(answer.score) as score,
+     max(answer.date_created) as last_ans
+     from `user` left join answer 
+    on user.id=answer.user_id where answer.`status`=1 group by user.id''')
+    result = cursor.fetchall()
+    data = []
+    for rank, item in enumerate(result):
+        user_id, username, date_created, solved_cnt, score, last_ans = item
+        data.append({
+            "rank": rank + 1,
+            "id": user_id,
+            "username": username,
+            "solved_cnt": solved_cnt,
+            "date_created": date_created.strftime("%Y-%m-%d %H:%M"),
+            "score": score,
+            "last_ans": last_ans
+        })
+    return render_template('user_rank.html', data=data, user=g.user)

@@ -1,11 +1,14 @@
 import logging
 import logging.config
 import sys
+
 import alembic.runtime.environment
 import alembic.script
+
 from config import config
 from data.database import DEFAULT_DATABASE
-from lib.app_factory import app,register_blueprints
+from lib.app_factory import app, register_blueprints
+
 db = DEFAULT_DATABASE.db
 register_blueprints(app)
 '''

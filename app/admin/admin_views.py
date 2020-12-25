@@ -8,7 +8,7 @@ from app.auth.acls import admin_required
 from data.database import DEFAULT_DATABASE as db
 from data.models import (Admin, TaskList, User
                          )
-from data.models.admin import RequestState, Role
+from data.models.admin import RequestState, Role, Notice
 from data.models.ctf import ContainerResource, Question
 from lib.app_factory import cache
 from lib.utils.authlib import create_token
@@ -107,7 +107,7 @@ def admin_list():
             "id": item.id,
             "login_time": item.login_time.strftime("%Y-%m-%d %H:%M:%S") if item.login_time else None,
             "username": item.username,
-            "role":item.role_id,
+            "role": item.role_id,
             "role_name": item.role.name
         })
     return jsonify({
@@ -132,24 +132,24 @@ def admin_create():
     return jsonify({})
 
 
-@bp.route('/rest_pass',methods=['post'])
+@bp.route('/rest_pass', methods=['post'])
 @admin_required
 def admin_rest_pass():
     data = request.get_json()
     old_pass = data.get("old_pass")
     new_pass = data.get("pass")
-    if not all([old_pass,new_pass]):
-        return make_response(jsonify({"msg":"参数错误"}),400)
+    if not all([old_pass, new_pass]):
+        return make_response(jsonify({"msg": "参数错误"}), 400)
     user = g.user
-    if check_password_hash(user.password,old_pass):
+    if check_password_hash(user.password, old_pass):
         user.password = generate_password_hash(new_pass)
         db.session.commit()
         return jsonify({})
     else:
-        return make_response(jsonify({"msg":"旧密码错误"}),400)
+        return make_response(jsonify({"msg": "旧密码错误"}), 400)
 
 
-@bp.route('/sys_user/<int:admin_id>', methods=['post', 'get','delete','PUT'])
+@bp.route('/sys_user/<int:admin_id>', methods=['post', 'get', 'delete', 'PUT'])
 @admin_required
 def admin_action(admin_id):
     """
@@ -196,7 +196,7 @@ def users():
             "id": item.id,
             "username": item.username,
             "date_created": item.date_created.strftime("%Y-%m-%d %H:%M:%S") if item.date_created else None,
-            "date_modified":item.date_modified.strftime("%Y-%m-%d %H:%M:%S") if item.date_modified else None,
+            "date_modified": item.date_modified.strftime("%Y-%m-%d %H:%M:%S") if item.date_modified else None,
             "active": item.active
         })
     return jsonify({
@@ -242,9 +242,9 @@ def state():
     # 统计半月用户访问情况
     req_state = db.session.query(RequestState).order_by(RequestState.day)
     req_data = {
-        "x_data":[],
-        "lines":[
-            {"label":"活跃IP","data":[]},{"label":"处理请求","data":[]}
+        "x_data": [],
+        "lines": [
+            {"label": "活跃IP", "data": []}, {"label": "处理请求", "data": []}
         ]
     }
     """
@@ -311,3 +311,77 @@ def task_log(task):
         "data": data,
         "end": False if task.status in (1, 3) else True
     })
+
+
+@bp.route('/notice/list', methods=['get'])
+@admin_required
+def notice_list():
+    page = int(request.args.get('page', 1))
+    page_size = int(request.args.get("page_size", 10))
+    search = request.args.get('search')
+    query = db.session.query(Notice)
+    if search:
+        query = query.filter(Notice.content.like('%%%s%%' % search))
+    page = query.paginate(page=page, per_page=page_size)
+    data = []
+    for item in page.items:
+        data.append({
+            "id": item.id,
+            "date_created": item.date_created.strftime("%Y-%m-%d %H:%M:%S") if item.date_created else None,
+            "content": item.content,
+            "is_top": item.is_top,
+            "active": item.active
+        })
+    return jsonify({
+        "total": page.total,
+        "data": data
+    })
+
+
+@bp.route('/notice', methods=['post'])
+@admin_required
+def notice_create():
+    """
+        添加发布公告
+    """
+    data = request.get_json()
+    content = data.get("content")
+    is_top = data.get("isTop")
+    active = data.get("active")
+    instance = Notice(content=content, active=active, is_top=is_top)
+    db.session.add(instance)
+    db.session.commit()
+    return jsonify({})
+
+
+@bp.route('/notice/<int:pk>', methods=['post'])
+@admin_required
+def notice_update(pk):
+    """
+        update 公告
+    """
+    data = request.get_json()
+    content = data.get("content")
+    is_top = data.get("isTop")
+    active = data.get("active")
+    instance = db.session.query(Notice).get(pk)
+    if is_top is not None:
+        instance.is_top = is_top
+    if active is not None:
+        instance.active = active
+    if content is not None:
+        instance.content = content
+    db.session.commit()
+    return jsonify({})
+
+
+@bp.route('/notice/<int:pk>/delete', methods=['post'])
+@admin_required
+def notice_delete(pk):
+    """
+        delete 公告
+    """
+    instance = db.session.query(Notice).get(pk)
+    db.session.delete(instance)
+    db.session.commit()
+    return jsonify({})

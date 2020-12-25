@@ -1,5 +1,7 @@
 import sys
+
 from celery import Celery
+
 from data.database import DEFAULT_DATABASE
 from lib.app_factory import app as flask_app
 db = DEFAULT_DATABASE.db
