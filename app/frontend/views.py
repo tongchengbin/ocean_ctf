@@ -4,6 +4,7 @@ import string
 import docker
 from docker import errors as docker_error
 from flask import Blueprint, jsonify, render_template, request, make_response, g, redirect
+from sqlalchemy import func
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from app.auth.acls import auth_cookie
@@ -34,9 +35,10 @@ def index():
     """
     subject = request.args.get('subject')
     subjects = ("Web", "Crypto", "Pwn", "Iot", "Misc")
-    query = db.session.query(Question)
+    query = db.session.query(Question,func.count(Answer.id))
     if subject:
-        query = query.filter(Question.type == subject.lower()).order_by(Question.id.desc())
+        query = query.filter(Question.type == subject.lower())
+    query = query.join(Answer,Answer.question_id == Question.id).filter(Answer.status==1).group_by(Question.id).order_by(Question.id.desc())
     solved_qid = []
     if g.user:
         # 我已解决的题目
@@ -54,7 +56,7 @@ def index():
         for c in containers:
             container, question_id = c
             links[question_id] = ["%s:%s" % (container.addr, container.container_port)]
-    for item in query:
+    for item,solved in query:
         data.append({
             "active_flag": item.active_flag,
             "id": item.id,
@@ -63,7 +65,7 @@ def index():
             "desc": item.desc,
             "name": item.name,
             "integral": item.integral,
-            "solved": 100,
+            "solved": solved,
             "date_created": item.date_created.strftime("%y-%m-%d"),
             "has_solved": True if item.id in solved_qid else False
         })
