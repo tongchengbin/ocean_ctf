@@ -315,40 +315,41 @@ def submit_flag(question):
                                                              ImageResource.id == ContainerResource.image_resource_id) \
             .filter(ImageResource.question_id == instance.id, ContainerResource.user_id == g.user.id) \
             .order_by(ContainerResource.id.desc()).first()
+        if not container:
+            answer.status = answer.status_error
+            db.session.commit()
+            return make_response(jsonify({"msg":"题库无效，请联系管理员或重新生成!"}),400)
         # 判断是否是作弊
         ok_container = db.session.query(ContainerResource) \
             .join(ImageResource, ContainerResource.image_resource_id == ImageResource.id) \
             .filter(ContainerResource.flag == flag, ImageResource.question_id == instance.id).first()
-        if ok_container != container:
+        if ok_container and ok_container != container:
             # 作弊
             answer.status = answer.status_cheat
             db.session.add(answer)
             db.session.commit()
             return make_response(jsonify({"msg": "请勿作弊"}), 400)
-        # 获取用户容器
-        if container:
-            try:
-                client = docker.DockerClient("http://{}".format(container.image_resource.host.addr))
-                docker_container = client.containers.get(container.container_id)
-            except docker_error.DockerException:
-                return make_response(jsonify({"msg": "容器不在线"}), 502)
-            if container.flag == flag:
-                answer.score = instance.integral
-                # 判断是否作弊
-                answer.status = answer.status_repeat if is_answer else answer.status_ok
-                # 销毁容器
-                docker_container.kill()
-                docker_container.remove()
-                db.session.delete(container)
-                db.session.add(answer)
-                db.session.commit()
-            else:
-                answer.status = answer.status_error
-                db.session.add(answer)
-                db.session.commit()
-                return make_response(jsonify({"msg": "Flag错误"}), 400)
+
+        try:
+            client = docker.DockerClient("http://{}".format(container.image_resource.host.addr))
+            docker_container = client.containers.get(container.container_id)
+        except docker_error.DockerException:
+            return make_response(jsonify({"msg": "容器不在线"}), 400)
+        if container.flag == flag:
+            answer.score = instance.integral
+            # 判断是否作弊
+            answer.status = answer.status_repeat if is_answer else answer.status_ok
+            # 销毁容器
+            docker_container.kill()
+            docker_container.remove()
+            db.session.delete(container)
+            db.session.add(answer)
+            db.session.commit()
         else:
-            return make_response({"msg": "容器损坏，请联系管理员或重启生成!"})
+            answer.status = answer.status_error
+            db.session.add(answer)
+            db.session.commit()
+            return make_response(jsonify({"msg": "Flag错误!"}), 400)
     elif instance.flag == flag:
         answer.score = instance.integral
         answer.status = answer.status_repeat if is_answer else answer.status_ok
@@ -358,7 +359,7 @@ def submit_flag(question):
         answer.status = answer.status_error
         db.session.add(answer)
         db.session.commit()
-        return jsonify({"status": 400})
+        return make_response(jsonify({"msg": "flag错误!"}),400)
     return jsonify({"status": 0})
 
 

@@ -150,6 +150,9 @@
                 } else {
                     Message('info', '<strong>抱歉 您提交的flag错误!</strong>')
                 }
+            },
+            error:function (res){
+                Message('error', `<strong>${res.responseJSON.msg}</strong>`)
             }
         })
     }
