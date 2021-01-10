@@ -35,10 +35,9 @@ def index():
     """
     subject = request.args.get('subject')
     subjects = ("Web", "Crypto", "Pwn", "Iot", "Misc")
-    query = db.session.query(Question,func.count(Answer.id))
+    query = db.session.query(Question)
     if subject:
         query = query.filter(Question.type == subject.lower())
-    query = query.join(Answer,Answer.question_id == Question.id).filter(Answer.status==1).group_by(Question.id).order_by(Question.id.desc())
     solved_qid = []
     if g.user:
         # 我已解决的题目
@@ -56,7 +55,13 @@ def index():
         for c in containers:
             container, question_id = c
             links[question_id] = ["%s:%s" % (container.addr, container.container_port)]
-    for item,solved in query:
+    # 统计每个题目解决人数
+
+    solved_query = db.query(Answer.question_id,func.count(Answer.id)).filter(Answer.status==1).group_by(Answer.question_id)
+    solved_state = {}
+    for qid,cnt in solved_query:
+        solved_state[qid] = cnt
+    for item in query:
         data.append({
             "active_flag": item.active_flag,
             "id": item.id,
@@ -65,7 +70,7 @@ def index():
             "desc": item.desc,
             "name": item.name,
             "integral": item.integral,
-            "solved": solved,
+            "solved": solved_state.get(item.id,0),
             "date_created": item.date_created.strftime("%y-%m-%d"),
             "has_solved": True if item.id in solved_qid else False
         })
