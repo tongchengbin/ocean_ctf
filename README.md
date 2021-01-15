@@ -15,8 +15,6 @@
 > 用户账号 test/test
 
 
-
-
 # 快速安装
 
 > 后台地址/manager 默认管理员密码superuser/admin
@@ -71,8 +69,6 @@ mysql -uroot -p123456 -e "source install/ocean.sql"
 
 ```
 pip install -r requirements.txt
-```
-
 ```
 #### 快速运行
 
