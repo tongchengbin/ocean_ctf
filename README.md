@@ -8,7 +8,7 @@
 - 构建漏洞库
 - .........
 
-# 线上地址
+# Demo地址
 
 > http://47.107.75.121:8080
 >
@@ -26,18 +26,13 @@ Python3.6+
 mysql5.6+
 redis
 nginx(可选)
+
 ```
 
 #### 下载代码
 
 ```
 git clone https://github.com/tongchengbin/ocean_ctf.git
-```
-
-#### 快速安装脚本
-
-```
-./install.sh
 ```
 
 #### 修改配置文件
@@ -63,7 +58,7 @@ REDIS_CONFIG = {
 #### 初始化数据库
 
 ```
-mysql -uroot -p123456 -e "source install/ocean.sql"
+install/ocean.sql
 ```
 #### 安装Python依赖
 
@@ -104,6 +99,20 @@ server {
 ```
 
 # Docker容器
+
+#### 安装Docker
+```
+curl -fsSL https://get.docker.com | bash -s docker --mirror Aliyun
+
+启动
+systemctl start docker
+查看状态
+systemctl status docker
+
+您亦可以使用阿里云镜像加速来获取更好的体验
+
+```
+
 #### 开启 Docker API 2375 端口
 ```
 开启API
@@ -115,6 +124,27 @@ systemctl restart docker
 检查API
 curl 127.0.0.1:2375/info
 ```
+
+# 常见问题&注意事项
+
+#### python
+```
+请注意设置python3为默认python版本
+```
+
+#### pip 报错mysqlclinet
+```
+centos: sudo yum install mysql-devel
+ubuntu: sudo apt-get install libmysqlclient-dev
+
+```
+
+#### Docker
+```
+动态Flag需要在Dockerfile中写入启动运行脚本，并从文件拷贝至容器用于替换题目中的静态flag 
+flag变量为$1
+```
+
 # 其他截图
 
 - 添加容器主机
@@ -161,3 +191,5 @@ curl 127.0.0.1:2375/info
 ![](/doc/image/3.png)
 
 ![](/doc/image/4.png)
+
+
