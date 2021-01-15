@@ -25,7 +25,7 @@
 
 ```
 Python3.6+
-mysql
+mysql5.6+
 redis
 nginx(可选)
 ```
@@ -35,6 +35,13 @@ nginx(可选)
 ```
 git clone https://github.com/tongchengbin/ocean_ctf.git
 ```
+
+#### 快速安装脚本
+
+```
+./install.sh
+```
+
 #### 修改配置文件
 
 ```
@@ -66,24 +73,15 @@ mysql -uroot -p123456 -e "source install/ocean.sql"
 pip install -r requirements.txt
 ```
 
-#### 启动redis
-
-```
-systemctl start redis
 ```
 #### 快速运行
 
-```sh
+```
 # 其中manager后台通过静态文件可以访问
 python main.py
 # 启动celery
 celery -A celery_worker worker -l info &
 celery -A celery_worker beat -l info &
-```
-
-#### 创建上传文件目录
-```
-mkdir temp
 ```
 
 #### 生产部署
@@ -108,20 +106,18 @@ server {
     }
     }
 ```
--  启动nginx
 
+# Docker容器
+#### 开启 Docker API 2375 端口
 ```
-systemctl start ngnx
-```
-# 安全防护
-#### 2375 端口防护
-```
-vim /usr/lib/systemd/system/docker.servicsystemctl restart dockere
+开启API
+vim /usr/lib/systemd/system/docker.service
 ExecStart=/usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock -H tcp://0.0.0.0:2375
 systemctl daemon-reload
 systemctl restart docker
 
-# check: curl 127.0.0.1:2375/_ping
+检查API
+curl 127.0.0.1:2375/info
 ```
 # 其他截图
 
