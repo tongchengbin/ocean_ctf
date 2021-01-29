@@ -4,4 +4,4 @@ __pycache__/
 *.pid
 /upload/*
 config/local_config.py
-
+celerybeat-schedule

@@ -15,8 +15,6 @@
 > 用户账号 test/test
 
 
-# 快速安装
-
 > 后台地址/manager 默认管理员密码superuser/admin
 
 #### 环境依赖
@@ -58,31 +56,23 @@ REDIS_CONFIG = {
 #### 初始化数据库
 
 ```
-install/ocean.sql
+mysql -uroot -p{password} -e "source install/ocean.sql"
 ```
 #### 安装Python依赖
 
 ```
 pip install -r requirements.txt
 ```
+
+
 #### 快速运行
 
-```
-# 其中manager后台通过静态文件可以访问
-python main.py
-# 启动celery
-celery -A celery_worker worker -l info &
-celery -A celery_worker beat -l info &
-```
-
-#### 生产部署
-
 ```shell
-gunicorn -w 3 -b 127.0.0.1:5000 main:app --access-logfile=access.log
-celery -A celery_worker worker -l info &
-celery -A celery_worker beat -l info &
+chmod +x ./run.sh
+./run.sh
 ```
 #### 生产模式配置nginx
+> 默认情况下项目已经给管理后台的页面做了静态处理 但是建议使用nginx处理静态文件
 
 ```
 # vim /etc/nginx/conf.d/ctf.conf
