@@ -1,4 +1,7 @@
 __pycache__/
 .idea
 *.log
+*.pid
+/upload/*
 config/local_config.py
+

@@ -104,4 +104,4 @@ beat_schedule = {
     }
 
 }
-broker_url = 'redis://{host}:6379/1'.format(**REDIS_CONFIG)
+broker_url = 'redis://:{password}@{host}:6379/1'.format(**REDIS_CONFIG)

@@ -385,7 +385,7 @@ def build(host):
     args = (task.id, host, build_type, tag, g.user.id)
     if build_type == 'tar':
         file = request.files.get('files')
-        pt = os.path.join('temp', file.filename)
+        pt = os.path.join('upload', file.filename)
         file.save(pt)
         kwargs = {"pt": pt}
     elif build_type == 'dockerfile':
