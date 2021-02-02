@@ -66,7 +66,7 @@ CREATE TABLE `container_resource`  (
   `status` int(255) NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `image_resource_id`(`image_resource_id`) USING BTREE,
-  CONSTRAINT `container_resource_ibfk_1` FOREIGN KEY (`image_resource_id`) REFERENCES `image_resource` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+  CONSTRAINT `container_resource_ibfk_1` FOREIGN KEY (`image_resource_id`) REFERENCES `ocean`.`image_resource` (`id`) ON DELETE
 ) ENGINE = InnoDB AUTO_INCREMENT = 46 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
@@ -131,10 +131,10 @@ CREATE TABLE `image_resource`  (
   `image_id` varchar(128) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '主机中实际的镜像ID',
   `question_id` int(11) NULL DEFAULT NULL COMMENT '对应的题库',
   PRIMARY KEY (`id`) USING BTREE,
-  INDEX `host_id`(`host_id`) USING BTREE,
+  INDEX `host_id`(`host_id`) USING BTREE,dist
   INDEX `question_id`(`question_id`) USING BTREE,
-  CONSTRAINT `image_resource_ibfk_1` FOREIGN KEY (`host_id`) REFERENCES `docker_host` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
-  CONSTRAINT `image_resource_ibfk_2` FOREIGN KEY (`question_id`) REFERENCES `ctf_question` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+  CONSTRAINT `image_resource_ibfk_1` FOREIGN KEY (`host_id`) REFERENCES `ocean`.`docker_host` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `image_resource_ibfk_2` FOREIGN KEY (`question_id`) REFERENCES `ocean`.`ctf_question` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
@@ -249,7 +249,22 @@ CREATE TABLE `user`  (
   UNIQUE INDEX `username`(`username`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 10 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
 
+-- ----------------------------
+-- Table structure for question_file
+-- ----------------------------
+DROP TABLE IF EXISTS `question_file`;
+CREATE TABLE `question_file`  (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `date_created` datetime NOT NULL,
+  `date_modified` datetime NOT NULL,
+   `question_id` int NOT NULL,
+  `filename` varchar(32) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL,
+  `file_path` varchar(128) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL,
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = Dynamic;
+
 SET FOREIGN_KEY_CHECKS = 1;
+
 
 -- 插入超级管理员
 INSERT INTO `ocean`.`s_role`(`id`, `date_created`, `date_modified`, `name`)

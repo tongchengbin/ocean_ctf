@@ -28,6 +28,13 @@ class Question(MainBase):
     active_flag = Column(Boolean(), default=False, comment="是否时动态Flag")
 
 
+class QuestionFile(MainBase):
+    __tablename__ = 'question_file'
+    question_id = Column(Integer,comment="关联的题目ID")
+    filename = Column(String(32), comment='文件名')
+    file_path = Column(String(128), comment="文件相对路径")
+
+
 class ImageResource(MainBase):
     __tablename__ = 'image_resource'
     """

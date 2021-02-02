@@ -11,7 +11,7 @@ from app.auth.acls import auth_cookie
 from data.database import DEFAULT_DATABASE as db
 from data.models import Question, User
 from data.models.admin import Notice
-from data.models.ctf import ImageResource, ContainerResource, Answer
+from data.models.ctf import ImageResource, ContainerResource, Answer, QuestionFile
 from lib.tools import get_ip
 from lib.utils.authlib import create_token
 
@@ -57,9 +57,10 @@ def index():
             links[question_id] = ["%s:%s" % (container.addr, container.container_port)]
     # 统计每个题目解决人数
 
-    solved_query = db.query(Answer.question_id,func.count(Answer.id)).filter(Answer.status==1).group_by(Answer.question_id)
+    solved_query = db.query(Answer.question_id, func.count(Answer.id)).filter(Answer.status == 1).group_by(
+        Answer.question_id)
     solved_state = {}
-    for qid,cnt in solved_query:
+    for qid, cnt in solved_query:
         solved_state[qid] = cnt
     for item in query:
         data.append({
@@ -70,7 +71,7 @@ def index():
             "desc": item.desc,
             "name": item.name,
             "integral": item.integral,
-            "solved": solved_state.get(item.id,0),
+            "solved": solved_state.get(item.id, 0),
             "date_created": item.date_created.strftime("%y-%m-%d"),
             "has_solved": True if item.id in solved_qid else False
         })
@@ -176,10 +177,13 @@ def challenge_detail(question):
             links = []
     else:
         links = []
+    # 附件
+    question_file = db.session.query(QuestionFile).filter(QuestionFile.question_id == instance.id).all()
     data = {
         "links": links,
         "id": instance.id,
         "name": instance.name,
+        "question_file": question_file,
         "desc": instance.desc,
         "active_flag": instance.active_flag,
         "type": instance.type,
@@ -323,7 +327,7 @@ def submit_flag(question):
         if not container:
             answer.status = answer.status_error
             db.session.commit()
-            return make_response(jsonify({"msg":"题库无效，请联系管理员或重新生成!"}),400)
+            return make_response(jsonify({"msg": "题库无效，请联系管理员或重新生成!"}), 400)
         # 判断是否是作弊
         ok_container = db.session.query(ContainerResource) \
             .join(ImageResource, ContainerResource.image_resource_id == ImageResource.id) \
@@ -364,7 +368,7 @@ def submit_flag(question):
         answer.status = answer.status_error
         db.session.add(answer)
         db.session.commit()
-        return make_response(jsonify({"msg": "flag错误!"}),400)
+        return make_response(jsonify({"msg": "flag错误!"}), 400)
     return jsonify({"status": 0})
 
 

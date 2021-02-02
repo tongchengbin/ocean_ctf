@@ -6,7 +6,7 @@ from app.auth.acls import admin_required
 from data.database import DEFAULT_DATABASE as db
 from data.models import (Question, User
                          )
-from data.models.ctf import QType, ImageResource, ContainerResource, Answer
+from data.models.ctf import QType, ImageResource, ContainerResource, Answer, QuestionFile
 
 bp = Blueprint("admin_ctf", __name__, url_prefix="/admin/ctf")
 
@@ -31,7 +31,7 @@ def api_400(ex=None):
         }), 400)
 
 
-@bp.route('/question', methods=['get', 'post'])
+@bp.route('/question', methods=['get'])
 @admin_required
 def question_list():
     """
@@ -39,66 +39,78 @@ def question_list():
         :data :subject 题目分类
     :return:
     """
-    if request.method == 'GET':
-        page = int(request.args.get('page', 1))
-        page_size = int(request.args.get("page_size", 10))
-        subject = request.args.get("subject")
-        query = db.session.query(Question)
-        if subject:
-            query = query.filter(Question.type == subject)
-        page = query.order_by(Question.id.desc()).paginate(page=page, per_page=page_size)
-        data = []
-        for item in page.items:
-            image_resource = db.session.query(ImageResource).filter(ImageResource.question_id == item.id).one_or_none()
-            if image_resource:
-                resource = {
-                    "host": image_resource.host_id,
-                    "image": image_resource.image_id
-                }
-            else:
-                resource = {}
-            data.append({
-                "resource": resource,
-                "id": item.id,
-                "date_created": item.date_created.strftime("%Y-%m-%d %H:%M:%S") if item.date_created else None,
-                "date_modified": item.date_modified.strftime("%Y-%m-%d %H:%M:%S") if item.date_modified else None,
-                "name": item.name,
-                'type': item.type,
-                "active": item.active,
-                "flag": item.flag,
-                "active_flag": item.active_flag,
-                "integral": item.integral,
-                "desc": item.desc
-            })
-        return jsonify({
-            "total": page.total,
-            "results": data
+    page = int(request.args.get('page', 1))
+    page_size = int(request.args.get("page_size", 10))
+    subject = request.args.get("subject")
+    query = db.session.query(Question)
+    if subject:
+        query = query.filter(Question.type == subject)
+    page = query.order_by(Question.id.desc()).paginate(page=page, per_page=page_size)
+    data = []
+    for item in page.items:
+        question_file = db.session.query(QuestionFile).filter(QuestionFile.question_id == item.id).all()
+        image_resource = db.session.query(ImageResource).filter(ImageResource.question_id == item.id).one_or_none()
+        if image_resource:
+            resource = {
+                "host": image_resource.host_id,
+                "image": image_resource.image_id
+            }
+        else:
+            resource = {}
+        data.append({
+            "question_file": [{"filename": f.filename, "file_path": f.file_path} for f in question_file],
+            "resource": resource,
+            "id": item.id,
+            "date_created": item.date_created.strftime("%Y-%m-%d %H:%M:%S") if item.date_created else None,
+            "date_modified": item.date_modified.strftime("%Y-%m-%d %H:%M:%S") if item.date_modified else None,
+            "name": item.name,
+            'type': item.type,
+            "active": item.active,
+            "flag": item.flag,
+            "active_flag": item.active_flag,
+            "integral": item.integral,
+            "desc": item.desc
         })
-    else:
-        data = request.get_json()
-        name = data["name"]
-        active = data["active"]
-        active_flag = data["active_flag"]
-        desc = data["desc"]
-        flag = data["flag"]
-        q_type = data["type"]
-        integral = data["integral"]
-        question = Question(name=name,
-                            active=active,
-                            desc=desc,
-                            flag=flag,
-                            type=q_type,
-                            integral=integral)
-        db.session.add(question)
+    return jsonify({
+        "total": page.total,
+        "results": data
+    })
+
+
+@bp.route('/question/create', methods=['post'])
+@admin_required
+def question_create():
+    data = request.get_json()
+    name = data["name"]
+    active = data["active"]
+    active_flag = data["active_flag"]
+    desc = data["desc"]
+    flag = data["flag"]
+    q_type = data["type"]
+    integral = data["integral"]
+    attachment = data.get('attachment', [])
+    question = Question(name=name,
+                        active=active,
+                        active_flag=active_flag,
+                        desc=desc,
+                        flag=flag,
+                        type=q_type,
+                        integral=integral)
+    db.session.add(question)
+    db.session.flush()
+    if attachment:
+        for file in attachment:
+            db.session.add(QuestionFile(question_id=question.id, filename=file["filename"], file_path=file["file_path"]))
+
+    db.session.commit()
+    if active_flag:
+        image = data["image"]
+        host = data["host"]
+        # docker image 已经在主机中了 只需要创建虚拟镜像资源绑定即可
+        image_resource = ImageResource(question_id=question.id, host_id=host, image_id=image)
+        db.session.add(image_resource)
         db.session.commit()
-        if active_flag:
-            image = data["image"]
-            host = data["host"]
-            # docker image 已经在主机中了 只需要创建虚拟镜像资源绑定即可
-            image_resource = ImageResource(question_id=question.id, host_id=host, image_id=image)
-            db.session.add(image_resource)
-            db.session.commit()
-        return jsonify({})
+    return jsonify({})
 
 
 @bp.route('/question/<int:question>', methods=['post'])
@@ -119,6 +131,13 @@ def question_update(question):
     instance.name = name
     instance.integral = integral
     instance.type = _type
+    attachment = data.get('attachment', [])
+
+    if attachment:
+        # 删除之前的数据  重新关联  这里可以判断优化一下
+        db.session.query(QuestionFile).filter(QuestionFile.question_id == instance.id).delete()
+        for file in attachment:
+            db.session.add(QuestionFile(question_id=question, filename=file["filename"], file_path=file["file_path"]))
     if active_flag:
         host = data.get("host")
         image = data.get("image")
@@ -148,13 +167,15 @@ def question_delete(question):
             filter(ImageResource.question_id == instance.id)
         # kill
         for container in containers:
+            db.session.delete(container)
             client = docker.DockerClient("http://{}".format(container.image.host.addr))
             docker_container = client.containers.get(container.container_id)
             docker_container.stop()
             container.status = 2
-        db.session.delete(instance)
-    else:
-        db.session.delete(instance)
+    # 删除镜像
+
+    db.session.delete(instance)
+
     db.session.commit()
     return jsonify({})
 

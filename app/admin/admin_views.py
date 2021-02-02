@@ -1,6 +1,7 @@
+import os
 from datetime import datetime
 
-from flask import Blueprint, make_response, jsonify, request, g
+from flask import Blueprint, make_response, jsonify, request, g, current_app
 from sqlalchemy import func
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -385,3 +386,21 @@ def notice_delete(pk):
     db.session.delete(instance)
     db.session.commit()
     return jsonify({})
+
+
+@bp.route('/upload', methods=['post'])
+def upload_file():
+    """
+        文件上传入口
+    """
+
+    file = request.files["file"]
+    filename = file.filename
+    upload_dir = current_app.config.get('UPLOAD_DIR')
+    root_path = current_app.config.root_path
+    if ".." in filename:
+        return jsonify({"error": "文件名非法!"})
+    # 目前的文件处理是直接覆盖
+    file_path = os.path.join(root_path, upload_dir, filename)
+    file.save(file_path)
+    return jsonify({"name": filename, "file_path": os.path.join(upload_dir, filename)})

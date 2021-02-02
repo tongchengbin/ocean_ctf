@@ -4,7 +4,7 @@ import os
 
 from celery.schedules import crontab
 
-BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+BASE_DIR = os.path.dirname(os.path.abspath(os.path.dirname(__file__)))
 DEBUG = False
 
 DB_CONFIG = {
@@ -105,3 +105,5 @@ beat_schedule = {
 
 }
 broker_url = 'redis://:{password}@{host}:6379/1'.format(**REDIS_CONFIG)
+
+UPLOAD_DIR = 'upload'

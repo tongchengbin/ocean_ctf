@@ -7,7 +7,7 @@
                     <span aria-hidden="true" style="color: #fff">×</span>
                 </button>
                 <h4 class="modal-title">
-                    <a class="no-over" href="./level03/" target="_blank">
+                    <a class="no-over" target="_blank">
                         <strong style="color: #2b85e4">{{ item.name }}</strong>
                     </a>
                     <div style="font-size: 75%;display: inline;color: #fff">{{ item.solved }} solves</div>
@@ -17,19 +17,15 @@
                 <div>
                     <p style="color: #fff">{{ item.desc }}</p>
                 </div>
+                <!-- 附件 -->
+                <div style="padding: 10px 0;">
+                    {% for file in item.question_file %}
+                        <a style="font-size: 8px;" class="btn btn-primary" role="button" href="{{ file.file_path }}" target="_blank">
+                            <span>{{ file.filename }}</span>
+                        </a>
+                    {% endfor %}
+                </div>
                 <div>
-                    {% if item.active_flag %}
-                        {% if item.links %}
-                            <a class="btn btn-danger" role="button">
-                                <span onclick="destroy({{ item.id }})">销毁</span>
-                            </a>
-                        {% else %}
-                            <a class="btn btn-primary" role="button">
-                                <span onclick="start({{ item.id }})">启动</span>
-                            </a>
-                        {% endif %}
-
-                    {% endif %}
                     {% for u in item.links %}
                         <a class="btn btn-primary" role="button" href="http://{{ u }}" target="_blank"
                            style="float: right">
@@ -46,6 +42,16 @@
                     <div class="row">
                         <div class="col-md-12">
                             <div class="form-inline">
+                                <div class="form-group" style="float: left">
+                                    {% if item.active_flag %}
+                                        {% if item.links %}
+                                            <button onclick="destroy({{ item.id }})" class="btn btn-danger">销毁</button>
+                                        {% else %}
+                                            <button onclick="start({{ item.id }})" class="btn btn-primary">启动</button>
+                                        {% endif %}
+
+                                    {% endif %}
+                                </div>
                                 <div class="form-group">
                                     <div class="input-group">
                                         <div class="input-group-addon btn-primary">

@@ -122,5 +122,16 @@ def register_blueprints(flask_app):
                            host=False,
                            view_func=send_manager_file)
 
+    # 文件上传目录
+    def send_upload_file(filename):
+        cache_timeout = None
+        manager_folder = 'upload'
+        return send_from_directory(manager_folder, filename, cache_timeout=cache_timeout)
+
+    flask_app.add_url_rule(r"/upload/<path:filename>",
+                           endpoint="upload",
+                           host=False,
+                           view_func=send_upload_file)
+
 
 app = create_app()
