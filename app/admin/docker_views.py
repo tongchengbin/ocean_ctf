@@ -45,9 +45,9 @@ def api_404(ex=None):
         }), 404)
 
 
-@bp.route('/addHost', methods=['post'])
+@bp.route('/host', methods=['post'])
 @admin_required
-def add_host():
+def host_crate():
     """
         添加docker主机
     :return:
@@ -79,22 +79,6 @@ def add_host():
     return jsonify({"status": "ok"})
 
 
-@bp.route('/host/<int:host>', methods=['post'])
-@admin_required
-def host_update(host):
-    """
-    :param :host :主机ID
-    :return
-    """
-    data = request.get_json()
-    active = data.get('active')
-    instance = db.session.query(Host).get(host)
-    if active is not None:
-        instance.active = active
-    db.session.commit()
-    return jsonify({})
-
-
 @bp.route('/host/<int:host>/delete', methods=['post'])
 @admin_required
 def host_delete(host):
@@ -110,26 +94,25 @@ def host_delete(host):
     return jsonify({})
 
 
-@bp.route('/editHost', methods=['post'])
+@bp.route('/host/<int:host>/update', methods=['post'])
 @admin_required
-def edit_host():
+def host_update(host):
     """
         添加docker主机
     :return:
     """
     data = request.get_json()
-    pk = data.get("id")
     name = data.get("name", "").strip()
     remark = data.get("remark")
-    # 判断重复
-    if not pk:
-        return make_response(jsonify({'error': '修改失败！', 'code': 400}), 400)
-    instance = db.session.query(Host).filter(Host.id == pk).first()
+    active = data.get("active")
+    instance = db.session.query(Host).filter(Host.id == host).first()
     if not instance:
         return make_response(jsonify({'error': '资源不存在！', 'code': 400}), 400)
     if not name:
         return make_response(jsonify({'error': '主机名不允许为空！', 'code': 400}), 400)
-    if db.session.query(Host).filter(Host.name == name, Host.id != pk).all():
+    if active is not None:
+        instance.active = active
+    if db.session.query(Host).filter(Host.name == name, Host.id != host).all():
         return make_response(jsonify({'error': '该主机名称已存在！', 'code': 400}), 400)
     instance.name = name
     instance.remark = remark
@@ -152,7 +135,7 @@ def host_list():
     for item in page.items:
         if item.active:
             try:
-                client = docker.DockerClient("http://{}".format(item.addr), timeout=1.5)
+                client = docker.DockerClient("http://{}".format(item.addr), timeout=2)
                 info = client.info()
             except docker_error.DockerException:
                 info = {}
@@ -224,7 +207,7 @@ def host_images(host):
 
 @bp.route('/host/<int:host>/images/del_tag', methods=['post'])
 @admin_required
-def del_tag(host):
+def host_docker_tag_delete(host):
     """
         删除镜像标签
         :param host:docker主机id
@@ -244,7 +227,7 @@ def del_tag(host):
 
 @bp.route('/imagesDel', methods=['post'])
 @admin_required
-def images_del():
+def host_docker_images_delete():
     """
         删除镜像
 
@@ -263,7 +246,7 @@ def images_del():
 
 @bp.route('/containers', methods=['get'])
 @admin_required
-def host_container():
+def host_docker_container():
     """
         获取镜像列表
     :return:

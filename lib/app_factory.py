@@ -1,7 +1,7 @@
 import logging
 from urllib.parse import urljoin, urlparse
 
-from flask import Flask, send_from_directory
+from flask import Flask, send_from_directory, jsonify
 from flask import g
 from flask import request
 from flask import url_for
@@ -89,6 +89,9 @@ def register_extensions(app, test_config=None):
                             response.status_code, request.path)
             raise
 
+    def check_or_500(response:Response):
+        print("------------")
+
     app.after_request(cors)
     app.after_request(check_or_404)
 
@@ -135,3 +138,6 @@ def register_blueprints(flask_app):
 
 
 app = create_app()
+
+
+

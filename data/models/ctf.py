@@ -30,7 +30,7 @@ class Question(MainBase):
 
 class QuestionFile(MainBase):
     __tablename__ = 'question_file'
-    question_id = Column(Integer,comment="关联的题目ID")
+    question_id = Column(Integer, comment="关联的题目ID")
     filename = Column(String(32), comment='文件名')
     file_path = Column(String(128), comment="文件相对路径")
 

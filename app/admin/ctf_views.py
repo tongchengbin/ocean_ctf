@@ -100,7 +100,8 @@ def question_create():
     db.session.flush()
     if attachment:
         for file in attachment:
-            db.session.add(QuestionFile(question_id=question.id, filename=file["filename"], file_path=file["file_path"]))
+            db.session.add(
+                QuestionFile(question_id=question.id, filename=file["filename"], file_path=file["file_path"]))
 
     db.session.commit()
     if active_flag:
@@ -113,7 +114,7 @@ def question_create():
     return jsonify({})
 
 
-@bp.route('/question/<int:question>', methods=['post'])
+@bp.route('/question/<int:question>/update', methods=['post'])
 def question_update(question):
     """
         修改题目
@@ -127,29 +128,36 @@ def question_update(question):
     active_flag = data.get("active_flag")
     integral = data.get("integral")
     flag = data.get("flag")
-    instance.active_flag = active_flag
-    instance.name = name
-    instance.integral = integral
-    instance.type = _type
+    if active_flag is not None:
+        instance.active_flag = active_flag
+    if name is not None:
+        instance.name = name
+    if integral is not None:
+        instance.integral = integral
+    if _type is not None:
+        instance.type = _type
     attachment = data.get('attachment', [])
-
-    if attachment:
+    active = data.get("active")
+    if active is not None:
+        instance.active = active
+    if attachment is not None:
         # 删除之前的数据  重新关联  这里可以判断优化一下
         db.session.query(QuestionFile).filter(QuestionFile.question_id == instance.id).delete()
         for file in attachment:
             db.session.add(QuestionFile(question_id=question, filename=file["filename"], file_path=file["file_path"]))
-    if active_flag:
-        host = data.get("host")
-        image = data.get("image")
-        current_images = db.session.query(ImageResource).filter(ImageResource.question_id == instance.id).one_or_none()
-        if current_images:
-            current_images.host_id = host
-            current_images.image_id = image
+    if active_flag is not None:
+        if active_flag:
+            host = data.get("host")
+            image = data.get("image")
+            current_images = db.session.query(ImageResource).filter(ImageResource.question_id == instance.id).one_or_none()
+            if current_images:
+                current_images.host_id = host
+                current_images.image_id = image
+            else:
+                db.session.add(ImageResource(host_id=host, image_id=image, question_id=instance.id))
         else:
-            db.session.add(ImageResource(host_id=host, image_id=image, question_id=instance.id))
-    else:
-        if flag is not None:
-            instance.flag = flag
+            if flag is not None:
+                instance.flag = flag
     db.session.commit()
     return jsonify({})
 
