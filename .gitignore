@@ -5,3 +5,4 @@ __pycache__/
 /upload/*
 config/local_config.py
 celerybeat-schedule
+*.db
