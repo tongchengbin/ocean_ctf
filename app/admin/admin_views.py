@@ -404,3 +404,24 @@ def upload_file():
     file_path = os.path.join(root_path, upload_dir, filename)
     file.save(file_path)
     return jsonify({"name": filename, "file_path": os.path.join(upload_dir, filename)})
+
+
+@bp.route('/logs', methods=['get'])
+def log_query():
+    """
+        日志查询接口  api worker beat
+    """
+    filename = request.args.get('filename')
+    search = request.args.get('search')
+    lines = int(request.args.get('lines', 100))
+    filepath = os.path.join(current_app.config.root_path, 'logs', "%s.log"%filename)
+    if not filename or not os.path.exists(filepath.strip()):
+        return make_response(jsonify({"msg": "日志不存在"}), 400)
+    data=[]
+    with open(filepath, 'r', encoding='utf-8') as f:
+        while True:
+            line = f.readline()
+            if not line:
+                break
+            data.append(line)
+    return jsonify({"data":data[-lines:]})
