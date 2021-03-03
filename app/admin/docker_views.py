@@ -11,42 +11,14 @@ from app.tasks import task_docker
 from data.database import DEFAULT_DATABASE as db
 from data.models import TaskList
 from data.models.docker import (Host, )
+from lib.decorators import check_permission
 
 bp = Blueprint("admin_docker", __name__, url_prefix="/admin/docker")
 
 
-@bp.errorhandler(500)
-def api_500(ex=None):
-    """Return a 500 in JSON format."""
-    return make_response(
-        jsonify({
-            'error': 'Internal server error',
-            'code': 500
-        }), 500)
-
-
-@bp.errorhandler(400)
-def api_400(ex=None):
-    """Return a 500 in JSON format."""
-    return make_response(
-        jsonify({
-            'error': 'Internal server error',
-            'code': 400
-        }), 400)
-
-
-@bp.errorhandler(404)
-def api_404(ex=None):
-    """Return a 500 in JSON format."""
-    return make_response(
-        jsonify({
-            'error': 'url not found',
-            'code': 404
-        }), 404)
-
-
 @bp.route('/host', methods=['post'])
 @admin_required
+@check_permission
 def host_crate():
     """
         添加docker主机
@@ -81,6 +53,7 @@ def host_crate():
 
 @bp.route('/host/<int:host>/delete', methods=['post'])
 @admin_required
+@check_permission
 def host_delete(host):
     """
     删除主机
@@ -96,6 +69,7 @@ def host_delete(host):
 
 @bp.route('/host/<int:host>/update', methods=['post'])
 @admin_required
+@check_permission
 def host_update(host):
     """
         添加docker主机
@@ -122,6 +96,7 @@ def host_update(host):
 
 @bp.route('/hostList', methods=['get'])
 @admin_required
+@check_permission
 def host_list():
     """
         主机列表
@@ -158,6 +133,7 @@ def host_list():
 
 @bp.route('/hostDetail', methods=['get'])
 @admin_required
+@check_permission
 def host_detail():
     """主机详情
     :data id: 主机ID
@@ -182,6 +158,7 @@ def host_detail():
 
 @bp.route('/host/<int:host>/images', methods=['get'])
 @admin_required
+@check_permission
 def host_images(host):
     """
         获取镜像列表
@@ -207,6 +184,7 @@ def host_images(host):
 
 @bp.route('/host/<int:host>/images/del_tag', methods=['post'])
 @admin_required
+@check_permission
 def host_docker_tag_delete(host):
     """
         删除镜像标签
@@ -227,6 +205,7 @@ def host_docker_tag_delete(host):
 
 @bp.route('/imagesDel', methods=['post'])
 @admin_required
+@check_permission
 def host_docker_images_delete():
     """
         删除镜像
@@ -246,6 +225,7 @@ def host_docker_images_delete():
 
 @bp.route('/containers', methods=['get'])
 @admin_required
+@check_permission
 def host_docker_container():
     """
         获取镜像列表
@@ -271,6 +251,7 @@ def host_docker_container():
 
 @bp.route('/containerStop', methods=['post'])
 @admin_required
+@check_permission
 def container_stop():
     """
         关闭容器
@@ -290,6 +271,7 @@ def container_stop():
 
 @bp.route('/containerStart', methods=['post'])
 @admin_required
+@check_permission
 def container_start():
     """
         关闭容器
@@ -309,6 +291,7 @@ def container_start():
 
 @bp.route('/containerAction', methods=['post'])
 @admin_required
+@check_permission
 def container_action():
     """
         容器操作
@@ -330,6 +313,7 @@ def container_action():
 
 @bp.route('/host/<int:host>/image/<image>', methods=['get'])
 @admin_required
+@check_permission
 def image_detail(host, image):
     """
         镜像详情
@@ -356,6 +340,7 @@ def image_detail(host, image):
 
 @bp.route('/host/<int:host>/image/build', methods=['post'])
 @admin_required
+@check_permission
 def build(host):
     """
         编译是一个比较耗时的任务 这里回采取延迟执行方式

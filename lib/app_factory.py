@@ -1,19 +1,20 @@
 import logging
 from urllib.parse import urljoin, urlparse
 
-from flask import Flask, send_from_directory, jsonify
+from flask import Flask, send_from_directory, jsonify, make_response
 from flask import g
 from flask import request
 from flask import url_for
 from werkzeug import Response
-from werkzeug.exceptions import Forbidden
+from werkzeug.exceptions import HTTPException
 
 from config import config
 from data.database import init_app as init_db
 from lib import command as command_app
 from lib.cache import cache
+from lib.exceptions import RestExceptions
 from lib.middlewares import before_req_cache_ip
-
+permission_white_list = ("/admin/login",)
 
 def create_app(test_config=None):
     """
@@ -36,8 +37,19 @@ def create_app(test_config=None):
     init_db(flask_app)
     command_app.init_app(flask_app)
     flask_app.before_request_funcs.setdefault(None, []).append(before_req_cache_ip)
-
+    # 注册异常拦截
+    register_errors(flask_app)
     return flask_app
+
+
+def register_errors(app: Flask):
+    """
+    @type app: object
+    """
+
+    @app.errorhandler
+    def default_error_handler(e):
+        print(e)
 
 
 def register_custom_helpers(app):
@@ -60,6 +72,17 @@ def register_custom_helpers(app):
     app.jinja_env.globals['url_for_no_querystring'] = url_for_no_querystring
 
 
+def exception_handle(e):
+    if isinstance(e, RestExceptions):
+        return make_response(jsonify({"msg": e.msg, "code": e.code}), e.status)
+    if isinstance(e, HTTPException):
+        return make_response(jsonify({"msg": e.name, "code": e.code}), e.code)
+    logger = logging.getLogger()
+    exc_info = (type(e), e, e.__traceback__)
+    logger.error('Exception occurred', exc_info=exc_info)
+    return make_response(jsonify({"msg": type(e).__name__, "code": 500}), 500)
+
+
 def register_extensions(app, test_config=None):
     """异常捕获"""
 
@@ -71,6 +94,8 @@ def register_extensions(app, test_config=None):
                 request._authorized = True
                 return
 
+
+
     app.before_request(always_authorize)
 
     def cors(environ):
@@ -79,21 +104,7 @@ def register_extensions(app, test_config=None):
         environ.headers['Access-Control-Allow-Headers'] = 'x-requested-with,content-type,Authorization,Token'
         return environ
 
-    def check_or_404(response: Response):
-        if response.status_code // 100 != 2:
-            return response
-        try:
-            return response
-        except Forbidden:
-            logging.warning('Automatically denied access to response %d of %s',
-                            response.status_code, request.path)
-            raise
-
-    def check_or_500(response:Response):
-        print("------------")
-
     app.after_request(cors)
-    app.after_request(check_or_404)
 
 
 def register_blueprints(flask_app):
@@ -139,5 +150,6 @@ def register_blueprints(flask_app):
 
 app = create_app()
 
+app.register_error_handler(Exception, exception_handle)
 
 

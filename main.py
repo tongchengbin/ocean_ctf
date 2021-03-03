@@ -37,19 +37,6 @@ def enable_sql_logs():
     return {}
 
 
-@app.errorhandler(500)
-def handle_500(e):
-    return jsonify({}), 500
-
-
-@app.errorhandler(Exception)
-def error_handle(e):
-    logger = logging.getLogger()
-    exc_info = (type(e), e, e.__traceback__)
-    logger.error('Exception occurred', exc_info=exc_info)
-    return jsonify({"error": type(e).__name__}), 500
-
-
 def check_db_state():
     with app.app_context():
         config = app.extensions["migrate"].migrate.get_config()

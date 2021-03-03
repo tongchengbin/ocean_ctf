@@ -107,3 +107,6 @@ beat_schedule = {
 broker_url = 'redis://:{password}@{host}:6379/1'.format(**REDIS_CONFIG)
 
 UPLOAD_DIR = 'upload'
+
+
+white_url_list = ('/admin/login','/admin/logout')
