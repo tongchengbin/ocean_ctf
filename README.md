@@ -26,7 +26,7 @@
 线上地址 http://159.75.92.142:8080
 管理后台 http://159.75.92.142:8080/manager  访客账号  test/test  
 
-默认超级管理员账号 superuser/admin
+  默认超级管理员账号 superuser/admin
 
 
 #### 环境依赖
