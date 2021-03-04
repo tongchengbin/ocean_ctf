@@ -24,10 +24,10 @@
 #### Demo地址
 
 线上地址 http://159.75.92.142:8080
+管理后台 http://159.75.92.142:8080/manager  访客账号  test/test  
 
-~~线上测试用户 test/test ~~  已开放注册
+默认超级管理员账号 superuser/admin
 
-后台地址/manager 默认管理员密码superuser/admin 安全考虑不开使用 请自行部署测试。
 
 #### 环境依赖
 
