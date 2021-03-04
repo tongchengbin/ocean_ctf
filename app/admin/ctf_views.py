@@ -7,6 +7,7 @@ from data.database import DEFAULT_DATABASE as db
 from data.models import (Question, User
                          )
 from data.models.ctf import QType, ImageResource, ContainerResource, Answer, QuestionFile
+from lib import exceptions
 from lib.decorators import check_permission
 from lib.rest_views import BaseMethodView
 
@@ -233,6 +234,8 @@ class QuestionView(BaseMethodView):
         q_type = data["type"]
         integral = data["integral"]
         attachment = data.get('attachment', [])
+        if not name:
+            raise exceptions.CheckException("名称字段不允许为空")
         question = Question(name=name,
                             active=active,
                             active_flag=active_flag,
