@@ -25,7 +25,7 @@ def login_required(func):
             g.user = admin
             return func(*args, **kwargs)
         else:
-            return APIForbidden()
+            raise APIForbidden()
     return inner
 
 
