@@ -168,7 +168,8 @@ ubuntu: sudo apt-get install libmysqlclient-dev
 动态Flag需要在Dockerfile中写入启动运行脚本，并从文件拷贝至容器用于替换题目中的静态flag 
 flag变量为$1
 ```
-
+#### 开发
+  后台管理前端：https://github.com/tongchengbin/ocean_manager
 #### 其他截图
 
 - ![](./doc/image/6.png)
