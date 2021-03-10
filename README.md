@@ -35,11 +35,16 @@
 
 ##### 前置环境
 
-```docker、docker-compose、git```
+```
+docker、docker-compose、git
+```
 
 ##### clone
 
-```git clone https://github.com/tongchengbin/ocean_ctf.git```
+```
+git clone https://github.com/tongchengbin/ocean_ctf.git
+```
+
 ##### 编译web环境
 ```
 docker build -t ocean_web -f install/docker/ocean_web.Dockerfile .
