@@ -32,7 +32,7 @@ else
 fi
 # 添加数据库文件
 cd $workDir
-mysql -uroot -p123456 -e "source install/ocean.sql"
+mysql -uroot -p123456 -e "source install/db_init/ocean.sql"
 $pip3 install --upgrade pip
 $pip3 install -r requirements.txt
 systemctl start redis

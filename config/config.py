@@ -1,9 +1,7 @@
 # 配置文件
 import logging.handlers
 import os
-
 from celery.schedules import crontab
-
 BASE_DIR = os.path.dirname(os.path.abspath(os.path.dirname(__file__)))
 DEBUG = False
 
@@ -14,6 +12,22 @@ DB_CONFIG = {
     "port": "3306",
     "db": "ocean"
 }
+REDIS_CONFIG = {
+    "host": '127.0.0.1',
+    'password': ""
+}
+# 加载虚拟环境
+envs = os.environ
+if "DB_HOST" in envs:
+    DB_CONFIG["host"] = envs["DB_HOST"]
+if "DB_USER" in envs:
+    DB_CONFIG["user"] = envs["DB_USER"]
+if "DB_PASSWORD" in envs:
+    DB_CONFIG["password"] = envs["DB_PASSWORD"]
+if "REDIS_HOST" in envs:
+    REDIS_CONFIG["host"] = envs["REDIS_HOST"]
+if "REDIS_PASSWORD" in envs:
+    REDIS_CONFIG["password"] = envs["REDIS_PASSWORD"]
 
 # 跨域配置
 CSRF_ENABLED = True
@@ -77,24 +91,12 @@ LOGGING = {
     }
 }
 
-REDIS_CONFIG = {
-    "host": '127.0.0.1',
-    'password': ""
-}
-
-# end config
-
-try:
-    from .local_config import *
-except ImportError:
-    pass
-
 THREADS_PER_PAGE = 2
 SQLALCHEMY_ECHO = False
 DATABASE_CONNECT_OPTIONS = {}
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 SQLALCHEMY_DATABASE_URI = "mysql+mysqldb://{user}:{password}@{host}:{port}/{db}".format(**DB_CONFIG)
-
+print(SQLALCHEMY_DATABASE_URI)
 #  定时任务
 timezone = 'Asia/Shanghai'
 beat_schedule = {

@@ -1,7 +1,7 @@
 # Ocean CTF
 > 一个动态flag练习靶场平台
 
-#### TODO
+## TODO
 
 - [x] 容器管理 
 - [x] 题库管理
@@ -14,35 +14,62 @@
 - [x] 排行榜
 - [x] 快速部署
 - [ ] 大屏展示
-- [ ] 权限分离
+- [x] 权限分离
 - [ ] fix bug
 - [ ] fix bug
 - [ ] fix bug
 
 
 
-#### Demo地址
+## 预览
 
 线上地址 http://159.75.92.142:8080
 管理后台 http://159.75.92.142:8080/manager  访客账号  test/test  
 
   默认超级管理员账号 superuser/admin
+## 安装
 
+### docker方式
 
-#### 环境依赖
+> docker 编排会引用.env文件中的环境变量
+
+##### 前置环境
+
+```docker、docker-compose、git```
+
+##### clone
+
+```git clone https://github.com/tongchengbin/ocean_ctf.git```
+##### 编译web环境
+```
+docker build -t ocean_web -f install/docker/ocean_web.Dockerfile .
+```
+##### compose编排
+```
+docker-compose up
+```
+##### 访问测试
+```
+curl 127.0.0.1:8080
+```
+### 手动安装
+
+##### 前置环境
 
 ```
-Python3.6+
-mysql5.6+
+Python 3.6+
+mysql 5.6+
 redis
 nginx(可选)
+docker(可选)
+supervisord(可选)
 
 ```
 
-##### 下载代码
+##### clone
 
 ```
-git clone https://github.com/tongchengbin/ocean_ctf.git
+git clone https://github.com/tongchengbin/ocean_ctf.git /opt/ocean_ctf
 ```
 
 ##### 修改配置文件
@@ -68,7 +95,7 @@ REDIS_CONFIG = {
 ##### 初始化数据库
 
 ```
-mysql -uroot -p{password} -e "source install/ocean.sql"
+mysql -uroot -p -e "source install/db_init/ocean.sql"
 ```
 ##### 安装Python依赖
 
@@ -83,7 +110,7 @@ pip install -r requirements.txt
 chmod +x ./run.sh
 ./run.sh
 ```
-##### 生产模式配置nginx
+##### 通过nginx代理
 > 默认情况下项目已经给管理后台的页面做了静态处理 但是建议使用nginx处理静态文件
 
 ```
@@ -122,34 +149,7 @@ server {
 
    
 
-#### Docker容器
-
-##### 安装Docker
-```
-curl -fsSL https://get.docker.com | bash -s docker --mirror Aliyun
-
-启动
-systemctl start docker
-查看状态
-systemctl status docker
-
-您亦可以使用阿里云镜像加速来获取更好的体验
-
-```
-
-##### 开启 Docker API 2375 端口
-```
-开启API
-vim /usr/lib/systemd/system/docker.service
-ExecStart=/usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock -H tcp://0.0.0.0:2375
-systemctl daemon-reload
-systemctl restart docker
-
-检查API
-curl 127.0.0.1:2375/info
-```
-
-#### 常见问题&注意事项
+### 常见问题&注意事项
 
 ##### python
 ```
@@ -163,14 +163,18 @@ ubuntu: sudo apt-get install libmysqlclient-dev
 
 ```
 
-##### Docker
-```
-动态Flag需要在Dockerfile中写入启动运行脚本，并从文件拷贝至容器用于替换题目中的静态flag 
-flag变量为$1
-```
-#### 开发
-  后台管理前端：https://github.com/tongchengbin/ocean_manager
-#### 其他截图
+## 题库
+
+>  题库仓库：[GitHub - tongchengbin/ctfdb: ctf 题库](https://github.com/tongchengbin/ctfdb)
+
+#### 题库格式说明
+
+
+
+## 开发
+
+  后台管理源码：https://github.com/tongchengbin/ocean_manager
+## 其他截图
 
 - ![](./doc/image/6.png)
 

@@ -18,6 +18,16 @@ from lib.utils.authlib import create_token
 bp = Blueprint("view", __name__, url_prefix='')
 
 
+@bp.route('/manager',methods=['get'])
+def redirect_manager():
+    """
+    开发模式下 管理页面的跳转
+    @return:
+    """
+
+    return redirect('/manager/index.html')
+
+
 def generate_flag():
     """
         生成flag

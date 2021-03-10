@@ -1,18 +1,13 @@
-import logging
-import logging.config
+
 import sys
 
 import alembic.runtime.environment
 import alembic.script
-from flask import jsonify
-
-from config import config
 from data.database import DEFAULT_DATABASE
 from lib.app_factory import app, register_blueprints
 
 db = DEFAULT_DATABASE.db
 register_blueprints(app)
-logging.config.dictConfig(config.LOGGING)
 '''
     shell context processor 注册一个shell上下文函数 不然使用shell 时不会加载对应的模块
 '''
@@ -27,14 +22,6 @@ def auto_import():
     ctx['session'] = db.session
     ctx['db'] = db
     return ctx
-
-
-@app.shell_context_processor
-def enable_sql_logs():
-    logging.basicConfig(
-        format='\x1b[34m%(levelname)s\x1b[m:\x1b[2m%(name)s\x1b[m:%(message)s')
-    logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
-    return {}
 
 
 def check_db_state():
@@ -69,8 +56,7 @@ def check_db_state():
 
 
 def main():
-    # print(app.url_map)
-    app.run(host='127.0.0.1', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=8080, debug=True)
 
 
 if __name__ == "__main__":

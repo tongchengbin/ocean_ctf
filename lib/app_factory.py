@@ -1,12 +1,12 @@
 import logging
 from urllib.parse import urljoin, urlparse
 
-from flask import Flask, send_from_directory, jsonify, make_response
+from flask import Flask, send_from_directory, jsonify, make_response, redirect
 from flask import g
 from flask import request
 from flask import url_for
 from werkzeug import Response
-from werkzeug.exceptions import HTTPException
+from werkzeug.exceptions import HTTPException,NotFound
 
 from config import config
 from data.database import init_app as init_db
@@ -15,6 +15,7 @@ from lib.cache import cache
 from lib.exceptions import RestExceptions
 from lib.middlewares import before_req_cache_ip
 permission_white_list = ("/admin/login",)
+
 
 def create_app(test_config=None):
     """
@@ -129,13 +130,13 @@ def register_blueprints(flask_app):
     def send_manager_file(filename):
         cache_timeout = None
         manager_folder = 'install/manager/dist/'
+
         return send_from_directory(manager_folder, filename, cache_timeout=cache_timeout)
 
     flask_app.add_url_rule(r"/manager/<path:filename>",
                            endpoint="manager",
                            host=False,
                            view_func=send_manager_file)
-
     # 文件上传目录
     def send_upload_file(filename):
         cache_timeout = None
