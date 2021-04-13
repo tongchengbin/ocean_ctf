@@ -43,7 +43,7 @@ class ImageResource(MainBase):
     host_id = Column(Integer, ForeignKey('docker_host.id'))
     image_id = Column(String(128), comment="主机中实际的镜像ID")
     question_id = Column(Integer, ForeignKey('ctf_question.id'), comment="对应的题库")
-    containers = relationship('ContainerResource', backref='image_resource')
+    host = relationship('Host', backref='image_resource')
 
 
 class ContainerResource(MainBase):
@@ -60,6 +60,7 @@ class ContainerResource(MainBase):
     container_port = Column(String(64), comment="端口映射", nullable=True)
     addr = Column(String(12), comment="快照主机IP")
     user_id = Column(Integer, ForeignKey('user.id'), comment="关联用户")
+    image_resource = relationship('ImageResource',backref='containers')
     # 应该还需要对应用户
 
 

@@ -12,11 +12,11 @@ DB_HOST = ''
 DB_USER = 'root'
 DB_PASSWORD = ''
 DB_PORT = '3306'
-DB_NAME = 'ocean_test'
+DB_NAME = 'ocean'
 # end db
 
 # cache
-REDIS_URL = 'redis://127.0.0.1:6379'
+REDIS_URL = 'redis://:@192.168.1.6:6379'
 # end cache
 
 # 跨域配置
