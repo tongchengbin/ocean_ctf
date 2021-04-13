@@ -77,31 +77,6 @@ supervisord(可选)
 git clone https://github.com/tongchengbin/ocean_ctf.git /opt/ocean_ctf
 ```
 
-##### 修改配置文件
-
-```
-# vim config/config.py
-# mysql/mariadb 配置文件  当然也可以替换其他数据库
-DB_CONFIG = {
-    "user": 'root',
-    "password": '123456',
-    "host": '127.0.0.1',
-    "port": "3306",
-    "db":"ocean"
-}
-# redis配置
-REDIS_CONFIG = {
-    "host":'127.0.0.1',
-    'password':""
-}
-
-```
-
-##### 初始化数据库
-
-```
-mysql -uroot -p -e "source install/db_init/ocean.sql"
-```
 ##### 安装Python依赖
 
 ```

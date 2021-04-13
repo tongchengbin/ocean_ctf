@@ -2,10 +2,10 @@ from functools import wraps
 
 from flask import request, g
 
-from config.config import white_url_list
-from data.models import Admin
-from data.models.base import db
-from lib.exceptions import APIForbidden
+from config.config import WHITE_URL_LIST
+from app.models.admin import Admin
+from app.models.base import db
+from app.lib.exceptions import APIForbidden
 
 
 def login_required(func):
@@ -36,7 +36,7 @@ def check_permission(func):
         # 如果没有用户 不校验权限
         method = request.method
         full_path = request.path
-        if user and user.role_id == 4 and method not in ('OPTIONS', 'GET') and full_path not in white_url_list:
+        if user and user.role_id == 4 and method not in ('OPTIONS', 'GET') and full_path not in WHITE_URL_LIST:
             raise APIForbidden(msg="访客无权操作",code=4003)
         return func(*args,**kwargs)
 

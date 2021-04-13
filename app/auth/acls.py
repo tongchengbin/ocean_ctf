@@ -2,11 +2,10 @@ import logging
 from functools import wraps
 
 from flask import request, g, jsonify, make_response
-
+from app import db
 from app.exceptions import APIForbidden
-from data.database import DEFAULT_DATABASE as db
-from data.models import User
-from data.models.admin import Admin
+from app.models.user import User
+from app.models.admin import Admin
 
 log = logging.getLogger(__name__)
 

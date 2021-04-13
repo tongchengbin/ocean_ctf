@@ -1,5 +1,5 @@
 from flask.views import MethodView
-from lib.decorators import login_required,check_permission
+from app.lib.decorators import login_required,check_permission
 
 
 class BaseMethodView(MethodView):

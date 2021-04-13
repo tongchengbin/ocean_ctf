@@ -3,11 +3,11 @@ from io import BytesIO
 
 from docker import APIClient, errors as docker_error
 
-from celery_worker import app, flask_app
-from data.database import DEFAULT_DATABASE as db
-from data.models import Host
-from data.models.admin import TaskList
-from lib.app_factory import cache
+from app import cache
+from app import celery_app
+from app import db
+from app.models.admin import TaskList
+from app.models.docker import Host
 
 
 def docker_out_format(data):
@@ -37,32 +37,35 @@ def task_add_log(task: int, line: dict):
         cache.rpush(task_key, line["status"])
 
 
-@app.task
+@celery_app.task
 def build_delay(task: int, host, build_type, tag, admin, pt=None, dockerfile=None):
     """
         编译镜像
     """
-    with flask_app.app_context():
-        task = db.query(TaskList).get(task)
-        instance = db.session.query(Host).filter(Host.id == host).one_or_none()
-        cli = APIClient(base_url='tcp://{}'.format(instance.addr))
-        if build_type == 'tar':
-            f = open(pt, 'rb')
-            for line in cli.build(fileobj=f, rm=True, tag=tag, custom_context=True):
-                print(line)
+    task = db.session.query(TaskList).get(task)
+    instance = db.session.query(Host).filter(Host.id == host).one_or_none()
+    cli = APIClient(base_url='tcp://{}'.format(instance.addr))
+    if build_type == 'tar':
+        f = open(pt, 'rb')
+        for line in cli.build(fileobj=f, rm=True, tag=tag, custom_context=True):
+            print(line)
+            task_add_log(task.id, line)
+        task.status = task.STATUS_DONE
+    elif build_type == 'pull':
+        for line in cli.pull(tag, stream=True, decode=True):
+            task_add_log(task.id, line)
+        task.status = task.STATUS_DONE
+    else:
+        try:
+            f = BytesIO(dockerfile.encode('utf-8'))
+            for line in cli.build(fileobj=f, rm=True, tag=tag):
                 task_add_log(task.id, line)
             task.status = task.STATUS_DONE
-        elif build_type == 'pull':
-            for line in cli.pull(tag, stream=True, decode=True):
-                task_add_log(task.id, line)
-            task.status = task.STATUS_DONE
-        else:
-            try:
-                f = BytesIO(dockerfile.encode('utf-8'))
-                for line in cli.build(fileobj=f, rm=True, tag=tag):
-                    task_add_log(task.id, line)
-                task.status = task.STATUS_DONE
-            except docker_error.DockerException as e:
-                task.status = task.STATUS_ERROR
-                task.remark = str(e)
-        db.session.commit()
+        except docker_error.DockerException as e:
+            task.status = task.STATUS_ERROR
+            task.remark = str(e)
+    db.session.commit()
+
+
+if __name__ == '__main__':
+    build_delay(139, 14, 'pull', 'nginx:lastest', 1)

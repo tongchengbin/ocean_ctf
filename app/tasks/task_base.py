@@ -1,12 +1,13 @@
+from __future__ import absolute_import
 from datetime import datetime, timedelta
 
-from celery_worker import app, flask_app
-from data.database import DEFAULT_DATABASE as db
-from data.models.admin import RequestState
-from lib.cache import cache, ConstCacheKey
+from app import db
+from app.models.admin import RequestState
+from app.lib.cache import cache, ConstCacheKey
+from app import celery_app
 
 
-@app.task
+@celery_app.task
 def day_upload_req():
     """
 
@@ -19,3 +20,8 @@ def day_upload_req():
         instance = RequestState(day=day, ip_count=ip_count, req_count=req_count)
         db.session.add(instance)
         db.session.commit()
+
+
+@celery_app.task
+def celery_test():
+    print("celery task success")

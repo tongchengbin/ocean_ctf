@@ -4,16 +4,16 @@ import string
 import docker
 from docker import errors as docker_error
 from flask import Blueprint, jsonify, render_template, request, make_response, g, redirect
-from sqlalchemy import func
+from sqlalchemy import func, desc
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from app.auth.acls import auth_cookie
-from data.database import DEFAULT_DATABASE as db
-from data.models import Question, User
-from data.models.admin import Notice
-from data.models.ctf import ImageResource, ContainerResource, Answer, QuestionFile
-from lib.tools import get_ip
-from lib.utils.authlib import create_token
+from app import db
+from app.models.user import  User
+from app.models.admin import Notice
+from app.models.ctf import ImageResource, ContainerResource, Answer, QuestionFile,Question
+from app.lib.tools import get_ip
+from app.lib.utils.authlib import create_token
 
 bp = Blueprint("view", __name__, url_prefix='')
 
@@ -51,7 +51,7 @@ def index():
     solved_qid = []
     if g.user:
         # 我已解决的题目
-        solved_question = db.query(Answer.question_id).filter(Answer.user_id == g.user.id, Answer.status == 1).all()
+        solved_question = db.session.query(Answer.question_id).filter(Answer.user_id == g.user.id, Answer.status == 1).all()
         solved_qid = [i[0] for i in solved_question]
     data = []
     links = {}
@@ -60,14 +60,14 @@ def index():
         containers = db.session.query(ContainerResource, ImageResource.question_id) \
             .join(ImageResource, ImageResource.id == ContainerResource.image_resource_id
                   ) \
-            .join(User, User.id == ContainerResource.user_id).order_by(ContainerResource.id.desc()).all()
+            .join(User, User.id == ContainerResource.user_id).order_by(desc(ContainerResource.id)).all()
         # 获取用户容器
         for c in containers:
             container, question_id = c
             links[question_id] = ["%s:%s" % (container.addr, container.container_port)]
     # 统计每个题目解决人数
 
-    solved_query = db.query(Answer.question_id, func.count(Answer.id)).filter(Answer.status == 1).group_by(
+    solved_query = db.session.query(Answer.question_id, func.count(Answer.id)).filter(Answer.status == 1).group_by(
         Answer.question_id)
     solved_state = {}
     for qid, cnt in solved_query:
@@ -113,7 +113,7 @@ def login():
         password = request.form.get("password")
         if not all([username, password]):
             return render_template('login.html', error="用户名或密码不允许为空")
-        user = db.query(User).filter(User.username == username).one_or_none()
+        user = db.session.query(User).filter(User.username == username).one_or_none()
         if user and check_password_hash(user.password, password):
             token = create_token()
             user.token = token
@@ -137,7 +137,7 @@ def register():
         password2 = request.form.get("password2")
         if not all([username, password, password2]):
             return render_template('login.html', error="用户名或密码不允许为空")
-        user = db.query(User).filter(User.username == username).one_or_none()
+        user = db.session.query(User).filter(User.username == username).one_or_none()
         if user:
             return render_template('register.html', error="该用户名已注册")
         if password2 != password:
@@ -171,7 +171,7 @@ def challenge_detail(question):
     :param question:
     :return:
     """
-    instance = db.query(Question).get(question)
+    instance = db.session.query(Question).get(question)
     if g.user and instance.active_flag:
         # 获取镜像资源
         container = db.session.query(ContainerResource) \
@@ -215,10 +215,10 @@ def question_start(question):
     if not g.user:
         return make_response(jsonify({"msg": "请先登陆"}), 403)
     user = g.user
-    instance = db.query(Question).get(question)
+    instance = db.session.query(Question).get(question)
     if not instance.active_flag:
         return make_response(jsonify({"msg": "静态题库无需动态生成"}))
-    image_resource = db.query(ImageResource).filter(ImageResource.question_id == instance.id).one_or_none()
+    image_resource = db.session.query(ImageResource).filter(ImageResource.question_id == instance.id).one_or_none()
     if not image_resource:
         return make_response(jsonify({"msg": "服务器没有资源"}), 400)
     connect_url = "http://" + image_resource.host.addr
@@ -278,10 +278,10 @@ def question_destroy(question):
     """
     if not g.user:
         return make_response(jsonify({"msg": "请先登陆"}), 403)
-    instance = db.query(Question).get(question)
+    instance = db.session.query(Question).get(question)
     if not instance.active_flag:
         return make_response(jsonify({"msg": "静态题库无需动态生成"}))
-    containers = db.query(ContainerResource, ImageResource).join(ImageResource,
+    containers = db.session.query(ContainerResource, ImageResource).join(ImageResource,
                                                                  ImageResource.id == ContainerResource.image_resource_id). \
         filter(ImageResource.question_id == instance.id, ContainerResource.user_id == g.user.id)
     for (container, image_resource) in containers:
@@ -317,7 +317,7 @@ def submit_flag(question):
         :data flag: 提交的flag
     """
     ip = get_ip()
-    instance = db.query(Question).get(question)
+    instance = db.session.query(Question).get(question)
     flag = request.get_json().get('flag')
     if not flag:
         return make_response(jsonify({"msg": "flag不允许为空"}), 400)
