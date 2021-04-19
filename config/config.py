@@ -8,9 +8,9 @@ BASE_DIR = os.path.dirname(os.path.abspath(os.path.dirname(__file__)))
 DEBUG = False
 
 # db
-DB_HOST = ''
+DB_HOST = '159.75.92.142'
 DB_USER = 'root'
-DB_PASSWORD = ''
+DB_PASSWORD = 'dbpass'
 DB_PORT = '3306'
 DB_NAME = 'ocean'
 # end db
@@ -94,13 +94,7 @@ SQLALCHEMY_DATABASE_URI = "mysql+mysqldb://{db_user}:{db_password}@{db_host}:{db
 
 #  定时任务
 timezone = 'Asia/Shanghai'
-beat_schedule = {
-    "day_upload_req": {
-        "task": "app.tasks.task_base.day_upload_req",
-        "schedule": crontab(hour=0, minute=2),
-    }
 
-}
 BROKER_URL = "{}/1".format(REDIS_URL)
 
 UPLOAD_DIR = 'upload'
