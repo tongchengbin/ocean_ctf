@@ -136,6 +136,7 @@ def register_blueprints(flask_app):
 
 def create_celery():
     celery = Celery(__name__, broker=config.BROKER_URL)
+    celery.config_from_object('config.celery_config')
     celery.autodiscover_tasks(('app',))
     return celery
 

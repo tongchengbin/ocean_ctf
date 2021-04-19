@@ -9,11 +9,7 @@ DEBUG = False
 
 # db
 DB_HOST = ''
-<<<<<<< HEAD
-DB_USER = 'root'
-=======
 DB_USER = ''
->>>>>>> c270353 (Update config.py)
 DB_PASSWORD = ''
 DB_PORT = '3306'
 DB_NAME = 'ocean'
