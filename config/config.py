@@ -8,9 +8,9 @@ BASE_DIR = os.path.dirname(os.path.abspath(os.path.dirname(__file__)))
 DEBUG = False
 
 # db
-DB_HOST = '159.75.92.142'
-DB_USER = 'root'
-DB_PASSWORD = 'dbpass'
+DB_HOST = ''
+DB_USER = ''
+DB_PASSWORD = ''
 DB_PORT = '3306'
 DB_NAME = 'ocean'
 # end db
