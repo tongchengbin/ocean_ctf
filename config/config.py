@@ -94,13 +94,7 @@ SQLALCHEMY_DATABASE_URI = "mysql+mysqldb://{db_user}:{db_password}@{db_host}:{db
 
 #  定时任务
 timezone = 'Asia/Shanghai'
-beat_schedule = {
-    "day_upload_req": {
-        "task": "app.tasks.task_base.day_upload_req",
-        "schedule": crontab(hour=0, minute=2),
-    }
 
-}
 BROKER_URL = "{}/1".format(REDIS_URL)
 
 UPLOAD_DIR = 'upload'
