@@ -10,7 +10,6 @@ class Role(MainBase):
         角色  后面会关联权限
     """
     name = Column(String(256), nullable=False, unique=True)
-    users = relationship('Admin', backref='role')
 
 
 class Admin(MainBase):
@@ -18,11 +17,15 @@ class Admin(MainBase):
     username = Column(String(256), unique=True, nullable=False, comment='用户名')
     password = Column(String(128), nullable=False, comment='密码')
     role_id = Column(Integer, ForeignKey('s_role.id'))
+    role = relationship('Role')
     active = Column(Boolean(), comment="是否启用")
     login_time = Column(DateTime, default=None)
     token = Column(String(64), comment="token", nullable=True, unique=True)
     task_list = relationship('TaskList', backref='admin')
 
+    @property
+    def role_name(self):
+        return self.role.name if self.role else ''
 
 class TaskList(MainBase):
     STATUS_WAIT = 1  # 排队
@@ -65,3 +68,14 @@ class Notice(MainBase):
     active = Column(Boolean(), default=True)
     is_top = Column(Boolean(), default=False)
     content = Column(String(1024), comment="内容")
+
+
+class Operator(MainBase):
+    """
+        行为审计日志
+    """
+    username = Column(String(255), comment="操作人用户名")
+    code = Column(Boolean, default=True, comment="操作结果")
+    ip = Column(String(15), comment="操作IP")
+    content = Column(String(128), comment="操作内容")
+    role = Column(String(10), comment="操作人角色")

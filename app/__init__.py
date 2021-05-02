@@ -110,28 +110,6 @@ def register_blueprints(flask_app):
     flask_app.register_blueprint(admin_ctf_bp)
     flask_app.register_blueprint(admin_docker_bp)
 
-    # 注册静态文件
-    def send_manager_file(filename):
-        cache_timeout = None
-        manager_folder = 'install/manager/dist/'
-
-        return send_from_directory(manager_folder, filename, cache_timeout=cache_timeout)
-
-    flask_app.add_url_rule(r"/manager/<path:filename>",
-                           endpoint="manager",
-                           host=False,
-                           view_func=send_manager_file)
-
-    # 文件上传目录
-    def send_upload_file(filename):
-        cache_timeout = None
-        manager_folder = 'upload'
-        return send_from_directory(manager_folder, filename, cache_timeout=cache_timeout)
-
-    flask_app.add_url_rule(r"/upload/<path:filename>",
-                           endpoint="upload",
-                           host=False,
-                           view_func=send_upload_file)
 
 
 def create_celery():

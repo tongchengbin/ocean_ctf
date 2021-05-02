@@ -9,15 +9,13 @@ from flask import Blueprint, make_response, jsonify, request, g
 from app import db
 from app.auth.acls import admin_required
 from app.lib.decorators import check_permission
+from app.lib.exceptions import make_error_response
 from app.models.admin import TaskList
 from app.models.docker import (Host, )
 from app.tasks import task_docker
 
 bp = Blueprint("admin_docker", __name__, url_prefix="/admin/docker")
 
-
-def make_error_response(message, code=400):
-    return make_response(jsonify({"msg": message}), code)
 
 
 @bp.route('/host', methods=['post'])

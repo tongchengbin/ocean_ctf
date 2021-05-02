@@ -3,22 +3,22 @@ import string
 
 import docker
 from docker import errors as docker_error
-from flask import Blueprint, jsonify, render_template, request, make_response, g, redirect
+from flask import Blueprint, jsonify, render_template, request, make_response, g, redirect, send_from_directory
 from sqlalchemy import func, desc
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from app.auth.acls import auth_cookie
 from app import db
-from app.models.user import  User
-from app.models.admin import Notice
-from app.models.ctf import ImageResource, ContainerResource, Answer, QuestionFile,Question
+from app.auth.acls import auth_cookie
 from app.lib.tools import get_ip
 from app.lib.utils.authlib import create_token
+from app.models.admin import Notice
+from app.models.ctf import ImageResource, ContainerResource, Answer, QuestionFile, Question
+from app.models.user import User
 
 bp = Blueprint("view", __name__, url_prefix='')
 
 
-@bp.route('/manager',methods=['get'])
+@bp.route('/manager', methods=['get'])
 def redirect_manager():
     """
     开发模式下 管理页面的跳转
@@ -26,6 +26,21 @@ def redirect_manager():
     """
 
     return redirect('/manager/index.html')
+
+
+@bp.route('/manager/<path:filename>')
+def manager_static(filename):
+    # 注册静态文件
+    manager_folder = "./dist"
+    print(filename)
+    return send_from_directory(manager_folder, filename, cache_timeout=500)
+
+
+@bp.route('/upload/<path:filename>')
+def send_upload_file(filename):
+    cache_timeout = None
+    manager_folder = 'upload'
+    return send_from_directory(manager_folder, filename, cache_timeout=cache_timeout)
 
 
 def generate_flag():
@@ -51,7 +66,8 @@ def index():
     solved_qid = []
     if g.user:
         # 我已解决的题目
-        solved_question = db.session.query(Answer.question_id).filter(Answer.user_id == g.user.id, Answer.status == 1).all()
+        solved_question = db.session.query(Answer.question_id).filter(Answer.user_id == g.user.id,
+                                                                      Answer.status == 1).all()
         solved_qid = [i[0] for i in solved_question]
     data = []
     links = {}
@@ -282,7 +298,7 @@ def question_destroy(question):
     if not instance.active_flag:
         return make_response(jsonify({"msg": "静态题库无需动态生成"}))
     containers = db.session.query(ContainerResource, ImageResource).join(ImageResource,
-                                                                 ImageResource.id == ContainerResource.image_resource_id). \
+                                                                         ImageResource.id == ContainerResource.image_resource_id). \
         filter(ImageResource.question_id == instance.id, ContainerResource.user_id == g.user.id)
     for (container, image_resource) in containers:
         try:

@@ -25,3 +25,7 @@ class MainBase(db.Model):
         default=func.current_timestamp(),
         onupdate=func.current_timestamp(),
     )
+
+    @property
+    def create_time_format(self):
+        return self.date_created.strftime('%Y-%m-%d %H:%M')
