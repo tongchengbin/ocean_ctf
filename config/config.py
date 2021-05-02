@@ -8,15 +8,15 @@ BASE_DIR = os.path.dirname(os.path.abspath(os.path.dirname(__file__)))
 DEBUG = False
 
 # db
-DB_HOST = ''
-DB_USER = ''
-DB_PASSWORD = ''
+DB_HOST = '192.168.136.128'
+DB_USER = 'root'
+DB_PASSWORD = '123456'
 DB_PORT = '3306'
 DB_NAME = 'ocean'
 # end db
 
 # cache
-REDIS_URL = 'redis://:@192.168.1.6:6379'
+REDIS_URL = 'redis://:@192.168.136.128:6380'
 # end cache
 
 # 跨域配置

@@ -6,14 +6,18 @@ import requests
 from docker import errors as docker_error
 from flask import Blueprint, make_response, jsonify, request, g
 
-from app.auth.acls import admin_required
-from app.tasks import task_docker
 from app import db
+from app.auth.acls import admin_required
+from app.lib.decorators import check_permission
 from app.models.admin import TaskList
 from app.models.docker import (Host, )
-from app.lib.decorators import check_permission
+from app.tasks import task_docker
 
 bp = Blueprint("admin_docker", __name__, url_prefix="/admin/docker")
+
+
+def make_error_response(message, code=400):
+    return make_response(jsonify({"msg": message}), code)
 
 
 @bp.route('/host', methods=['post'])
@@ -28,30 +32,31 @@ def host_crate():
     name = data.get("name", "").strip()
     addr = data.get("addr", "").strip()
     ip = data.get("ip", "").strip()
+    active = data.get("active")
     remark = data.get("remark")
     # 判断重复
     if not name:
-        return make_response(jsonify({'error': '主机名不允许为空！', 'code': 400}), 400)
+        return make_error_response("主机名不允许为空！")
     if db.session.query(Host).filter(Host.name == name).all():
-        return make_response(jsonify({'error': '该主机名称已存在！', 'code': 400}), 400)
+        return make_error_response("该主机名称已存在")
     if not addr:
-        return make_response(jsonify({'error': '主机地址不允许为空！', 'code': 400}), 400)
+        return make_error_response("主机地址不允许为空！")
     if not ip:
-        return make_response(jsonify({'error': 'IP不允许为空！', 'code': 400}), 400)
+        return make_error_response("IP不允许为空！")
     if db.session.query(Host).filter(Host.addr == addr).first():
-        return make_response(jsonify({'error': '该主机地址已存在！', 'code': 400}), 400)
+        return make_error_response("该主机地址已存在！")
     # 测试主机连通性
     uri = "http://{}/_ping".format(addr)
     try:
         requests.get(uri, timeout=2)
     except requests.exceptions.ConnectionError:
-        return make_response(jsonify({'error': '该主机不在线！', 'code': 400}), 400)
-    db.session.add(Host(name=name, addr=addr, remark=remark, ip=ip, online_time=datetime.now()))
+        return make_error_response("该主机不在线")
+    db.session.add(Host(name=name, addr=addr, active=active, remark=remark, ip=ip, online_time=datetime.now()))
     db.session.commit()
     return jsonify({"status": "ok"})
 
 
-@bp.route('/host/<int:host>/delete', methods=['post'])
+@bp.route('/host/<int:host>', methods=['delete'])
 @admin_required
 @check_permission
 def host_delete(host):
@@ -67,7 +72,7 @@ def host_delete(host):
     return jsonify({})
 
 
-@bp.route('/host/<int:host>/update', methods=['post'])
+@bp.route('/host/<int:host>', methods=['put'])
 @admin_required
 @check_permission
 def host_update(host):
@@ -81,20 +86,20 @@ def host_update(host):
     active = data.get("active")
     instance = db.session.query(Host).filter(Host.id == host).first()
     if not instance:
-        return make_response(jsonify({'error': '资源不存在！', 'code': 400}), 400)
+        return make_error_response("资源不存在！")
     if not name:
-        return make_response(jsonify({'error': '主机名不允许为空！', 'code': 400}), 400)
+        return make_error_response("主机名不允许为空！")
     if active is not None:
         instance.active = active
     if db.session.query(Host).filter(Host.name == name, Host.id != host).all():
-        return make_response(jsonify({'error': '该主机名称已存在！', 'code': 400}), 400)
+        return make_error_response("该主机名称已存在！")
     instance.name = name
     instance.remark = remark
     db.session.commit()
     return jsonify({"status": "ok"})
 
 
-@bp.route('/hostList', methods=['get'])
+@bp.route('/host', methods=['get'])
 @admin_required
 @check_permission
 def host_list():
@@ -131,26 +136,38 @@ def host_list():
     })
 
 
-@bp.route('/hostDetail', methods=['get'])
+@bp.route('/host/<int:pk>', methods=['get'])
 @admin_required
 @check_permission
-def host_detail():
+def host_detail(pk):
     """主机详情
     :data id: 主机ID
     :return
     """
-    pk = request.args.get("id")
     instance = db.session.query(Host).filter(Host.id == pk).one_or_none()
     try:
         client = docker.DockerClient("http://{}".format(instance.addr))
         info = client.info()
     except docker_error.DockerException:
         info = {}
+    if info:
+        """数据格式化"""
+        info = {
+            "containers": info["Containers"],
+            "images": info["Images"],
+            "version": info["KernelVersion"],
+            "memory": round(info["MemTotal"] / 1024 / 2024 / 1024, 2),
+            "cpu": info["NCPU"],
+            "system": info["OperatingSystem"],
+            "system_time": info["SystemTime"]
+
+        }
     data = {
         "id": instance.id,
         "name": instance.name,
         "addr": instance.addr,
         "remark": instance.remark,
+        "ip": instance.ip,
         "info": info
     }
     return jsonify({"data": data})
@@ -171,56 +188,47 @@ def host_images(host):
         images = client.images.list()
     except docker_error.DockerException:
         images = []
-    images = [image.attrs for image in images]
+    images_list = []
+    for im in images:
+        attrs = im.attrs
+        tmp = {
+            "created": attrs["Created"].split("T")[0],
+            "id": attrs["Id"][7:17],
+            "size": attrs["Size"],
+            "repo": attrs["RepoTags"][0].split(":")[0],
+            "tags": [i.split(":")[1] for i in attrs["RepoTags"]]
+        }
+        images_list.append(tmp)
     data = {
         "id": instance.id,
         "name": instance.name,
         "addr": instance.addr,
         "remark": instance.remark,
-        "images": images
+        "images": images_list
     }
     return jsonify({"data": data})
 
 
-@bp.route('/host/<int:host>/images/del_tag', methods=['post'])
+@bp.route('/images', methods=['delete'])
 @admin_required
 @check_permission
-def host_docker_tag_delete(host):
-    """
-        删除镜像标签
-        :param host:docker主机id
-        :data tag:标签
-    :return:
-    """
-    tag = request.get_json().get('tag')
+def image_delete():
+    tag = request.get_json().get('id')
+    host = request.get_json().get("host")
     instance = db.session.query(Host).filter(Host.id == host).one_or_none()
     try:
         client = docker.DockerClient("http://{}".format(instance.addr))
         res = client.images.remove(tag)
-        print(res)
-    except docker_error.DockerException:
-        pass
+    except docker_error.DockerException as e:
+        error_str = str(e)
+        if "is using its referenced image" in error_str:
+            return make_error_response("当前镜像被占用，请先删除对应容器！")
+        if "is being used by running container" in error_str:
+            return make_error_response("当前有对应容器正在运行，请停止对应容器！")
+        if "image is referenced in multiple repositories" in error_str:
+            return make_error_response("镜像被多个仓库依赖！")
+        return make_error_response("删除失败", 400)
     return jsonify({"status": 0})
-
-
-@bp.route('/imagesDel', methods=['post'])
-@admin_required
-@check_permission
-def host_docker_images_delete():
-    """
-        删除镜像
-
-    :return:
-    """
-    pk = request.get_json().get("host")
-    image_id = request.get_json().get("id")
-    instance = db.session.query(Host).filter(Host.id == pk).one_or_none()
-    try:
-        client = docker.DockerClient("http://{}".format(instance.addr))
-        client.images.remove(image_id)
-    except (docker_error.DockerException, docker_error.APIError) as e:
-        return make_response(jsonify({"error": f"删除失败:{e}"}), 400)
-    return jsonify({"status": "OK"})
 
 
 @bp.route('/containers', methods=['get'])
@@ -265,7 +273,7 @@ def container_stop():
         container = client.containers.get(container_id)
         container.stop()
     except docker_error.DockerException:
-        return make_response(jsonify({"error": f'关闭容器失败:{container_id}'}))
+        return make_error_response(f'关闭容器失败:{container_id}')
     return jsonify({"status": 'ok'})
 
 
@@ -285,7 +293,7 @@ def container_start():
         container = client.containers.get(container_id)
         res = container.start()
     except docker_error.DockerException:
-        return make_response(jsonify({"error": f'关闭容器失败:{container_id}'}))
+        return make_error_response('关闭容器失败:{container_id}')
     return jsonify({"status": 'ok'})
 
 
@@ -307,7 +315,7 @@ def container_action():
         action_fun = getattr(container, action)
         action_fun()
     except docker_error.DockerException as e:
-        return make_response(jsonify({"error": f'操作失败:%s' % e}), 400)
+        return make_error_response('关闭容器失败:{container_id}')
     return jsonify({"status": 'ok'})
 
 
@@ -338,10 +346,10 @@ def image_detail(host, image):
     return jsonify({"results": data})
 
 
-@bp.route('/host/<int:host>/image/build', methods=['post'])
+@bp.route('/host/<int:host>/image', methods=['post'])
 @admin_required
 @check_permission
-def build(host):
+def image_create(host):
     """
         编译是一个比较耗时的任务 这里回采取延迟执行方式
     """
@@ -351,7 +359,7 @@ def build(host):
     db.session.commit()
     tag = request.args.get('tag')
     if len(tag.split(":")) != 2:
-        return make_response(jsonify({'error': 'images name 格式错误请指定tag！', 'code': 400}), 400)
+        return make_error_response("images name 格式错误请指定tag")
     args = (task.id, host, build_type, tag, g.user.id)
     if build_type == 'tar':
         file = request.files.get('files')

@@ -58,7 +58,7 @@ def task_log(task):
 @bp.route('/upload', methods=['post'])
 def upload_file():
     """
-        文件上传入口
+        后台文件上传入口 目前存在文件覆盖  后续处理吧
     """
 
     file = request.files["file"]
