@@ -28,7 +28,7 @@ def admin_required(func):
             g.user = admin
             return func(*args, **kwargs)
         else:
-            return APIForbidden(response=make_response(jsonify({"error": "Forbidden", "code": 403}), 403))
+            return APIForbidden(response=make_response(jsonify({"msg": "Forbidden", "code": 401}), 401))
 
     return inner
 

@@ -4,23 +4,18 @@ from datetime import datetime
 import docker
 import requests
 from docker import errors as docker_error
-from flask import Blueprint, make_response, jsonify, request, g
+from flask import Blueprint, jsonify, request, g
 
 from app import db
-from app.auth.acls import admin_required
-from app.lib.decorators import check_permission
 from app.lib.exceptions import make_error_response
 from app.models.admin import TaskList
 from app.models.docker import (Host, )
 from app.tasks import task_docker
 
-bp = Blueprint("admin_docker", __name__, url_prefix="/admin/docker")
-
+bp = Blueprint("admin_docker", __name__, url_prefix="/api/admin/docker")
 
 
 @bp.route('/host', methods=['post'])
-@admin_required
-@check_permission
 def host_crate():
     """
         添加docker主机
@@ -55,8 +50,6 @@ def host_crate():
 
 
 @bp.route('/host/<int:host>', methods=['delete'])
-@admin_required
-@check_permission
 def host_delete(host):
     """
     删除主机
@@ -71,8 +64,6 @@ def host_delete(host):
 
 
 @bp.route('/host/<int:host>', methods=['put'])
-@admin_required
-@check_permission
 def host_update(host):
     """
         添加docker主机
@@ -98,8 +89,6 @@ def host_update(host):
 
 
 @bp.route('/host', methods=['get'])
-@admin_required
-@check_permission
 def host_list():
     """
         主机列表
@@ -135,8 +124,6 @@ def host_list():
 
 
 @bp.route('/host/<int:pk>', methods=['get'])
-@admin_required
-@check_permission
 def host_detail(pk):
     """主机详情
     :data id: 主机ID
@@ -172,8 +159,6 @@ def host_detail(pk):
 
 
 @bp.route('/host/<int:host>/images', methods=['get'])
-@admin_required
-@check_permission
 def host_images(host):
     """
         获取镜像列表
@@ -208,8 +193,6 @@ def host_images(host):
 
 
 @bp.route('/images', methods=['delete'])
-@admin_required
-@check_permission
 def image_delete():
     tag = request.get_json().get('id')
     host = request.get_json().get("host")
@@ -230,8 +213,6 @@ def image_delete():
 
 
 @bp.route('/containers', methods=['get'])
-@admin_required
-@check_permission
 def host_docker_container():
     """
         获取镜像列表
@@ -256,8 +237,6 @@ def host_docker_container():
 
 
 @bp.route('/containerStop', methods=['post'])
-@admin_required
-@check_permission
 def container_stop():
     """
         关闭容器
@@ -276,8 +255,6 @@ def container_stop():
 
 
 @bp.route('/containerStart', methods=['post'])
-@admin_required
-@check_permission
 def container_start():
     """
         关闭容器
@@ -296,8 +273,6 @@ def container_start():
 
 
 @bp.route('/containerAction', methods=['post'])
-@admin_required
-@check_permission
 def container_action():
     """
         容器操作
@@ -318,8 +293,6 @@ def container_action():
 
 
 @bp.route('/host/<int:host>/image/<image>', methods=['get'])
-@admin_required
-@check_permission
 def image_detail(host, image):
     """
         镜像详情
@@ -345,8 +318,6 @@ def image_detail(host, image):
 
 
 @bp.route('/host/<int:host>/image', methods=['post'])
-@admin_required
-@check_permission
 def image_create(host):
     """
         编译是一个比较耗时的任务 这里回采取延迟执行方式

@@ -2,13 +2,13 @@ import os
 from datetime import datetime
 from operator import or_
 
+from app.api.sys.service import insert_operator
 from flask import Blueprint, make_response, jsonify, request, g, current_app
 from sqlalchemy import func
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from app import cache
 from app import db
-from app.api.sys.service import insert_operator
 from app.auth.acls import admin_required
 from app.lib import exceptions
 from app.lib.decorators import check_permission
@@ -19,12 +19,10 @@ from app.models.ctf import ContainerResource, Question
 from app.models.user import User
 from app.tasks import celery_test
 
-bp = Blueprint("admin", __name__, url_prefix="/admin")
+bp = Blueprint("admin", __name__, url_prefix="/api/admin")
 
 
 @bp.route('/rest_pass', methods=['post'])
-@admin_required
-@check_permission
 def admin_rest_pass():
     data = request.get_json()
     old_pass = data.get("old_pass")
@@ -41,7 +39,6 @@ def admin_rest_pass():
 
 
 @bp.route('/task/<int:task>/log', methods=['get'])
-@admin_required
 def task_log(task):
     """
         任务执行日志
@@ -82,7 +79,8 @@ def admin_list():
                 """
     page = int(request.args.get('page', 1))
     page_size = int(request.args.get("page_size", 10))
-    page = db.session.query(Admin).filter(Admin.username != 'superuser').paginate(page=page, per_page=page_size)
+    query = db.session.query(Admin).filter(Admin.username != 'superuser')
+    page = query.paginate(page=page, per_page=page_size)
     data = []
     for item in page.items:
         data.append({
@@ -99,8 +97,6 @@ def admin_list():
 
 
 @bp.route('/admin/<int:pk>', methods=['put'])
-@admin_required
-@check_permission
 def admin_update(pk):
     # 修改信息
     data = request.get_json()
@@ -119,8 +115,6 @@ def admin_update(pk):
 
 
 @bp.route('/admin', methods=['post'])
-@admin_required
-@check_permission
 def admin_create():
     data = request.get_json()
     username = data.get('username')
@@ -136,8 +130,6 @@ def admin_create():
 
 
 @bp.route('/admin', methods=['delete'])
-@admin_required
-@check_permission
 def admin_delete(pk):
     admin = db.session.query(Admin).get(pk)
     db.session.delete(admin)
@@ -146,15 +138,17 @@ def admin_delete(pk):
 
 
 @bp.route('/user', methods=['get'])
-@admin_required
-@check_permission
 def user_list():
     """
                     用户列表
                 """
     page = int(request.args.get('page', 1))
     page_size = int(request.args.get("page_size", 10))
-    page = db.session.query(User).order_by(User.id.desc()).paginate(page=page, per_page=page_size)
+    search = request.args.get("search")
+    query = db.session.query(User)
+    if search:
+        query = query.filter(User.username.contains(search))
+    page = query.order_by(User.id.desc()).paginate(page=page, per_page=page_size)
     data = []
     for item in page.items:
         data.append({
@@ -171,8 +165,6 @@ def user_list():
 
 
 @bp.route('/user', methods=['post'])
-@admin_required
-@check_permission
 def user_create():
     """
                     添加用户
@@ -188,15 +180,25 @@ def user_create():
     return jsonify({})
 
 
-@bp.route('/user', methods=['put'])
-@admin_required
-@check_permission
+@bp.route('/user/<int:pk>', methods=['put'])
 def user_update(pk):
     data = request.get_json()
     username = data.get('username')
     user = db.session.query(User).get(pk)
     if username:
         user.username = username
+    db.session.commit()
+    return jsonify({})
+
+
+@bp.route('/user/<int:pk>', methods=['delete'])
+def user_delete(pk):
+    """
+        删除用户
+    @return:
+    """
+    user = db.session.query(User).get(pk)
+    db.session.delete(user)
     db.session.commit()
     return jsonify({})
 
@@ -260,7 +262,6 @@ def index_state():
 
 
 @bp.route('/notice', methods=['get'])
-@admin_required
 @check_permission
 def notice_list():
     page = int(request.args.get('page', 1))
@@ -286,8 +287,6 @@ def notice_list():
 
 
 @bp.route('/notice', methods=['post'])
-@admin_required
-@check_permission
 def notice_create():
     data = request.get_json()
     content = data.get("content")
@@ -300,8 +299,6 @@ def notice_create():
 
 
 @bp.route('/notice/<int:pk>', methods=['put'])
-@admin_required
-@check_permission
 def notice_update(pk):
     """
                     update 公告
@@ -322,8 +319,6 @@ def notice_update(pk):
 
 
 @bp.route('/notice/<int:pk>', methods=['get'])
-@admin_required
-@check_permission
 def notice_delete(pk):
     """
             delete 公告
@@ -337,7 +332,6 @@ def notice_delete(pk):
 @bp.route('/login', methods=['get'])
 @admin_required
 def login_info():
-
     admin = g.user
     ret = {
         "role": admin.role_id,
@@ -369,15 +363,13 @@ def login():
             "username": admin.username,
             "id": admin.id,
         }
-        insert_operator(code=True, content="登录成功",username=admin.username,role_name=admin.role_name)
+        insert_operator(code=True, content="登录成功", username=admin.username, role_name=admin.role_name)
         return jsonify(ret)
     else:
         raise exceptions.AuthFailed()
 
 
 @bp.route('/role', methods=['get'])
-@admin_required
-@check_permission
 def role_list():
     page = int(request.args.get('page', 1))
     page_size = int(request.args.get("page_size", 10))
@@ -393,8 +385,6 @@ def role_list():
 
 
 @bp.route('/role', methods=['post'])
-@admin_required
-@check_permission
 def role_create():
     data = request.get_json()
     name = data.get("name")
@@ -407,8 +397,6 @@ def role_create():
 
 
 @bp.route('/role', methods=['put'])
-@admin_required
-@check_permission
 def role_update():
     data = request.get_json()
     pk = data.get("id")
@@ -426,8 +414,6 @@ def role_update():
 
 
 @bp.route('/role/<int:pk>', methods=['delete'])
-@admin_required
-@check_permission
 def role_delete(pk):
     instance = db.session.query(Role).filter(Role.id == pk).first()
     if not instance:
@@ -438,7 +424,6 @@ def role_delete(pk):
 
 
 @bp.route('/logout', methods=['post'])
-@admin_required
 def logout():
     """
                     登出
@@ -457,7 +442,6 @@ def celery_ping():
 
 
 @bp.route('/logs', methods=['get'])
-@admin_required
 def logs():
     """
             日志查询接口  api worker beat
@@ -479,8 +463,7 @@ def logs():
     return jsonify({"data": data[-lines:]})
 
 
-@bp.route('/operator',methods=['get'])
-@admin_required
+@bp.route('/operator', methods=['get'])
 def operator_list():
     """
         审计日志

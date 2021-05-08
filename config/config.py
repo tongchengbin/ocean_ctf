@@ -99,4 +99,4 @@ BROKER_URL = "{}/1".format(REDIS_URL)
 
 UPLOAD_DIR = 'upload'
 
-WHITE_URL_LIST = ('/admin/login', '/admin/logout')
+WHITE_URL_LIST = ('/api/admin/login', '/api/admin/logout')

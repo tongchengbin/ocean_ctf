@@ -27,6 +27,7 @@ class Admin(MainBase):
     def role_name(self):
         return self.role.name if self.role else ''
 
+
 class TaskList(MainBase):
     STATUS_WAIT = 1  # 排队
     STATUS_CANCEL = 2  # 取消

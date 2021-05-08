@@ -229,7 +229,7 @@ def question_start(question):
     :return:
     """
     if not g.user:
-        return make_response(jsonify({"msg": "请先登陆"}), 403)
+        return make_response(jsonify({"msg": "请先登陆"}), 401)
     user = g.user
     instance = db.session.query(Question).get(question)
     if not instance.active_flag:
@@ -293,7 +293,7 @@ def question_destroy(question):
     :return:
     """
     if not g.user:
-        return make_response(jsonify({"msg": "请先登陆"}), 403)
+        return make_response(jsonify({"msg": "请先登陆"}), 401)
     instance = db.session.query(Question).get(question)
     if not instance.active_flag:
         return make_response(jsonify({"msg": "静态题库无需动态生成"}))
@@ -338,7 +338,7 @@ def submit_flag(question):
     if not flag:
         return make_response(jsonify({"msg": "flag不允许为空"}), 400)
     if not g.user:
-        return make_response(jsonify({"msg": "请登录"}), 403)
+        return make_response(jsonify({"msg": "请登录"}), 401)
     answer = Answer(question_id=instance.id, user_id=g.user.id, flag=flag, ip=ip)
     # 判断是否有正确的提交记录
     is_answer = db.session.query(Answer).filter(Answer.question_id == instance.id, Answer.user_id == g.user.id,
