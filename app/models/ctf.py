@@ -58,7 +58,7 @@ class ContainerResource(MainBase):
     flag = Column(String(64), nullable=True, comment="容器的Flag")
     container_status = Column(String(8), comment="容器状态 不实时显示")
     container_port = Column(String(64), comment="端口映射", nullable=True)
-    addr = Column(String(12), comment="快照主机IP")
+    addr = Column(String(64), comment="快照主机IP")
     user_id = Column(Integer, ForeignKey('user.id'), comment="关联用户")
     image_resource = relationship('ImageResource',backref='containers')
     # 应该还需要对应用户

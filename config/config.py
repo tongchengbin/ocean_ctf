@@ -2,21 +2,24 @@
 import logging.handlers
 import os
 
-from celery.schedules import crontab
+from app.lib.env_load import read_env
 
 BASE_DIR = os.path.dirname(os.path.abspath(os.path.dirname(__file__)))
 DEBUG = False
+env = read_env(BASE_DIR)
 
 # db
-DB_HOST = ''
-DB_USER = ''
-DB_PASSWORD = ''
-DB_PORT = '3306'
+DB_HOST = '' or env.get('DB_HOST')
+DB_USER = '' or env.get('DB_USER')
+DB_PASSWORD = '' or env.get('DB_PASSWORD')
+DB_PORT = '' or env.get('DB_PORT')
 DB_NAME = 'ocean'
 # end db
 
 # cache
-REDIS_URL = 'redis://:@159.75.92.142:6379'
+REDIS_HOST = '' or env.get("REDIS_HOST")
+REDIS_PASSWORD = '' or env.get("REDIS_PASSWORD")
+REDIS_URL = 'redis://:{REDIS_PASSWORD}@{REDIS_HOST}:6379'.format(REDIS_HOST=REDIS_HOST,REDIS_PASSWORD=REDIS_PASSWORD)
 # end cache
 
 # 跨域配置

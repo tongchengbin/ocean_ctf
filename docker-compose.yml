@@ -20,8 +20,6 @@ services:
         max-size: "10m"
   redis:
     image: redis:latest
-    configs:
-      - redis_config
     container_name: redis
     logging:
       driver: "json-file"
@@ -32,7 +30,10 @@ services:
     command: redis-server --requirepass ${REDIS_PASSWORD}
 
   web:
-    image: ocean_web
+    build:
+      context: .
+      dockerfile: ./install/docker/ocean_web.Dockerfile
+    image: ocean_web:v1
     ports:
       - 8080:8080
     container_name: web
@@ -41,27 +42,29 @@ services:
     depends_on:
       - db
       - redis
-    env_file:
-      - .env
     working_dir: /opt/ocean_ctf
-    command: gunicorn -w 3 -b 0.0.0.0:8080 main:app
+    command: uwsgi --http :8080 -w main:app
 
   celery_worker:
-    image: ocean_web
+    build:
+      context: .
+      dockerfile: ./install/docker/ocean_web.Dockerfile
+    image: ocean_web:v1
     volumes:
       - /opt/ocean_ctf:/opt/ocean_ctf
     container_name: celery_worker
     depends_on:
       - db
       - redis
-    env_file:
-      - .env
     working_dir: /opt/ocean_ctf
-    command:  ['celery','-A','celery_worker','worker', '-l','info']
+    command:  celery -A app:celery_app worker -l info
     privileged: true
 
   celery_beat:
-    image: ocean_web
+    build:
+      context: .
+      dockerfile: ./install/docker/ocean_web.Dockerfile
+    image: ocean_web:v1
     container_name: celery_beat
     depends_on:
       - db
@@ -69,8 +72,6 @@ services:
     volumes:
       - /opt/ocean_ctf:/opt/ocean_ctf
     working_dir: /opt/ocean_ctf
-    env_file:
-      - .env
-    command: ['celery','-A','celery_worker','beat','-l','info']
+    command: celery -A app:celery_app worker -l info
     privileged: true
 

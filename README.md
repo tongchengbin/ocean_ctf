@@ -27,7 +27,30 @@
 管理后台 http://159.75.92.142:8080/manager  访客账号  test/test  
 
   默认超级管理员账号 superuser/admin
+
+## 使用
+
+如何添加容器主机？
+
+1. 启用docker api   —H tcp://0.0.0.0:2375 （一定要添加防火墙规则仅允许指定ip访问）
+
+2. curl 127.0.0.1:2375/_ping    输出OK 说明启用成功
+
+3. 添加主机ip 一栏是web 应用的入口如果是公网云请填写公网地址、如果是虚拟机请填写与物理机同一网段地址，docker API 一栏可以填写127.0.0.1:2375 这是由于部分服务器仅仅只对本地地址开放了2375端口，而如果是docker-compose 部署则无法使用127.0.0.1 可以使用docker的172网段代替。
+
+   
+
+
+
 ## 安装
+
+##### clone
+
+```
+git clone https://github.com/tongchengbin/ocean_ctf.git /opt/ocean_ctf
+```
+
+
 
 ### docker方式
 
@@ -36,22 +59,13 @@
 ##### 前置环境
 
 ```
-docker、docker-compose、git
+docker、docker-compose
 ```
 
-##### clone
-
-```
-git clone https://github.com/tongchengbin/ocean_ctf.git
-```
-
-##### 编译web环境
-```
-docker build -t ocean_web -f install/docker/ocean_web.Dockerfile .
-```
 ##### compose编排
 ```
-docker-compose up
+cd /opt/ocean_ctf
+docker-compose up -d
 ```
 ##### 访问测试
 ```
@@ -71,16 +85,11 @@ supervisord(可选)
 
 ```
 
-##### clone
-
-```
-git clone https://github.com/tongchengbin/ocean_ctf.git /opt/ocean_ctf
-```
-
 ##### 安装Python依赖
 
 ```
-pip install -r requirements.txt
+cd /opt/ocean_ctf
+pip3 install -r requirements.txt
 ```
 
 
@@ -127,21 +136,6 @@ server {
    systemctl start supervisord.service
    ```
 
-   
-
-### 常见问题&注意事项
-
-##### python
-```
-请注意设置python3为默认python版本
-```
-
-##### pip 报错mysqlclinet
-```
-centos: sudo yum install mysql-devel
-ubuntu: sudo apt-get install libmysqlclient-dev
-
-```
 
 ## 题库
 
