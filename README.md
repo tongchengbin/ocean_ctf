@@ -1,7 +1,7 @@
-# Ocean CTF
-> 一个动态flag练习靶场平台
+# 🌊 Ocean CTF
+一个动态flag练习靶场平台
 
-## TODO
+## ✅ TODO
 
 - [x] 容器管理 
 - [x] 题库管理
@@ -15,20 +15,19 @@
 - [x] 快速部署
 - [ ] 大屏展示
 - [x] 权限分离
-- [ ] fix bug
+- [ ] 一键部署
 - [ ] fix bug
 - [ ] fix bug
 
 
 
-## 预览
+## 🚀 预览
 
 线上地址 http://159.75.92.142:8080
 管理后台 http://159.75.92.142:8080/manager  访客账号  test/test  
+默认超级管理员账号 superuser/admin
 
-  默认超级管理员账号 superuser/admin
-
-## 使用
+## 🌍 使用
 
 如何添加容器主机？
 
@@ -42,7 +41,7 @@
 
 
 
-## 安装
+## 📖 安装步骤
 
 ##### clone
 
@@ -99,6 +98,9 @@ pip3 install -r requirements.txt
 chmod +x ./run.sh
 ./run.sh
 ```
+
+## 📗 进阶文档
+
 ##### 通过nginx代理
 > 默认情况下项目已经给管理后台的页面做了静态处理 但是建议使用nginx处理静态文件
 
@@ -136,12 +138,41 @@ server {
    systemctl start supervisord.service
    ```
 
+##### 开启 Docker API 2375 端口
+```
+开启API
+vim /usr/lib/systemd/system/docker.service
+ExecStart=/usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock -H tcp://0.0.0.0:2375
+systemctl daemon-reload
+systemctl restart docker
 
-## 题库
+检查API
+curl 127.0.0.1:2375/info
+```
+
+
+## ️️❗ 常见问题&注意事项
+
+#### 安装常用环境依赖
+```
+yum -y install python36-devel
+```
+
+#### pip 报错mysqlclinet
+```
+centos: sudo yum install mysql-devel
+ubuntu: sudo apt-get install libmysqlclient-dev
+
+```
+
+
+
+## 📃 题库
 
 >  题库仓库：[GitHub - tongchengbin/ctfdb: ctf 题库](https://github.com/tongchengbin/ctfdb)
 
-#### 题库格式说明
+## 💻 题库格式说明
+> TODO
 
 
 
