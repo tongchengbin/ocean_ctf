@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" href="/static/favicon.ico" type="image/x-icon"/>
+    <link rel="stylesheet" href="static/index.css">
+    <!-- 最新版本的 Bootstrap 核心 CSS 文件 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css"
+          integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.5.1/jquery.js"></script>
+    <!-- 最新的 Bootstrap 核心 JavaScript 文件 -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/js/bootstrap.min.js"
+            integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
+            crossorigin="anonymous"></script>
+    <script src="/static/lib_bootstrap_message.js"></script>
+    <script type="text/javascript" src="/static/js/lib.js"></script>
+    <title>Ocean</title>
+</head>
+<body>
+<div id="app">
+    {% include 'header.html' %}
+    <div class="container">
+        <div class="row" style="display: flex;">
+            <div class="col-md-12" style="margin: auto!important;">
+                <div class="card">
+                    <div class="card-body">
+                        <table class="table">
+                            <thead>
+                            <tr>
+                                <th width="80">排名</th>
+                                <th width="120">用户</th>
+                                <th width="80">积分</th>
+                                <th width="80">解题数</th>
+                                <th width="180">注册时间</th>
+                                <th width="180">最后解题时间</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for li in data %}
+                                <tr>
+                                    <td>{{ li.rank }}</td>
+                                    <td>{{ li.username }}</td>
+                                    <td>{{ li.score }}</td>
+                                    <td>{{ li.solved_cnt }}</td>
+                                    <td>{{ li.date_created }}</td>
+                                    <td>{{ li.last_ans }}</td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

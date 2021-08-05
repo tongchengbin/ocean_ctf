@@ -56,3 +56,15 @@ function delayClose(duration) {
         }, duration);
     }
 }
+
+window.onload = function () {
+    $("#main-menu li a").removeClass("active");
+    let els = $('#main-menu li a');
+    let local = window.location.pathname;
+
+    for (let i = 0; i < els.length; i++) {
+        if (local === $(els[i]).attr('href')) {
+            $(els[i]).addClass('active')
+        }
+    }
+}

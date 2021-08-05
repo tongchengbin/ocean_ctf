@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <link rel="icon" href="/static/favicon.ico" type="image/x-icon" />
+    <link rel="icon" href="/static/favicon.ico" type="image/x-icon"/>
     <link href="https://cdn.bootcdn.net/ajax/libs/font-awesome/5.15.1/css/all.css" rel="stylesheet">
     <link rel="stylesheet" href="static/index.css">
     <title>Ocean 登录</title>
@@ -12,32 +12,32 @@
     <div class="container" style="margin-top: 30px">
         <div class="login-box">
             <div class="title-wrap">
-                 <embed style="display: flex" src="static/images/logo.svg" width="30" height="30" type="image/svg+xml" />
-                 <span style="display: flex;margin-left: 5px;font-size: 22px;color: #fff">Ocean 登录</span>
-             </div>
-             <form  class="login-form" method="post">
-                 <div>
-                    <label><i class="fa fa-user"></i></label>
-                     <input type="text" name="username" placeholder="Username">
-                 </div>
-                 <div>
-                     <label><i class="fa fa-key"></i></label>
-                     <input type="password" name="password" placeholder="Password">
-                 </div>
-                 <div>
-                     {% if error %}
-                         <div class="errors">
-                             <i class="fa fa-exclamation" style="color: red" aria-hidden="true"></i>
-                             <span id="error_text">{{ error }}</span>
-                         </div>
-                     {% endif %}
-                 </div>
-                 <div>
-                     <button  type="primary" @click="handleSubmit()">登录</button>
-                 </div>
-            </form>
+                <embed style="display: flex" src="static/images/logo.svg" width="30" height="30" type="image/svg+xml"/>
+                <span style="display: flex;margin-left: 5px;font-size: 22px;color: #fff">Ocean 登录</span>
             </div>
+            <form class="login-form" method="post">
+                <div>
+                    <label><i class="fa fa-user"></i></label>
+                    <input type="text" name="username" placeholder="Username">
+                </div>
+                <div>
+                    <label><i class="fa fa-key"></i></label>
+                    <input type="password" name="password" placeholder="Password">
+                </div>
+                <div>
+                    {% if error %}
+                        <div class="errors">
+                            <i class="fa fa-exclamation" style="color: red" aria-hidden="true"></i>
+                            <span id="error_text">{{ error }}</span>
+                        </div>
+                    {% endif %}
+                </div>
+                <div>
+                    <button class="user-login" type="submit">登录</button>
+                </div>
+            </form>
         </div>
+    </div>
 </div>
 </body>
 </html>

@@ -1,0 +1,8 @@
+/.idea/
+*/__pycache__
+*.log
+*.pid
+/upload/*
+config/local_config.py
+celerybeat-schedule
+*.db

@@ -2,11 +2,10 @@ import logging
 from functools import wraps
 
 from flask import request, g, jsonify, make_response
-
+from app import db
 from app.exceptions import APIForbidden
-from data.database import DEFAULT_DATABASE as db
-from data.models import User
-from data.models.admin import Admin
+from app.models.user import User
+from app.models.admin import Admin
 
 log = logging.getLogger(__name__)
 
@@ -21,12 +20,15 @@ def admin_required(func):
     @wraps(func)
     def inner(*args, **kwargs):
         authorization = request.headers.environ.get('HTTP_AUTHORIZATION')
+        if not authorization:
+            g.user = None
+            return func(*args, **kwargs)
         admin = db.session.query(Admin).filter(Admin.token == authorization).one_or_none()
         if admin:
             g.user = admin
             return func(*args, **kwargs)
         else:
-            return APIForbidden(response=make_response(jsonify({"error": "Forbidden", "code": 403}), 403))
+            return APIForbidden(response=make_response(jsonify({"msg": "Forbidden", "code": 401}), 401))
 
     return inner
 
@@ -37,6 +39,7 @@ def auth_user(func):
     :param func
     :return
     """
+
     @wraps(func)
     def inner(*args, **kwargs):
         token = request.headers.get('Token')
@@ -46,6 +49,7 @@ def auth_user(func):
             if user:
                 g.user = user
         return func(*args, **kwargs)
+
     return inner
 
 
@@ -55,6 +59,7 @@ def auth_cookie(func):
     :param func
     :return inner
     """
+
     @wraps(func)
     def inner(*args, **kwargs):
         token = request.cookies.get('token')

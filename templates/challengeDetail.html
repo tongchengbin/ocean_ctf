@@ -1,67 +1,74 @@
- <div class="modal in" id="model-{{ item.id }}" tabindex="-1" role="dialog" style="display:block; padding-right: 16px;">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content" style="margin-top: 10vh;background-color: #0e1f3e">
-                <div class="modal-header" style="border-bottom-color: #2b85e4">
-                    <button onclick="closeModel( {{item.id}} )" type="button" class="close" data-dismiss="modal" aria-label="Close" style="opacity: .8">
-                        <span aria-hidden="true" style="color: #fff">×</span>
-                    </button>
-                    <h4 class="modal-title">
-                        <a class="no-over" href="./level03/" target="_blank">
-                            <strong style="color: #2b85e4">{{item.name}}</strong>
+<div class="modal in" id="model-{{ item.id }}" tabindex="-1" role="dialog" style="display:block; padding-right: 16px;">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content" style="margin-top: 10vh;background-color: #0e1f3e">
+            <div class="modal-header" style="border-bottom-color: #2b85e4">
+                <button onclick="closeModel( {{ item.id }} )" type="button" class="close" data-dismiss="modal"
+                        aria-label="Close" style="opacity: .8">
+                    <span aria-hidden="true" style="color: #fff">×</span>
+                </button>
+                <h4 class="modal-title">
+                    <a class="no-over" target="_blank">
+                        <strong style="color: #2b85e4">{{ item.name }}</strong>
+                    </a>
+                    <div style="font-size: 75%;display: inline;color: #fff">{{ item.solved }} solves</div>
+                </h4>
+            </div>
+            <div class="modal-body">
+                <div>
+                    <p style="color: #fff">{{ item.desc }}</p>
+                </div>
+                <!-- 附件 -->
+                <div style="padding: 10px 0;">
+                    {% for file in item.question_file %}
+                        <a style="font-size: 8px;" class="btn btn-primary" role="button" href="{{ file.file_path }}" target="_blank">
+                            <span>{{ file.filename }}</span>
                         </a>
-                        <div style="font-size: 75%;display: inline;color: #fff">{{item.solved}} solves</div>
-                    </h4>
+                    {% endfor %}
                 </div>
-                <div class="modal-body">
-                    <div>
-                        <p style="color: #fff">{{ item.desc }}</p>
-                    </div>
-                    <div>
-                        {% if item.active_flag %}
-                            {% if item.links %}
-                                <a class="btn btn-danger" role="button">
-                                    <span onclick="destroy({{ item.id }})">销毁</span>
-                                </a>
-                            {% else %}
-                                <a class="btn btn-primary" role="button">
-                                    <span onclick="start({{ item.id }})">启动</span>
-                                </a>
-                            {% endif %}
-
-                        {% endif %}
-                        {% for u in item.links %}
-                            <a class="btn btn-primary" role="button" href="http://{{ u }}" target="_blank"
-                               style="float: right">
-                                <span  class="glyphicon glyphicon-globe" aria-hidden="true"></span>
-                                <span>url</span>
-                            </a>
-                        {% endfor %}
-                        <div style="clear:both;"></div>
-                    </div>
+                <div>
+                    {% for u in item.links %}
+                        <a class="btn btn-primary" role="button" href="http://{{ u }}" target="_blank"
+                           style="float: right">
+                            <span class="glyphicon glyphicon-globe" aria-hidden="true"></span>
+                            <span>url</span>
+                        </a>
+                    {% endfor %}
+                    <div style="clear:both;"></div>
                 </div>
+            </div>
 
-                <nav class="modal-footer" style="border-top-color: #2b85e4">
-                    <div class="container-fluid">
-                        <div class="row">
-                            <div class="col-md-12">
-                                <div class="form-inline">
-                                    <div class="form-group">
-                                        <div class="input-group">
-                                            <div class="input-group-addon btn-primary">
-                                                <span class="glyphicon glyphicon-flag" aria-hidden="true"></span>
-                                            </div>
-                                            <input type="hidden" name="chall_id" value="3">
-                                            <label class="sr-only" for="flag-{{ item.id }}">flag</label>
-                                            <input style="border: none" type="text" class="form-control"
-                                                   id="flag-{{ item.id }}" name="flag" placeholder="flag">
-                                        </div>
-                                    </div>
-                                    <button onclick="submitFlag({{ item.id }})" class="btn btn-primary">提交</button>
+            <nav class="modal-footer" style="border-top-color: #2b85e4">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-inline">
+                                <div class="form-group" style="float: left">
+                                    {% if item.active_flag %}
+                                        {% if item.links %}
+                                            <button onclick="destroy({{ item.id }})" class="btn btn-danger">销毁</button>
+                                        {% else %}
+                                            <button onclick="start({{ item.id }})" class="btn btn-primary">启动</button>
+                                        {% endif %}
+
+                                    {% endif %}
                                 </div>
+                                <div class="form-group">
+                                    <div class="input-group">
+                                        <div class="input-group-addon btn-primary">
+                                            <span class="glyphicon glyphicon-flag" aria-hidden="true"></span>
+                                        </div>
+                                        <input type="hidden" name="chall_id" value="3">
+                                        <label class="sr-only" for="flag-{{ item.id }}">flag</label>
+                                        <input style="border: none" type="text" class="form-control"
+                                               id="flag-{{ item.id }}" name="flag" placeholder="flag">
+                                    </div>
+                                </div>
+                                <button onclick="submitFlag({{ item.id }})" class="btn btn-primary">提交</button>
                             </div>
                         </div>
                     </div>
-                </nav>
-            </div>
+                </div>
+            </nav>
         </div>
+    </div>
 </div>

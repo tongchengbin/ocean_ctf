@@ -1,0 +1,77 @@
+version: "3"
+services:
+  db:
+    image: mysql
+    container_name: db
+    command: --default-authentication-plugin=mysql_native_password
+    ports:
+      - 3306:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ocean
+      LANG: C.UTF-8
+    volumes:
+      - ./install/db_init:/docker-entrypoint-initdb.d/
+    restart: unless-stopped
+    privileged: true
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+  redis:
+    image: redis:latest
+    container_name: redis
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+    restart: unless-stopped
+    privileged: true
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+
+  web:
+    build:
+      context: .
+      dockerfile: ./install/docker/ocean_web.Dockerfile
+    image: ocean_web:v1
+    ports:
+      - 8080:8080
+    container_name: web
+    volumes:
+      - /opt/ocean_ctf:/opt/ocean_ctf
+    depends_on:
+      - db
+      - redis
+    working_dir: /opt/ocean_ctf
+    command: uwsgi --http :8080 -w main:app
+
+  celery_worker:
+    build:
+      context: .
+      dockerfile: ./install/docker/ocean_web.Dockerfile
+    image: ocean_web:v1
+    volumes:
+      - /opt/ocean_ctf:/opt/ocean_ctf
+    container_name: celery_worker
+    depends_on:
+      - db
+      - redis
+    working_dir: /opt/ocean_ctf
+    command:  celery -A app:celery_app worker -l info
+    privileged: true
+
+  celery_beat:
+    build:
+      context: .
+      dockerfile: ./install/docker/ocean_web.Dockerfile
+    image: ocean_web:v1
+    container_name: celery_beat
+    depends_on:
+      - db
+      - redis
+    volumes:
+      - /opt/ocean_ctf:/opt/ocean_ctf
+    working_dir: /opt/ocean_ctf
+    command: celery -A app:celery_app worker -l info
+    privileged: true
+
