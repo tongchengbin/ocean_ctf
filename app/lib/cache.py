@@ -10,7 +10,7 @@ class Cache(object):
         self._cache = None
 
     def init_app(self, app):
-        _cache = redis.Redis.from_url(app.config["REDIS_URL"])
+        _cache = redis.Redis.from_url(app.config["REDIS_URL"], health_check_interval=30)
         self._cache = _cache
 
     def __getattribute__(self, item):

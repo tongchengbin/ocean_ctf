@@ -1,5 +1,6 @@
 import json
 from io import BytesIO
+from urllib.parse import urlparse
 
 from docker import APIClient, errors as docker_error
 
@@ -8,6 +9,8 @@ from app import celery_app
 from app import db
 from app.models.admin import TaskList
 from app.models.docker import Host
+import logging
+logger = logging.getLogger('app')
 
 
 def docker_out_format(data):
@@ -44,11 +47,16 @@ def build_delay(task: int, host, build_type, tag, admin, pt=None, dockerfile=Non
     """
     task = db.session.query(TaskList).get(task)
     instance = db.session.query(Host).filter(Host.id == host).one_or_none()
-    cli = APIClient(base_url='tcp://{}'.format(instance.addr))
+    if instance.docker_api.startswith("http"):
+        _url = urlparse(instance.docker_api)
+        address = "{}:{}".format(_url.hostname, _url.port)
+    else:
+        address = instance.docker_api
+    cli = APIClient(base_url='tcp://{}'.format(address))
     if build_type == 'tar':
         f = open(pt, 'rb')
         for line in cli.build(fileobj=f, rm=True, tag=tag, custom_context=True):
-            print(line)
+            logger.info(line)
             task_add_log(task.id, line)
         task.status = task.STATUS_DONE
     elif build_type == 'pull':

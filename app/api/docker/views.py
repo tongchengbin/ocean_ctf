@@ -7,6 +7,7 @@ from docker import errors as docker_error
 from flask import Blueprint, jsonify, request, g
 
 from app import db
+from app.api.docker.service import fetch_system_info_by_docker_api
 from app.lib.exceptions import make_error_response
 from app.models.admin import TaskList
 from app.models.docker import (Host, )
@@ -23,7 +24,7 @@ def host_crate():
     """
     data = request.get_json()
     name = data.get("name", "").strip()
-    addr = data.get("addr", "").strip()
+    docker_api = data.get("docker_api", "").strip()
     ip = data.get("ip", "").strip()
     active = data.get("active")
     remark = data.get("remark")
@@ -32,19 +33,16 @@ def host_crate():
         return make_error_response("主机名不允许为空！")
     if db.session.query(Host).filter(Host.name == name).all():
         return make_error_response("该主机名称已存在")
-    if not addr:
+    if not docker_api:
         return make_error_response("主机地址不允许为空！")
     if not ip:
         return make_error_response("IP不允许为空！")
-    if db.session.query(Host).filter(Host.addr == addr).first():
-        return make_error_response("该主机地址已存在！")
     # 测试主机连通性
-    uri = "http://{}/_ping".format(addr)
     try:
-        requests.get(uri, timeout=2)
+        system = fetch_system_info_by_docker_api(docker_api)
     except requests.exceptions.ConnectionError:
         return make_error_response("该主机不在线")
-    db.session.add(Host(name=name, addr=addr, active=active, remark=remark, ip=ip, online_time=datetime.now()))
+    db.session.add(Host(name=name, docker_api=docker_api, active=active, remark=remark, ip=ip, system=system))
     db.session.commit()
     return jsonify({"status": "ok"})
 
@@ -56,7 +54,6 @@ def host_delete(host):
     :param :host :主机ID
     :return
     """
-    data = request.get_json()
     instance = db.session.query(Host).get(host)
     db.session.delete(instance)
     db.session.commit()
@@ -73,6 +70,7 @@ def host_update(host):
     name = data.get("name", "").strip()
     remark = data.get("remark")
     active = data.get("active")
+    docker_api = data.get("docker_api")
     instance = db.session.query(Host).filter(Host.id == host).first()
     if not instance:
         return make_error_response("资源不存在！")
@@ -82,8 +80,13 @@ def host_update(host):
         instance.active = active
     if db.session.query(Host).filter(Host.name == name, Host.id != host).all():
         return make_error_response("该主机名称已存在！")
+    system_info = fetch_system_info_by_docker_api(docker_api)
+    instance.docker_api = docker_api
     instance.name = name
     instance.remark = remark
+    instance.system = system_info
+    if system_info:
+        instance.online_time = datetime.now()
     db.session.commit()
     return jsonify({"status": "ok"})
 
@@ -97,25 +100,24 @@ def host_list():
     """
     page = int(request.args.get('page', 1))
     page_size = int(request.args.get("page_size", 10))
-    page = db.session.query(Host).paginate(page=page, per_page=page_size)
+    search = request.args.get("search")
+    query = db.session.query(Host)
+    if search:
+        query = query.filter(Host.name.contains("%"+search+"%") | Host.ip.contains("%"+search+"%"))
+    page = query.paginate(page=page, per_page=page_size)
     data = []
     for item in page.items:
-        if item.active:
-            try:
-                client = docker.DockerClient("http://{}".format(item.addr), timeout=2)
-                info = client.info()
-            except docker_error.DockerException:
-                info = {}
-        else:
-            info = {}
         data.append({
             "id": item.id,
             "name": item.name,
-            "addr": item.addr,
+            "docker_api": item.docker_api,
             "ip": item.ip,
             "remark": item.remark,
             "active": item.active,
-            "info": info
+            "system": item.system,
+            "create_time": item.create_time_format,
+            "online_time": item.online_time.strftime("%Y-%m-%d %H:%M") if item.online_time else None,
+            "is_online": bool(item.online_time and (datetime.now() - item.online_time).total_seconds() < 60 * 10)
         })
     return jsonify({
         "total": page.total,
@@ -131,7 +133,7 @@ def host_detail(pk):
     """
     instance = db.session.query(Host).filter(Host.id == pk).one_or_none()
     try:
-        client = docker.DockerClient("http://{}".format(instance.addr))
+        client = docker.DockerClient(instance.docker_api)
         info = client.info()
     except docker_error.DockerException:
         info = {}
@@ -150,7 +152,7 @@ def host_detail(pk):
     data = {
         "id": instance.id,
         "name": instance.name,
-        "addr": instance.addr,
+        "docker_api": instance.docker_api,
         "remark": instance.remark,
         "ip": instance.ip,
         "info": info
@@ -167,7 +169,7 @@ def host_images(host):
     """
     instance = db.session.query(Host).filter(Host.id == host).one_or_none()
     try:
-        client = docker.DockerClient("http://{}".format(instance.addr))
+        client = docker.DockerClient(instance.docker_api)
         images = client.images.list()
     except docker_error.DockerException:
         images = []
@@ -187,7 +189,7 @@ def host_images(host):
     data = {
         "id": instance.id,
         "name": instance.name,
-        "addr": instance.addr,
+        "docker_api": instance.docker_api,
         "remark": instance.remark,
         "images": images_list
     }
@@ -223,7 +225,7 @@ def host_docker_container():
     pk = request.args.get("id")
     instance = db.session.query(Host).filter(Host.id == pk).one_or_none()
     try:
-        client = docker.DockerClient("http://{}".format(instance.addr))
+        client = docker.DockerClient(instance.docker_api)
         containers = client.containers.list(all=True)
     except docker_error.DockerException:
         containers = []
@@ -231,7 +233,7 @@ def host_docker_container():
     data = {
         "id": instance.id,
         "name": instance.name,
-        "addr": instance.addr,
+        "docker_api": instance.docker_api,
         "remark": instance.remark,
         "containers": containers
     }
@@ -342,5 +344,4 @@ def image_create(host):
     else:
         kwargs = {}
     task_docker.build_delay.apply_async(args=args, kwargs=kwargs)
-    # task_docker.build_delay(*args,**kwargs)
     return jsonify({"status": 'ok', 'data': {"task": task.id}})

@@ -3,13 +3,13 @@ import uuid
 from datetime import datetime
 from operator import or_
 
-from app.api.sys.service import insert_operator
 from flask import Blueprint, make_response, jsonify, request, g, current_app
-from sqlalchemy import func
+from sqlalchemy import func, desc
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from app import cache
 from app import db
+from app.api.sys.service import insert_operator
 from app.auth.acls import admin_required
 from app.lib import exceptions
 from app.lib.decorators import check_permission
@@ -70,7 +70,7 @@ def upload_file():
     uuid_filename = str(uuid.uuid4()) + "." + ext
     file_path = os.path.join(upload_dir, uuid_filename)
     file.save(file_path)
-    return jsonify({"name": filename, "filename": uuid_filename})
+    return jsonify({"name": filename, "filename": filename + "|" + uuid_filename})
 
 
 @bp.route('/admin', methods=['get'])
@@ -269,9 +269,16 @@ def notice_list():
     page = int(request.args.get('page', 1))
     page_size = int(request.args.get("page_size", 10))
     search = request.args.get('search')
+    is_top = request.args.get('is_top')
+    active = request.args.get('active')
     query = db.session.query(Notice)
+    if is_top:
+        query = query.filter(Notice.is_top == is_top)
+    if active:
+        query = query.filter(Notice.active == active)
     if search:
-        query = query.filter(Notice.content.like('%%%s%%' % search))
+        query = query.filter(Notice.content.contains(search))
+    query = query.order_by(desc(Notice.active), desc(Notice.is_top), desc(Notice.id))
     page = query.paginate(page=page, per_page=page_size)
     data = []
     for item in page.items:
@@ -434,6 +441,7 @@ def logout():
     current_user = g.user
     current_user.token = None
     db.session.commit()
+    insert_operator(code=True, content="登出成功", username=current_user.username, role_name=current_user.role_name)
     return jsonify({})
 
 
@@ -478,6 +486,7 @@ def operator_list():
     if search:
         query = query.filter(or_(Operator.username.contains(search),
                                  Operator.content.contains(search)))
+    query = query.order_by(desc(Operator.id))
     page_query = query.paginate(page=page, per_page=page_size)
     data = []
     for item in page_query.items:

@@ -3,7 +3,7 @@ from docker import errors as docker_error
 from sqlalchemy import func, desc
 
 from app import db
-from app.models.ctf import Question, Answer, ContainerResource, ImageResource
+from app.models.ctf import Question, Answer, ContainerResource
 from app.models.user import User
 
 
@@ -18,18 +18,15 @@ class FrontendService:
 
         if instance.active_flag:
             # 获取镜像资源
-            container = db.session.query(ContainerResource).join(ImageResource,
-                                                                 ImageResource.id == ContainerResource.image_resource_id) \
-                .filter(ImageResource.question_id == instance.id, ContainerResource.user_id == user.id) \
-                .order_by(ContainerResource.id.desc()).first()
+            container = db.session.query(ContainerResource).filter(ContainerResource.question_id == instance.id,
+                                                                   ContainerResource.user_id == user.id).first()
             if not container:
                 answer.status = answer.status_error
                 db.session.commit()
                 return 1, "题库无效，请联系管理员或重新生成!"
             # 判断是否是作弊
-            ok_container = db.session.query(ContainerResource) \
-                .join(ImageResource, ContainerResource.image_resource_id == ImageResource.id) \
-                .filter(ContainerResource.flag == flag, ImageResource.question_id == instance.id).first()
+            ok_container = db.session.query(ContainerResource).filter(ContainerResource.question_id == instance.id,
+                                                                      ContainerResource.flag == flag).first()
             if ok_container and ok_container != container:
                 # 作弊
                 answer.status = answer.status_cheat
@@ -38,12 +35,12 @@ class FrontendService:
                 return 1, "请勿作弊"
 
             try:
-                client = docker.DockerClient("http://{}".format(container.image_resource.host.addr))
+                client = docker.DockerClient(container.image_resource.host.docker_api)
                 docker_container = client.containers.get(container.container_id)
             except docker_error.DockerException:
                 return 1, "容器不在线"
             if container.flag == flag:
-                answer.score = instance.integral
+                answer.score = instance.score
                 # 判断是否作弊
                 answer.status = answer.status_repeat if is_answer else answer.status_ok
                 answer.rank = db.session.query(Answer.id).filter(Answer.question_id == question,
@@ -63,7 +60,7 @@ class FrontendService:
                 db.session.commit()
                 return 1, "Flag错误!"
         elif instance.flag == flag:
-            answer.score = instance.integral
+            answer.score = instance.score
             answer.status = answer.status_repeat if is_answer else answer.status_ok
             answer.rank = db.session.query(Answer.id).filter(Answer.question_id == question,
                                                              Answer.status == Answer.status_ok).count() + 1

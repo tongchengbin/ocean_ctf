@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 
 from flask_sqlalchemy import SQLAlchemy as SQLAlchemyBase  # type: ignore
 from sqlalchemy import Column, Integer, func, DateTime
@@ -6,6 +7,8 @@ from sqlalchemy import Column, Integer, func, DateTime
 from app import db
 
 log = logging.getLogger(__name__)
+
+DEFAULT_DATETIME_FORMAT = "%Y-%m-%d %H:%M"
 
 
 class SQLAlchemy(SQLAlchemyBase):
@@ -29,3 +32,14 @@ class MainBase(db.Model):
     @property
     def create_time_format(self):
         return self.date_created.strftime('%Y-%m-%d %H:%M')
+
+    # 把SQLAlchemy查询对象转换成字典
+    def to_dict(self):
+        _dict = {}
+        for col in self.__table__.columns:
+            val = getattr(self, col.name)
+            if isinstance(val, datetime):
+                _dict[col.name] = val.strftime(DEFAULT_DATETIME_FORMAT)
+            else:
+                _dict[col.name] = val
+        return _dict

@@ -3,6 +3,7 @@ from __future__ import absolute_import
 import logging
 from urllib.parse import urljoin, urlparse
 
+import redis
 from celery import Celery
 from flask import Flask, jsonify, make_response
 from flask import g
@@ -60,11 +61,15 @@ def register_custom_helpers(scope_app):
 
 
 def exception_handle(e):
+    logger = logging.getLogger()
+    logger.exception(e)
+    if isinstance(e, redis.exceptions.ConnectionError):
+        return make_response(jsonify({"msg": "缓存服务不可用"}), 503)
     if isinstance(e, RestExceptions):
         return make_response(jsonify({"msg": e.msg, "code": e.code}), e.status)
     if isinstance(e, HTTPException):
         return make_response(jsonify({"msg": e.name, "code": e.code}), e.code)
-    logger = logging.getLogger()
+
     exc_info = (type(e), e, e.__traceback__)
     logger.error('Exception occurred', exc_info=exc_info)
     return make_response(jsonify({"msg": type(e).__name__, "code": 500}), 500)
@@ -112,8 +117,8 @@ def register_blueprints(flask_app):
 
 
 def create_celery():
-    celery = Celery(__name__, broker=config.BROKER_URL)
-    celery.config_from_object('config.celery_config')
+    celery = Celery(__name__, broker=config.broker_url)
+    celery.config_from_object('config.config')
     celery.autodiscover_tasks(('app',))
     return celery
 
@@ -150,3 +155,5 @@ app = create_app()
 db = SQLAlchemy(app)
 app.register_error_handler(Exception, exception_handle)
 celery_app = create_celery()
+
+

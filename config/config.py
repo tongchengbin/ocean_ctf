@@ -1,30 +1,42 @@
-# 配置文件
 import logging.handlers
 import os
 
-from app.lib.env_load import read_env
+from celery.schedules import crontab
+from dotenv import load_dotenv
 
 BASE_DIR = os.path.dirname(os.path.abspath(os.path.dirname(__file__)))
-DEBUG = False
-env = read_env(BASE_DIR)
 
+load_dotenv(verbose=True)
+
+DEBUG = True
 # db
-DB_HOST = '' or env.get('DB_HOST')
-DB_USER = '' or env.get('DB_USER')
-DB_PASSWORD = '' or env.get('DB_PASSWORD')
-DB_PORT = '' or env.get('DB_PORT')
+DB_HOST = os.getenv('DB_HOST')
+DB_USER = os.getenv('DB_USER')
+DB_PASSWORD = os.getenv('DB_PASSWORD')
+DB_PORT = os.getenv('DB_PORT')
 DB_NAME = 'ocean'
 # end db
 
 # cache
-REDIS_HOST = '' or env.get("REDIS_HOST")
-REDIS_PASSWORD = '' or env.get("REDIS_PASSWORD")
-REDIS_URL = 'redis://:{REDIS_PASSWORD}@{REDIS_HOST}:6379'.format(REDIS_HOST=REDIS_HOST, REDIS_PASSWORD=REDIS_PASSWORD)
+REDIS_HOST = os.getenv("REDIS_HOST")
+REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")
+
 # end cache
 
 # 跨域配置
 CSRF_ENABLED = True
 CSRF_SESSION_KEY = os.getenv("CSRF_SESSION_KEY", "")
+
+THREADS_PER_PAGE = 2
+SQLALCHEMY_ECHO = False
+DATABASE_CONNECT_OPTIONS = {}
+SQLALCHEMY_TRACK_MODIFICATIONS = False
+SQLALCHEMY_DATABASE_URI = "mysql+mysqldb://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}".format(
+    db_user=DB_USER,
+    db_password=DB_PASSWORD,
+    db_host=DB_HOST,
+    db_port=DB_PORT,
+    db_name=DB_NAME)
 
 # 日志配置
 LOGGING = {
@@ -85,7 +97,7 @@ LOGGING = {
             'handlers': ['console'],
         },
         'app': {
-            'handlers': ['app_file']
+            'handlers': ['app_file', 'console']
         },
         'werkzeug': {
             'handlers': ['console_mini'],
@@ -93,23 +105,25 @@ LOGGING = {
         }
     }
 }
-
-THREADS_PER_PAGE = 2
-SQLALCHEMY_ECHO = False
-DATABASE_CONNECT_OPTIONS = {}
-SQLALCHEMY_TRACK_MODIFICATIONS = False
-SQLALCHEMY_DATABASE_URI = "mysql+mysqldb://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}".format(
-    db_user=DB_USER,
-    db_password=DB_PASSWORD,
-    db_host=DB_HOST,
-    db_port=DB_PORT,
-    db_name=DB_NAME)
-
 #  定时任务
-timezone = 'Asia/Shanghai'
-
-BROKER_URL = "{}/1".format(REDIS_URL)
+timezone: str = 'Asia/Shanghai'
+REDIS_URL = 'redis://:{REDIS_PASSWORD}@{REDIS_HOST}:6379'.format(REDIS_HOST=REDIS_HOST,
+                                                                 REDIS_PASSWORD=REDIS_PASSWORD)
+broker_url = "{}/1".format(REDIS_URL)
 
 UPLOAD_DIR = os.path.join(BASE_DIR, 'upload')
 
 WHITE_URL_LIST = ('/api/admin/login', '/api/admin/logout')
+
+beat_schedule = {
+    "day_upload_req": {
+        "task": "app.tasks.task_base.day_upload_req",
+        "schedule": crontab(hour=0, minute=2),
+    },
+    "crontab_monitoring_docker_api": {
+        "task": "app.tasks.ctf.crontab_monitoring_docker_api",
+        "schedule": crontab(minute="*/1")
+    }
+
+}
+enable_utc = False

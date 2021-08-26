@@ -1,14 +1,19 @@
 import json
+import os
 
 import docker
 from docker import errors as docker_error
 from flask import Blueprint, make_response, jsonify, request
+from flask import current_app
 
 from app import db
 from app.lib import exceptions
+from app.lib.rest_response import success, fail
 from app.models.ctf import QType, ImageResource, ContainerResource, Answer, QuestionFile
 from app.models.ctf import Question
+from app.models.docker import Host
 from app.models.user import User
+from app.tasks.ctf import build_question_tar
 
 bp = Blueprint("admin_ctf", __name__, url_prefix="/api/admin/ctf")
 
@@ -26,7 +31,7 @@ def question_type():
 
 
 @bp.route('/containers', methods=['get'])
-def ctf_containers():
+def container_list():
     """
     :return : 已生成题目容器
     """
@@ -37,7 +42,7 @@ def ctf_containers():
     question_name = request.args.get("question")
     query = db.session.query(ContainerResource, ImageResource, Question, User).join(ImageResource,
                                                                                     ImageResource.id == ContainerResource.image_resource_id) \
-        .join(Question, Question.id == ImageResource.question_id) \
+        .join(Question, Question.image_id == ImageResource.id) \
         .join(User, ContainerResource.user_id == User.id)
     if username:
         query = query.filter(User.username.ilike("%{}%".format(username)))
@@ -48,6 +53,7 @@ def ctf_containers():
     for item in page.items:
         container_resource, image_resource, question, user_obj = item
         data.append({
+            "image": "{}:{}".format(image_resource.name, image_resource.version),
             "container_resource": container_resource.id,
             "date_created": container_resource.date_created.strftime(
                 "%Y-%m-%d %H:%M:%S") if container_resource.date_created else None,
@@ -87,7 +93,7 @@ def ctf_containers_refresh(container_resource):
         .filter(ContainerResource.id == container_resource).one_or_none()
     container_resource, image_resource, question, user_obj = item
     try:
-        client = docker.DockerClient("http://{}".format(container_resource.image_resource.host.addr))
+        client = docker.DockerClient(container_resource.image_resource.host.docker_api)
         docker_container = client.containers.get(container_resource.container_id)
     except docker_error.DockerException:
         container_resource.container_status = "Outline".lower()
@@ -112,7 +118,7 @@ def ctf_containers_remove(container_resource):
         .filter(ContainerResource.id == container_resource).one_or_none()
     container_resource, image_resource, question, user_obj = item
     try:
-        client = docker.DockerClient("http://{}".format(container_resource.image_resource.host.addr), timeout=3)
+        client = docker.DockerClient(container_resource.image_resource.host.docker_api, timeout=3)
         docker_container = client.containers.get(container_resource.container_id)
         docker_container.kill()
         docker_container.remove()
@@ -126,7 +132,7 @@ def ctf_containers_remove(container_resource):
 
 
 @bp.route('/answers', methods=['get'])
-def answers():
+def answers_list():
     """
         答题记录
     :return:
@@ -135,13 +141,19 @@ def answers():
     page_size = int(request.args.get("page_size", 10))
     _type = request.args.get("q_type")
     status = request.args.get("status")
+    question_name = request.args.get("question")
+    username = request.args.get('username')
     query = db.session.query(Answer, Question, User) \
         .join(Question, Question.id == Answer.question_id) \
         .join(User, User.id == Answer.user_id)
-    if _type:
+    if _type is not None:
         query = query.filter(Question.type == _type)
-    if status:
+    if status is not None:
         query = query.filter(Answer.status == status)
+    if username:
+        query = query.filter(User.username.contains(username))
+    if question_name:
+        query = query.filter(Question.name.contains(question_name))
     page = query.order_by(Answer.id.desc()).paginate(page=page, per_page=page_size)
     data = []
     for item in page.items:
@@ -178,10 +190,10 @@ def answer_status_list():
 @bp.route('/question', methods=['get'])
 def question_list():
     """
-                    题库列表 和题库添加
-                    :data :subject 题目分类
-                :return:
-                """
+        题库列表 和题库添加
+        :data :subject 题目分类
+    :return:
+    """
     page = int(request.args.get('page', 1))
     page_size = int(request.args.get("page_size", 10))
     subject = request.args.get("subject")
@@ -194,17 +206,14 @@ def question_list():
     page = query.order_by(Question.id.desc()).paginate(page=page, per_page=page_size)
     data = []
     for item in page.items:
-        image_resource = db.session.query(ImageResource).filter(ImageResource.question_id == item.id).one_or_none()
-        if image_resource:
-            resource = {
-                "host": image_resource.host_id,
-                "image": image_resource.image_id
-            }
+        if item.active and item.image:
+            host_id = item.image.host_id
         else:
-            resource = {}
+            host_id = None
         data.append({
             "attachment": json.loads(item.attachment) if item.attachment else None,
-            "resource": resource,
+            "host_id": host_id,
+            "image_id": item.image_id,
             "id": item.id,
             "date_created": item.date_created.strftime("%Y-%m-%d %H:%M:%S") if item.date_created else None,
             "date_modified": item.date_modified.strftime("%Y-%m-%d %H:%M:%S") if item.date_modified else None,
@@ -213,7 +222,7 @@ def question_list():
             "active": item.active,
             "flag": item.flag,
             "active_flag": item.active_flag,
-            "integral": item.integral,
+            "score": item.score,
             "desc": item.desc
         })
     return jsonify({
@@ -231,7 +240,7 @@ def question_create():
     desc = data["desc"]
     flag = data["flag"]
     q_type = data["type"]
-    integral = data["integral"]
+    score = data["score"]
     attachment = data.get('attachment', [])
     if not name:
         raise exceptions.CheckException("名称字段不允许为空")
@@ -241,7 +250,7 @@ def question_create():
                         desc=desc,
                         flag=flag,
                         type=q_type,
-                        integral=integral)
+                        score=score)
     db.session.add(question)
     db.session.flush()
     if attachment:
@@ -273,16 +282,22 @@ def question_update(pk):
     name = data.get("name")
     _type = data.get("type")
     active_flag = data.get("active_flag")
-    integral = data.get("integral")
+    score = data.get("score")
     flag = data.get("flag")
+    desc = data.get("desc")
+    image_id = data.get("image_id")
     if active_flag is not None:
         instance.active_flag = active_flag
     if name is not None:
         instance.name = name
-    if integral is not None:
-        instance.integral = integral
+    if score is not None:
+        instance.score = score
     if _type is not None:
         instance.type = _type
+    if image_id is not None:
+        instance.image_id = image_id
+    if desc is not None:
+        instance.desc = desc
     attachment = data.get('attachment', [])
     active = data.get("active")
     if active is not None:
@@ -295,19 +310,8 @@ def question_update(pk):
     #             QuestionFile(question_id=pk, filename=file["filename"], file_path=file["file_path"]))
     instance.attachment = json.dumps(attachment)
     if active_flag is not None:
-        if active_flag:
-            host = data.get("host")
-            image = data.get("image")
-            current_images = db.session.query(ImageResource).filter(
-                ImageResource.question_id == instance.id).one_or_none()
-            if current_images:
-                current_images.host_id = host
-                current_images.image_id = image
-            else:
-                db.session.add(ImageResource(host_id=host, image_id=image, question_id=instance.id))
-        else:
-            if flag is not None:
-                instance.flag = flag
+        if not active_flag:
+            instance.flag = flag
     db.session.commit()
     return jsonify({})
 
@@ -326,7 +330,7 @@ def question_delete(pk):
         # kill
         for container in containers:
             db.session.delete(container)
-            client = docker.DockerClient("http://{}".format(container.image.host.addr))
+            client = docker.DockerClient(container.image.host.docker_api)
             docker_container = client.containers.get(container.container_id)
             docker_container.stop()
             container.status = 2
@@ -336,3 +340,103 @@ def question_delete(pk):
 
     db.session.commit()
     return jsonify({})
+
+
+@bp.route('/images', methods=['get'])
+def images_list():
+    page = int(request.args.get('page', 1))
+    page_size = int(request.args.get("page_size", 10))
+    host_id = request.args.get('host')
+    status = request.args.get('status')
+    name = request.args.get('name')
+    file = request.args.get('file')
+    query = db.session.query(ImageResource)
+    if host_id:
+        query = query.filter(ImageResource.host_id == host_id)
+    if status:
+        query = query.filter(ImageResource.status == status)
+    if name:
+        query = query.filter(ImageResource.name.ilike('%%%s%%' % name))
+    if file:
+        query = query.filter(ImageResource.file.ilike('%' + file + '%|%'))
+    page = query.order_by(ImageResource.id.desc()).paginate(page=page, per_page=page_size)
+    data = []
+    for item in page.items:
+        _item = item.to_dict()
+        _item["ip"] = item.host.ip
+        _item["host_name"] = item.host.name
+        data.append(_item)
+    return success(data=data)
+
+
+@bp.route('/images/<int:pk>', methods=['delete'])
+def images_delete(pk):
+    """
+        删除镜像 目前仅仅删除数据库数据
+    """
+    instance = db.session.query(ImageResource).get(pk)
+    db.session.delete(instance)
+    db.session.commit()
+    return success()
+
+
+@bp.route('/images', methods=['post'])
+def images_create():
+    _data = request.get_json()
+    name = _data.get("name")
+    host_id = _data.get("host")
+    version = _data.get("version")
+    memory = _data.get("memory")
+    cpu = _data.get("cpu")
+    instance = ImageResource(
+        host_id=host_id,
+        name=name, version=version, memory=memory, cpu=cpu, file=_data["file"]
+    )
+    db.session.add(instance)
+    db.session.commit()
+    # build_question_tar(instance.id)
+    build_question_tar.apply_async((instance.id,))
+    return success()
+
+
+@bp.route('/images/<int:pk>', methods=['put'])
+def image_update(pk):
+    _data = request.get_json()
+    name = _data.get("name")
+    host_id = _data.get("host_id")
+    version = _data.get("version")
+    memory = _data.get("memory")
+    cpu = _data.get("cpu")
+    instance = db.session.query(ImageResource).get(pk)
+    instance.name = name
+    instance.host_id = host_id
+    instance.version = version
+    instance.memory = memory
+    instance.cpu = cpu
+    instance.file = _data["file"]
+    instance.status = ImageResource.STATUS_BUILDING
+    db.session.commit()
+    # build_question_tar(instance.id)
+    build_question_tar.apply_async((instance.id,))
+    return success()
+
+
+@bp.route('/upload_docker_tar', methods=['post'])
+def upload_docker_tar():
+    pk = request.form.get("host")
+    host_ = db.session.query(Host).get(pk)
+    if not host_:
+        return fail("请选择宿主机", status=400)
+    docker_api = host_.docker_api
+    # 测试连通性
+    try:
+        docker.DockerClient(docker_api, timeout=1)
+    except docker.errors.DockerException:
+        return fail(msg="Docker主机不在线", status=400)
+    file = request.files["file"]
+    filename = file.name
+    base_dir = current_app.config.get("BASE_DIR")
+    save_file_path = os.path.join(base_dir, 'upload', filename)
+    file.save(save_file_path)
+    build_question_tar.apply_async((save_file_path, docker_api))
+    return success()
