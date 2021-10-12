@@ -43,7 +43,7 @@ services:
       - db
       - redis
     working_dir: /opt/ocean_ctf
-    command: sh -c './install/docker/wait-for-it.sh -t 6 mysql:3306 -- uwsgi --http :8080 -w main:app'
+    command: sh -c 'wait-for-it.sh -t 8 mysql:3306 -- uwsgi --http :8080 -w main:app'
 
   celery_worker:
     build:
