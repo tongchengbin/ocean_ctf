@@ -34,7 +34,7 @@ class ImageResource(MainBase):
     file = Column(String(128), comment="文件名")
     host = relationship(Host, backref='image_resource')
     build_result = Column(String(4096), comment="镜像状态说明")
-
+    question_id = Column(Integer, ForeignKey('ctf_question.id'), comment="对应的题库")
 
 class Question(MainBase):
     __tablename__ = 'ctf_question'
