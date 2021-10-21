@@ -128,11 +128,10 @@ def create_default_data():
     添加默认数据
     @return:
     """
-    DEFAULT_ROLE = ('超级管理员', '运维管理员', '审计员', '访客')
     from app.models.admin import Admin, Role
     from werkzeug.security import generate_password_hash
     # 添加角色 目前角色权限控制作为预留
-    for role in DEFAULT_ROLE:
+    for role in ('超级管理员', '运维管理员', '审计员', '访客'):
         if not db.session.query(Role).filter(Role.name == role).first():
             db.session.add(Role(name=role))
     db.session.commit()
@@ -155,5 +154,3 @@ app = create_app()
 db = SQLAlchemy(app)
 app.register_error_handler(Exception, exception_handle)
 celery_app = create_celery()
-
-

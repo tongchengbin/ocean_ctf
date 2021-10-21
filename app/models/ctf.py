@@ -17,6 +17,7 @@ class QType(Enum):
     pwn = "Pwn"
     crypto = "Crypto"
 
+
 class ImageResource(MainBase):
     __tablename__ = 'image_resource'
     """
@@ -34,7 +35,7 @@ class ImageResource(MainBase):
     file = Column(String(128), comment="文件名")
     host = relationship(Host, backref='image_resource')
     build_result = Column(String(4096), comment="镜像状态说明")
-    question_id = Column(Integer, ForeignKey('ctf_question.id'), comment="对应的题库")
+
 
 class Question(MainBase):
     __tablename__ = 'ctf_question'
@@ -57,9 +58,6 @@ class QuestionFile(MainBase):
     file_path = Column(String(128), comment="文件相对路径")
 
 
-
-
-
 class ContainerResource(MainBase):
     __tablename__ = 'container_resource'
     """
@@ -74,7 +72,7 @@ class ContainerResource(MainBase):
     container_port = Column(String(64), comment="端口映射", nullable=True)
     addr = Column(String(64), comment="快照主机IP")
     user_id = Column(Integer, ForeignKey('user.id'), comment="关联用户")
-    image_resource = relationship('ImageResource', backref='containers')
+    image = relationship('ImageResource', backref='containers')
     destroy_time = Column(DateTime, comment="销毁时间")
     question_id = Column(Integer, ForeignKey('ctf_question.id'), comment="对应的题库")
     # 应该还需要对应用户
