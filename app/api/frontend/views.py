@@ -216,6 +216,10 @@ def challenge_list():
                                                               Answer.status == Answer.status_ok)]
     else:
         solved = []
+    # 每个题目的解题人数
+    solved_query = db.session.query(Answer.question_id, func.count(Answer.id)).filter(
+        Answer.status == Answer.status_ok).group_by(Answer.question_id).all()
+    solved_cnt_dict = {i[0]: i[1] for i in solved_query}
     subjects = request.args.get("subject")
     query = db.session.query(Question).filter(Question.active == 1)
     if subjects:
@@ -229,6 +233,7 @@ def challenge_list():
             "score": item.score,
             "desc": item.desc,
             "active_flag": item.active_flag,
+            "solved_cnt":solved_cnt_dict.get(item.id,0),
             "is_solved": bool(item.id in solved)
         })
     return success(data=data)
