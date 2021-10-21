@@ -27,6 +27,7 @@ def finish_container(container_id):
     logger.info("recv container:%s" % container_id)
     session = sessionmaker(bind=db.engine)()
     container = session.query(ContainerResource).get(container_id)
+    if not container:return
     if container.destroy_time > datetime.now():
         return
     try:
