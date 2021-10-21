@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 
 import docker
@@ -14,7 +15,7 @@ from app.models.ctf import Question
 from app.models.docker import Host
 from app.models.user import User
 from app.tasks.ctf import build_question_tar
-
+logger = logging.getLogger('app')
 bp = Blueprint("admin_ctf", __name__, url_prefix="/api/admin/ctf")
 
 
@@ -104,28 +105,25 @@ def ctf_containers_refresh(container_resource):
     return jsonify({})
 
 
-@bp.route('/containers/<int:container_resource>/remove', methods=['post'])
-def ctf_containers_remove(container_resource):
+@bp.route('/containers/<int:pk>/remove', methods=['post'])
+def ctf_containers_remove(pk):
     """
         删除题目容器 如果容器不在线需要自己手动删除
         :param :container_resource 题目容器id
         :return
     """
-    item = db.session.query(ContainerResource, ImageResource, Question, User).join(ImageResource,
-                                                                                   ImageResource.id == ContainerResource.image_resource_id) \
-        .join(Question, Question.id == ImageResource.question_id) \
-        .join(User, ContainerResource.user_id == User.id) \
-        .filter(ContainerResource.id == container_resource).one_or_none()
-    container_resource, image_resource, question, user_obj = item
+    container = db.session.query(ContainerResource).get(pk)
+    host = container.image.host
     try:
-        client = docker.DockerClient(container_resource.image_resource.host.docker_api, timeout=3)
-        docker_container = client.containers.get(container_resource.container_id)
+        client = docker.DockerClient(host.docker_api)
+        docker_container = client.containers.get(container.container_id)
         docker_container.kill()
         docker_container.remove()
-        db.session.delete(container_resource)
+        db.session.delete(container)
         db.session.commit()
-    except docker_error.DockerException:
-        db.session.delete(container_resource)
+    except docker_error.DockerException as e:
+        logger.exception(e)
+        db.session.delete(container)
         db.session.commit()
         return make_response(jsonify({"msg": "容器不在线，请自行删除容器实例!"}), 200)
     return jsonify({"msg": "删除成功"})
@@ -241,6 +239,7 @@ def question_create():
     flag = data["flag"]
     q_type = data["type"]
     score = data["score"]
+    image_id = data.get("image_id")
     attachment = data.get('attachment', [])
     if not name:
         raise exceptions.CheckException("名称字段不允许为空")
@@ -250,7 +249,8 @@ def question_create():
                         desc=desc,
                         flag=flag,
                         type=q_type,
-                        score=score)
+                        score=score,
+                        image_id=image_id)
     db.session.add(question)
     db.session.flush()
     if attachment:
@@ -259,13 +259,6 @@ def question_create():
                 QuestionFile(question_id=question.id, filename=file["filename"], file_path=file["file_path"]))
 
     db.session.commit()
-    if active_flag:
-        image = data["image"]
-        host = data["host"]
-        # docker image 已经在主机中了 只需要创建虚拟镜像资源绑定即可
-        image_resource = ImageResource(question_id=question.id, host_id=host, image_id=image)
-        db.session.add(image_resource)
-        db.session.commit()
     return jsonify({})
 
 
@@ -325,8 +318,7 @@ def question_delete(pk):
     instance = db.session.query(Question).get(pk)
     if instance.active_flag:
         containers = db.session.query(ContainerResource).join(ImageResource,
-                                                              ImageResource.id == ContainerResource.image_resource_id). \
-            filter(ImageResource.question_id == instance.id)
+                                                              ImageResource.id == ContainerResource.image_resource_id)
         # kill
         for container in containers:
             db.session.delete(container)
@@ -395,7 +387,7 @@ def images_create():
     db.session.add(instance)
     db.session.commit()
     # build_question_tar(instance.id)
-    build_question_tar.apply_async((instance.id,))
+    build_question_tar.apply_async(args=(instance.id,))
     return success()
 
 
@@ -417,7 +409,9 @@ def image_update(pk):
     instance.status = ImageResource.STATUS_BUILDING
     db.session.commit()
     # build_question_tar(instance.id)
-    build_question_tar.apply_async((instance.id,))
+    print(instance.id)
+    build_question_tar.delay(1)
+    # build_question_tar.apply_async(args=(instance.id,))
     return success()
 
 

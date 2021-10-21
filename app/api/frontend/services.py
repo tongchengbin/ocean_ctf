@@ -35,7 +35,7 @@ class FrontendService:
                 return 1, "请勿作弊"
 
             try:
-                client = docker.DockerClient(container.image_resource.host.docker_api)
+                client = docker.DockerClient(container.image.host.docker_api)
                 docker_container = client.containers.get(container.container_id)
             except docker_error.DockerException:
                 return 1, "容器不在线"

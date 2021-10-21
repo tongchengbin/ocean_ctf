@@ -4,8 +4,9 @@ from datetime import datetime
 from urllib.parse import urlparse
 
 import docker
+import requests
 from docker import errors as docker_error, APIClient
-from config  import config
+from config import config
 from sqlalchemy.orm import sessionmaker
 
 from app import celery_app
@@ -54,23 +55,28 @@ def build_question_tar(image_id):
         address = "{}:{}".format(_url.hostname, _url.port)
     else:
         address = image.host.docker_api
-    cli = APIClient(base_url='tcp://{}'.format(address))
+    cli = APIClient(base_url=address)
     dist_file_path = os.path.join(config.BASE_DIR, 'upload', image.file.split("|")[1])
     try:
-        for line in cli.build(fileobj=open(dist_file_path, 'rb'), rm=True, tag="{}:{}".format(image.name,image.version), custom_context=True):
+        for line in cli.build(fileobj=open(dist_file_path, 'rb'), rm=True,
+                              tag=f"{image.name}:{image.version}",
+                              custom_context=True):
             logger.info(line)
         image.status = ImageResource.STATUS_SUCCESS
     except docker.errors.APIError as e:
         logger.exception(e)
         image.status = ImageResource.STATUS_ERROR
         image.build_result = "镜像文件错误"
+    except requests.exceptions.ConnectionError as e:
+        logger.exception(e)
+        image.build_result = "docker api 链接失败"
     except FileNotFoundError as e:
         logger.exception(e)
         image.status = ImageResource.STATUS_ERROR
         image.build_result = "镜像文件不存在"
         image.file = None
     db_session.commit()
-    logger.info("build ok")
+    logger.info(f"build finish{image.build_result}")
 
 
 @celery_app.task

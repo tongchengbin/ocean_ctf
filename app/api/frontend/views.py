@@ -21,9 +21,11 @@ from app.models.ctf import ImageResource, ContainerResource, Answer, Question
 from app.models.user import User
 from app.tasks.ctf import finish_container
 import logging
+
 bp = Blueprint("view", __name__, url_prefix='/api')
 
 logger = logging.getLogger('app')
+
 
 @bp.route('/upload/<path:filename>')
 def send_upload_file(filename):
@@ -241,6 +243,8 @@ def challenge_detail(question):
     :return:
     """
     instance = db.session.query(Question).get(question)
+    if not instance:
+        return fail(msg="题目不存在、请刷新页面！")
     answer_object = db.session.query(Answer).filter(Answer.user_id == g.user.id, Answer.status == Answer.status_ok,
                                                     Answer.question_id == question).first()
     container = db.session.query(ContainerResource).filter(ContainerResource.user_id == g.user.id,
@@ -306,7 +310,7 @@ def question_start(question):
     connect_url = image_resource.host.docker_api
     client = docker.DockerClient(connect_url)
     try:
-        image = client.images.get('{}:{}'.format(image_resource.name,image_resource.version))
+        image = client.images.get('{}:{}'.format(image_resource.name, image_resource.version))
     except docker.errors.ImageNotFound:
         return fail(msg="当前题目环境缺失、请联系管理员！")
     # 解析镜像端口
@@ -331,7 +335,7 @@ def question_start(question):
         pass
     try:
         docker_container_response = client.containers.run(image=image.id, name=container_name, ports=port_dict,
-                                                      detach=True)
+                                                          detach=True)
     except docker.errors.APIError as e:
         logger.exception(e)
         return fail(msg="题目启动失败")
@@ -356,7 +360,7 @@ def question_start(question):
     db.session.commit()
     # 创建定时任务  到时间后销毁
     finish_container.apply_async(args=(container.id,), countdown=60 * 10)
-    return success()
+    return success({})
 
 
 @bp.route('/challenge/<int:question>/delayed', methods=['POST'])
@@ -467,7 +471,6 @@ def score_rank():
     # 公告
     code, data = RankService.score_rank(**request.args)
     return success(data=data)
-
 
 
 if __name__ == "__main__":
