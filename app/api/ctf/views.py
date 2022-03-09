@@ -387,7 +387,7 @@ def images_create():
     )
     db.session.add(instance)
     db.session.commit()
-    scheduler.add_job(f"build_question_tar_{instance.id}", build_question_tar)
+    scheduler.add_job(f"build_question_tar_{instance.id}", build_question_tar, args=(instance.id,))
     return success()
 
 

@@ -18,8 +18,10 @@ from app.lib import command as command_app
 from app.lib.cache import cache
 from app.lib.exceptions import RestExceptions
 from app.lib.middlewares import before_req_cache_ip
+from app.lib.tools import telnet_port
 from config import config
 
+logger = logging.getLogger('app')
 permission_white_list = ("/admin/login",)
 
 
@@ -140,6 +142,9 @@ def init_data():
      初始化数据
     @return:
     """
+    if not telnet_port(config.DB_HOST, int(config.DB_PORT), 30):
+        logger.error("mysql service un connection!")
+        exit(1)
     db.create_all()
     create_default_data()
 
