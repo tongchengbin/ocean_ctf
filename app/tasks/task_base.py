@@ -6,8 +6,6 @@ from datetime import datetime, timedelta
 from app import db, scheduler
 from app.models.admin import RequestState
 from app.lib.cache import cache, ConstCacheKey
-from app import celery_app
-
 logger = logging.getLogger('app')
 
 
@@ -26,6 +24,3 @@ def day_upload_req():
     db.session.commit()
 
 
-@celery_app.task
-def celery_test():
-    print("celery task success")

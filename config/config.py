@@ -1,8 +1,5 @@
-import logging.handlers
 import os
 import logging.config
-
-from celery.schedules import crontab
 from dotenv import load_dotenv
 
 

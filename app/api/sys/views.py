@@ -18,7 +18,6 @@ from app.models.admin import (Admin, TaskList, Operator)
 from app.models.admin import RequestState, Role, Notice
 from app.models.ctf import ContainerResource, Question
 from app.models.user import User
-from app.tasks import celery_test
 
 bp = Blueprint("admin", __name__, url_prefix="/api/admin")
 
@@ -443,12 +442,6 @@ def logout():
     db.session.commit()
     insert_operator(code=True, content="登出成功", username=current_user.username, role_name=current_user.role_name)
     return jsonify({})
-
-
-@bp.route('celery_ping')
-def celery_ping():
-    celery_test.delay()
-    return jsonify({"status": 'ok'})
 
 
 @bp.route('/logs', methods=['get'])

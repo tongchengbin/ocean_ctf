@@ -8,8 +8,6 @@ import requests
 from docker import errors as docker_error, APIClient
 from config import config
 from sqlalchemy.orm import sessionmaker
-
-from app import celery_app
 from app import db
 from app.api.docker.service import fetch_system_info_by_docker_api
 from app.models.ctf import ContainerResource, ImageResource
@@ -18,7 +16,6 @@ from app.models.docker import Host
 logger = logging.getLogger('app')
 
 
-@celery_app.task
 def finish_container(container_id):
     """
 
@@ -80,7 +77,6 @@ def build_question_tar(image_id):
     logger.info(f"build finish{image.build_result}")
 
 
-@celery_app.task
 def crontab_monitoring_docker_api():
     """"
     定时检测dockers api 可用性

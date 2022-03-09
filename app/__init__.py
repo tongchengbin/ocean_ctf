@@ -5,14 +5,14 @@ from urllib.parse import urljoin, urlparse
 
 import redis
 from apscheduler.schedulers.background import BackgroundScheduler
-from celery import Celery
+from werkzeug.exceptions import HTTPException
+from werkzeug.security import generate_password_hash
 from flask import Flask, jsonify, make_response
 from flask import g
 from flask import request
 from flask import url_for
 from flask_apscheduler import APScheduler
 from flask_sqlalchemy import SQLAlchemy
-from werkzeug.exceptions import HTTPException
 
 from app.lib import command as command_app
 from app.lib.cache import cache
@@ -118,28 +118,20 @@ def register_blueprints(flask_app):
     flask_app.register_blueprint(admin_docker_bp)
 
 
-def create_celery():
-    celery = Celery(__name__, broker=config.broker_url)
-    celery.config_from_object('config.config')
-    celery.autodiscover_tasks(('app',))
-    return celery
-
-
 def create_default_data():
     """
     添加默认数据
     @return:
     """
     from app.models.admin import Admin, Role
-    from werkzeug.security import generate_password_hash
     # 添加角色 目前角色权限控制作为预留
     for role in ('超级管理员', '运维管理员', '审计员', '访客'):
         if not db.session.query(Role).filter(Role.name == role).first():
             db.session.add(Role(name=role))
     db.session.commit()
-    superuser_role_id = db.session.query(Role.id).filter(Role.name == '超级管理员').first()
-    if not db.session.query(Admin).filter(Admin.username == 'superuser').first():
-        db.session.add(Admin(username='superuser', password=generate_password_hash('admin'), role_id=superuser_role_id))
+    superuser_role_id = db.session.query(Role.id).filter(Role.name == '超级管理员').first()[0]
+    if not db.session.query(Admin).filter(Admin.username == 'admin').first():
+        db.session.add(Admin(username='admin', password=generate_password_hash('admin'), role_id=superuser_role_id))
         db.session.commit()
 
 
@@ -158,4 +150,3 @@ scheduler = APScheduler(BackgroundScheduler(timezone="Asia/Shanghai"))
 scheduler.init_app(app)
 scheduler.start()
 app.register_error_handler(Exception, exception_handle)
-celery_app = create_celery()

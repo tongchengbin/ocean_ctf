@@ -5,7 +5,6 @@ from urllib.parse import urlparse
 from docker import APIClient, errors as docker_error
 
 from app import cache
-from app import celery_app
 from app import db
 from app.models.admin import TaskList
 from app.models.docker import Host
@@ -40,7 +39,6 @@ def task_add_log(task: int, line: dict):
         cache.rpush(task_key, line["status"])
 
 
-@celery_app.task
 def build_delay(task: int, host, build_type, tag, admin, pt=None, dockerfile=None):
     """
         编译镜像
