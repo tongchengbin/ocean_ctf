@@ -27,7 +27,7 @@ def finish_container(container_id):
     logger.info("recv container:%s" % container_id)
     session = sessionmaker(bind=db.engine)()
     container = session.query(ContainerResource).get(container_id)
-    if not container:return
+    if not container: return
     if container.destroy_time > datetime.now():
         return
     try:
@@ -42,11 +42,11 @@ def finish_container(container_id):
     logger.info("destroy container:%s" % container_id)
 
 
-@celery_app.task
 def build_question_tar(image_id):
     """
         编译上传的tar包为image
     """
+    logger.info('start build image | {}'.format(image_id))
     db_session = sessionmaker(bind=db.engine)()
     image = db_session.query(ImageResource).get(image_id)
     if not image:

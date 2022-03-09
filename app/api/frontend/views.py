@@ -9,7 +9,7 @@ from flask import Blueprint, render_template, request, make_response, g, redirec
 from sqlalchemy import func, desc
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from app import db
+from app import db, scheduler
 from app.api.frontend.services import FrontendService, RankService
 from app.auth.acls import auth_cookie
 from app.lib.decorators import check_user_permission
@@ -233,7 +233,7 @@ def challenge_list():
             "score": item.score,
             "desc": item.desc,
             "active_flag": item.active_flag,
-            "solved_cnt":solved_cnt_dict.get(item.id,0),
+            "solved_cnt": solved_cnt_dict.get(item.id, 0),
             "is_solved": bool(item.id in solved)
         })
     return success(data=data)
@@ -364,7 +364,8 @@ def question_start(question):
     db.session.add(container)
     db.session.commit()
     # 创建定时任务  到时间后销毁
-    finish_container.apply_async(args=(container.id,), countdown=60 * 10)
+    scheduler.add_job("finish_container_{}".format(container.id), finish_container,trigger='date', args=(container.id,),
+                      next_run_time=datetime.now() + timedelta(minutes=10))
     return success({})
 
 

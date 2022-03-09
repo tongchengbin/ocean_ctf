@@ -4,11 +4,13 @@ import logging
 from urllib.parse import urljoin, urlparse
 
 import redis
+from apscheduler.schedulers.background import BackgroundScheduler
 from celery import Celery
 from flask import Flask, jsonify, make_response
 from flask import g
 from flask import request
 from flask import url_for
+from flask_apscheduler import APScheduler
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.exceptions import HTTPException
 
@@ -152,5 +154,8 @@ def init_data():
 
 app = create_app()
 db = SQLAlchemy(app)
+scheduler = APScheduler(BackgroundScheduler(timezone="Asia/Shanghai"))
+scheduler.init_app(app)
+scheduler.start()
 app.register_error_handler(Exception, exception_handle)
 celery_app = create_celery()

@@ -68,6 +68,7 @@ def host_update(host):
     """
     data = request.get_json()
     name = data.get("name", "").strip()
+    ip = data.get("ip")
     remark = data.get("remark")
     active = data.get("active")
     docker_api = data.get("docker_api")
@@ -83,6 +84,7 @@ def host_update(host):
     system_info = fetch_system_info_by_docker_api(docker_api)
     instance.docker_api = docker_api
     instance.name = name
+    instance.ip = ip
     instance.remark = remark
     instance.system = system_info
     if system_info:

@@ -1,8 +1,10 @@
 import logging.handlers
 import os
+import logging.config
 
 from celery.schedules import crontab
 from dotenv import load_dotenv
+
 
 BASE_DIR = os.path.dirname(os.path.abspath(os.path.dirname(__file__)))
 
@@ -20,7 +22,7 @@ DB_NAME = 'ocean'
 # cache
 REDIS_HOST = os.getenv("REDIS_HOST")
 REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")
-
+print(REDIS_HOST, REDIS_PASSWORD)
 # end cache
 
 # 跨域配置
@@ -113,15 +115,7 @@ UPLOAD_DIR = os.path.join(BASE_DIR, 'upload')
 
 WHITE_URL_LIST = ('/api/admin/login', '/api/admin/logout')
 
-beat_schedule = {
-    "day_upload_req": {
-        "task": "app.tasks.task_base.day_upload_req",
-        "schedule": crontab(hour=0, minute=2),
-    },
-    "crontab_monitoring_docker_api": {
-        "task": "app.tasks.ctf.crontab_monitoring_docker_api",
-        "schedule": crontab(minute="*/1")
-    }
 
-}
 enable_utc = False
+
+logging.config.dictConfig(LOGGING)

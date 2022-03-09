@@ -7,7 +7,7 @@ from docker import errors as docker_error
 from flask import Blueprint, make_response, jsonify, request
 from flask import current_app
 
-from app import db
+from app import db, scheduler
 from app.lib import exceptions
 from app.lib.rest_response import success, fail
 from app.models.ctf import QType, ImageResource, ContainerResource, Answer, QuestionFile
@@ -15,6 +15,7 @@ from app.models.ctf import Question
 from app.models.docker import Host
 from app.models.user import User
 from app.tasks.ctf import build_question_tar
+
 logger = logging.getLogger('app')
 bp = Blueprint("admin_ctf", __name__, url_prefix="/api/admin/ctf")
 
@@ -408,10 +409,7 @@ def image_update(pk):
     instance.file = _data["file"]
     instance.status = ImageResource.STATUS_BUILDING
     db.session.commit()
-    # build_question_tar(instance.id)
-    print(instance.id)
-    build_question_tar.delay(1)
-    # build_question_tar.apply_async(args=(instance.id,))
+    scheduler.add_job("test", build_question_tar, args=(instance.id,))
     return success()
 
 
