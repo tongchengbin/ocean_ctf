@@ -325,7 +325,7 @@ def question_start(question):
         port_dict = image.attrs["ContainerConfig"]["ExposedPorts"]
         for docker_port, host_port in port_dict.items():
             # docker_port_int = docker_port.replace("/", "").replace("tcp", "").replace("udp", "")
-            random_port = str(random.randint(10000, 65536))
+            random_port = str(random.randint(20000, 65536))
             port_dict[docker_port] = random_port
     else:
         port_dict = {}
@@ -347,7 +347,7 @@ def question_start(question):
     # 获取创建的容器
     docker_container = client.containers.get(container_name)
     flag = generate_flag()
-    command = "/bin/bash /start.sh '{}'".format(flag)
+    command = "/start.sh '{}'".format(flag)
     docker_container.exec_run(cmd=command, detach=True)
     # 创建容器记录
     container = ContainerResource(image_resource_id=image_resource.id, flag=flag, question_id=question)
