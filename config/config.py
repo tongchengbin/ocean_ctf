@@ -19,7 +19,6 @@ DB_NAME = 'ocean'
 # cache
 REDIS_HOST = os.getenv("REDIS_HOST")
 REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")
-print(REDIS_HOST, REDIS_PASSWORD)
 # end cache
 
 # 跨域配置
@@ -104,7 +103,6 @@ LOGGING = {
     }
 }
 #  定时任务
-timezone: str = 'Asia/Shanghai'
 REDIS_URL = 'redis://:{REDIS_PASSWORD}@{REDIS_HOST}:6379'.format(REDIS_HOST=REDIS_HOST,
                                                                  REDIS_PASSWORD=REDIS_PASSWORD)
 broker_url = "{}/1".format(REDIS_URL)
