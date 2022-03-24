@@ -8,6 +8,7 @@ services:
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
       MYSQL_DATABASE: ocean
       LANG: C.UTF-8
+      TZ: ${TZ}
     volumes:
       - ./install/db_init:/docker-entrypoint-initdb.d/
     restart: unless-stopped
@@ -26,6 +27,8 @@ services:
     restart: unless-stopped
     privileged: true
     command: redis-server --requirepass ${REDIS_PASSWORD}
+    environment:
+      TZ: ${TZ}
   web:
     build:
       context: .
@@ -42,4 +45,5 @@ services:
       - redis
     working_dir: /opt/ocean_ctf
     command: uwsgi --http :8080 -w main:app --enable-threads
-
+    environment:
+      TZ: ${TZ}
