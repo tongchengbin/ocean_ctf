@@ -167,7 +167,7 @@ def answers_list():
                 "type": question.type,
                 "name": question.name
             },
-            "score": 100,
+            "score": answer.score,
             "flag": answer.flag,
             "username": user.username,
             "ip": answer.ip
