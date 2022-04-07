@@ -1,0 +1,6 @@
+[submodule "ocean-player"]
+	path = ocean-player
+	url = https://github.com/tongchengbin/ocean-player.git
+[submodule "install/frontend"]
+	path = install/frontend
+	url = https://github.com/tongchengbin/ocean-player.git
