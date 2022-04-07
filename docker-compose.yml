@@ -44,6 +44,17 @@ services:
       - db
       - redis
     working_dir: /opt/ocean_ctf
-    command: uwsgi --http :8080 -w main:app --enable-threads
+    command: uwsgi --ini uwsgi.ini
+    environment:
+      TZ: ${TZ}
+
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    container_name: nginx
+    volumes:
+      - /opt/ocean_ctf/install/nginx.conf:/etc/nginx/nginx.conf
+      - /opt/ocean_ctf:/opt/ocean_ctf
     environment:
       TZ: ${TZ}

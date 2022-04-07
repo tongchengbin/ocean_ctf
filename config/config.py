@@ -105,7 +105,6 @@ LOGGING = {
 #  定时任务
 REDIS_URL = 'redis://:{REDIS_PASSWORD}@{REDIS_HOST}:6379'.format(REDIS_HOST=REDIS_HOST,
                                                                  REDIS_PASSWORD=REDIS_PASSWORD)
-broker_url = "{}/1".format(REDIS_URL)
 UPLOAD_DIR = os.path.join(BASE_DIR, 'upload')
 
 WHITE_URL_LIST = ('/api/admin/login', '/api/admin/logout')

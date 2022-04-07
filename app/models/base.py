@@ -22,11 +22,11 @@ class MainBase(db.Model):
     __abstract__ = True
 
     id = Column(Integer, autoincrement=True, primary_key=True)
-    date_created = Column(DateTime, default=func.current_timestamp())
+    date_created = Column(DateTime, default=datetime.now())
     date_modified = Column(
         DateTime,
-        default=func.current_timestamp(),
-        onupdate=func.current_timestamp(),
+        default=datetime.now(),
+        onupdate=datetime.now(),
     )
 
     @property
