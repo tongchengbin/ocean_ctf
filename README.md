@@ -48,10 +48,8 @@ docker api  unix:///var/run/docker.sock
 ##### clone
 
 ```
-git clone https://github.com/tongchengbin/ocean_ctf.git /opt/ocean_ctf
+git clone --recursive https://github.com/tongchengbin/ocean_ctf.git /opt/ocean_ctf
 ```
-
-
 
 ### docker方式
 
@@ -68,104 +66,9 @@ docker、docker-compose
 cd /opt/ocean_ctf
 docker-compose up -d
 ```
-##### 访问测试
-```
-curl 127.0.0.1:8080
-```
-### 手动安装
-
-##### 前置环境
-
-```
-Python 3.6+
-mysql 5.6+
-redis
-nginx(可选)
-docker(可选)
-supervisord(可选)
-
-```
-
-##### 安装Python依赖
-
-```
-cd /opt/ocean_ctf
-pip3 install -r requirements.txt
-```
 
 
-##### 快速运行
-
-```shell
-chmod +x ./run.sh
-./run.sh
-```
-
-## 📗 进阶文档
-
-##### 通过nginx代理
-> 默认情况下项目已经给管理后台的页面做了静态处理 但是建议使用nginx处理静态文件
-
-```
-# vim /etc/nginx/conf.d/ctf.conf
-server {
-        listen       8080 default_server;
-        server_name  _;
-        location / {
-        proxy_pass http://127.0.0.1:5000;
-        }
-    location /manager {
-        alias /opt/ocean_ctf/install/manager/dist;
-    }
-    }
-```
-##### 使用supervisord托管程序
-因为celery可能会因为程序异常而退出 所以使用supervisord托管celery 同时也可方便管理，如果使用supervisord托管进程，不要使用run.sh 启动避端口冲突
-
-1. 安装supervisord
-
-   ```shell
-   yum install -y supervisord
-   ```
-3. 配置托管程序
-
-   ```shell
-   cp ./install/config/supervisord/ocean.ini /etc/supervisord.d/
-   ```
-   
-2. 设置开机启动
-
-   ```shell
-   systemctl enable supervisord.service
-   systemctl start supervisord.service
-   ```
-
-##### 开启 Docker API 2375 端口
-```
-开启API
-vim /usr/lib/systemd/system/docker.service
-ExecStart=/usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock -H tcp://0.0.0.0:2375
-systemctl daemon-reload
-systemctl restart docker
-
-检查API
-curl 127.0.0.1:2375/info
-```
-
-
-## ️️❗ 常见问题&注意事项
-
-#### 安装常用环境依赖
-```
-yum -y install python36-devel
-```
-
-#### pip 报错mysqlclinet
-```
-centos: sudo yum install mysql-devel
-ubuntu: sudo apt-get install libmysqlclient-dev
-
-```
+## ❗ 常见问题&注意事项
 
 
 
