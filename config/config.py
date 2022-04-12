@@ -113,3 +113,5 @@ WHITE_URL_LIST = ('/api/admin/login', '/api/admin/logout')
 enable_utc = False
 
 logging.config.dictConfig(LOGGING)
+
+JSON_AS_ASCII = False
