@@ -151,7 +151,7 @@ def init_data():
 
 app = create_app()
 db = SQLAlchemy(app)
-scheduler = APScheduler(BackgroundScheduler(timezone="Asia/Shanghai"))
+scheduler = APScheduler(BackgroundScheduler())
 scheduler.init_app(app)
 scheduler.start()
 app.register_error_handler(Exception, exception_handle)
