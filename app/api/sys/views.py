@@ -184,10 +184,10 @@ def user_create():
 @bp.route('/user/<int:pk>', methods=['put'])
 def user_update(pk):
     data = request.get_json()
-    username = data.get('username')
+    password = data.get('password')
     user = db.session.query(User).get(pk)
-    if username:
-        user.username = username
+    if password:
+        user.password = generate_password_hash(password)
     db.session.commit()
     return jsonify({})
 

@@ -82,6 +82,13 @@ docker-compose up -d
 ## 开发
 
   后台管理源码：https://github.com/tongchengbin/ocean_manager
+  
+## License
+
+[MIT](https://github.com/tongchengbin/ocean_ctf/blob/master/LICENSE)
+
+Copyright (c) 2022-present tongcb
+
 ## 其他截图
 
 - ![](./doc/image/6.png)

@@ -7,3 +7,4 @@ config/local_config.py
 celerybeat-schedule
 *.db
 *.pyc
+venv
