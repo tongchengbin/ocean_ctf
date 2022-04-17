@@ -17,7 +17,7 @@ from app.lib.rest_response import fail, success
 from app.lib.tools import get_ip
 from app.lib.utils.authlib import create_token
 from app.models.admin import Notice
-from app.models.ctf import ImageResource, ContainerResource, Answer, Question
+from app.models.ctf import ImageResource, ContainerResource, Answer, Question, Attachment
 from app.models.user import User
 from app.tasks.ctf import finish_container
 import logging
@@ -275,7 +275,12 @@ def challenge_detail(question):
         container_data = None
 
     get_score = answer_object.score if answer_object else None
-    att = json.loads(instance.attachment) if instance.attachment else []
+    if instance.attachment:
+        attachment = instance.attachment.split(",")
+        attachment_query = db.session.query(Attachment).filter(Attachment.id.in_(attachment))
+        attachment_info = [{"filename": i.filename, "uuid": i.id, "file_path": i.file_path} for i in attachment_query]
+    else:
+        attachment_info = []
     data = {
         "first_blood": first_blood,
         "second_blood": second_blood,
@@ -285,8 +290,8 @@ def challenge_detail(question):
         "score": instance.score,
         "id": instance.id,
         "name": instance.name,
-        "attachment": [{"name": i["name"], "url": "/api/upload/{}?filename={}".format(i["filename"], i["name"])} for i
-                       in att],
+        "attachment": [{"name": i["filename"], "url": "/api/upload/{}?filename={}".format(i["file_path"], i["filename"])} for i
+                       in attachment_info],
         "desc": instance.desc,
         "active_flag": instance.active_flag,
         "type": instance.type,
@@ -364,7 +369,8 @@ def question_start(question):
     db.session.add(container)
     db.session.commit()
     # 创建定时任务  到时间后销毁
-    scheduler.add_job("finish_container_{}".format(container.id), finish_container,trigger='date', args=(container.id,),
+    scheduler.add_job("finish_container_{}".format(container.id), finish_container, trigger='date',
+                      args=(container.id,),
                       next_run_time=datetime.now() + timedelta(minutes=10))
     return success({})
 

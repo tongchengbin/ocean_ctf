@@ -326,7 +326,7 @@ def notice_update(pk):
     return jsonify({})
 
 
-@bp.route('/notice/<int:pk>', methods=['get'])
+@bp.route('/notice/<int:pk>', methods=['delete'])
 def notice_delete(pk):
     """
             delete 公告

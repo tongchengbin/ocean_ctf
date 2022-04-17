@@ -1,16 +1,17 @@
 import json
 import logging
 import os
+import uuid
 
 import docker
 from docker import errors as docker_error
 from flask import Blueprint, make_response, jsonify, request
 from flask import current_app
-
+from config import config
 from app import db, scheduler
 from app.lib import exceptions
 from app.lib.rest_response import success, fail
-from app.models.ctf import QType, ImageResource, ContainerResource, Answer, QuestionFile
+from app.models.ctf import QType, ImageResource, ContainerResource, Answer, Attachment
 from app.models.ctf import Question
 from app.models.docker import Host
 from app.models.user import User
@@ -209,8 +210,14 @@ def question_list():
             host_id = item.image.host_id
         else:
             host_id = None
+        if item.attachment:
+            attachment = item.attachment.split(",")
+            attachment_query = db.session.query(Attachment).filter(Attachment.id.in_(attachment))
+            attachment_info = [{"filename": i.filename, "uuid": i.id} for i in attachment_query]
+        else:
+            attachment_info = []
         data.append({
-            "attachment": json.loads(item.attachment) if item.attachment else None,
+            "attachment": attachment_info,
             "host_id": host_id,
             "image_id": item.image_id,
             "id": item.id,
@@ -251,14 +258,10 @@ def question_create():
                         flag=flag,
                         type=q_type,
                         score=score,
+                        attachment=",".join([str(i) for i in attachment]),
                         image_id=image_id)
     db.session.add(question)
     db.session.flush()
-    if attachment:
-        for file in attachment:
-            db.session.add(
-                QuestionFile(question_id=question.id, filename=file["filename"], file_path=file["file_path"]))
-
     db.session.commit()
     return jsonify({})
 
@@ -302,7 +305,7 @@ def question_update(pk):
     #     for file in attachment:
     #         db.session.add(
     #             QuestionFile(question_id=pk, filename=file["filename"], file_path=file["file_path"]))
-    instance.attachment = json.dumps(attachment)
+    instance.attachment = ",".join([str(i) for i in attachment])
     if active_flag is not None:
         if not active_flag:
             instance.flag = flag
@@ -351,11 +354,15 @@ def images_list():
     if name:
         query = query.filter(ImageResource.name.ilike('%%%s%%' % name))
     if file:
-        query = query.filter(ImageResource.file.ilike('%' + file + '%|%'))
+        query = query.filter(ImageResource.file.filename.ilike(file))
     page = query.order_by(ImageResource.id.desc()).paginate(page=page, per_page=page_size)
     data = []
     for item in page.items:
         _item = item.to_dict()
+        if item.file:
+            _item["filename"] = item.file.filename
+        else:
+            _item["filename"] = None
         _item["ip"] = item.host.ip
         _item["host_name"] = item.host.name
         data.append(_item)
@@ -365,8 +372,10 @@ def images_list():
 @bp.route('/images/<int:pk>', methods=['delete'])
 def images_delete(pk):
     """
-        删除镜像 目前仅仅删除数据库数据
+        删除镜像 目前仅仅删除数据库数据 判断是否有容器在运行 否则不允许删除
     """
+    if db.session.query(ContainerResource).filter(ContainerResource.image_resource_id == pk).count():
+        return fail(msg="无法删除当前镜像、因为相关容器正在运行中!", status=400)
     instance = db.session.query(ImageResource).get(pk)
     db.session.delete(instance)
     db.session.commit()
@@ -383,7 +392,7 @@ def images_create():
     cpu = _data.get("cpu")
     instance = ImageResource(
         host_id=host_id,
-        name=name, version=version, memory=memory, cpu=cpu, file=_data["file"]
+        name=name, version=version, memory=memory, cpu=cpu, file_id=_data["file_id"]
     )
     db.session.add(instance)
     db.session.commit()
@@ -405,7 +414,7 @@ def image_update(pk):
     instance.version = version
     instance.memory = memory
     instance.cpu = cpu
-    instance.file = _data["file"]
+    instance.file_id = _data["file_id"]
     instance.status = ImageResource.STATUS_BUILDING
     db.session.commit()
     scheduler.add_job("test", build_question_tar, args=(instance.id,))
@@ -431,3 +440,25 @@ def upload_docker_tar():
     file.save(save_file_path)
     build_question_tar.apply_async((save_file_path, docker_api))
     return success()
+
+
+@bp.post('/upload')
+def ctf_upload_attachment():
+    """
+        题目附件上传
+    """
+    file = request.files["file"]
+    filename = file.filename
+    ext = filename.split('.')[-1]
+    upload_dir = config.UPLOAD_DIR
+    if ".." in filename:
+        return jsonify({"error": "文件名非法!"})
+    # 生成随机文件名
+    uuid_filename = str(uuid.uuid4()) + "." + ext
+    file_path = os.path.join(upload_dir, uuid_filename)
+    file.save(file_path)
+    # 添加数据库记录
+    at = Attachment(filename=filename, file_path=uuid_filename)
+    db.session.add(at)
+    db.session.commit()
+    return jsonify({"filename": filename, "uuid": at.id})

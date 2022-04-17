@@ -32,7 +32,8 @@ class ImageResource(MainBase):
     version = Column(String(64), comment="版本")
     cpu = Column(Integer, comment="CPU个数")
     memory = Column(Integer, comment="内存大小M")
-    file = Column(String(128), comment="文件名")
+    file_id = Column(Integer, ForeignKey('attachment.id'), comment="文件名")
+    file = relationship("Attachment",)
     host = relationship(Host, backref='image_resource')
     build_result = Column(String(4096), comment="镜像状态说明")
 
@@ -46,14 +47,16 @@ class Question(MainBase):
     desc = Column(String(128), default="", comment="描述")
     flag = Column(String(64), comment="Flag", nullable=True)
     active_flag = Column(Boolean(), default=False, comment="是否时动态Flag")
-    attachment = Column(JSON, comment="附件")
+    attachment = Column(String, comment="附件")
     image_id = Column(ForeignKey('image_resource.id', ondelete='CASCADE'), nullable=True)
     image = relationship(ImageResource)
 
 
-class QuestionFile(MainBase):
-    __tablename__ = 'question_file'
-    question_id = Column(Integer, comment="关联的题目ID")
+class Attachment(MainBase):
+    """
+        附件表
+    """
+    __tablename__ = 'attachment'
     filename = Column(String(32), comment='文件名')
     file_path = Column(String(128), comment="文件相对路径")
 

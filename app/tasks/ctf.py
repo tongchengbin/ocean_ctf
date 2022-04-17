@@ -1,14 +1,15 @@
 import logging
-import os
 from datetime import datetime
 from urllib.parse import urlparse
 
 import docker
 import requests
 from docker import errors as docker_error, APIClient
+
+from app.lib.cache import ConstCacheKey
 from config import config
 from sqlalchemy.orm import sessionmaker
-from app import db
+from app import db, cache
 from app.api.docker.service import fetch_system_info_by_docker_api
 from app.models.ctf import ContainerResource, ImageResource
 from app.models.docker import Host
@@ -54,12 +55,13 @@ def build_question_tar(image_id):
     else:
         address = image.host.docker_api
     cli = APIClient(base_url=address)
-    dist_file_path = os.path.join(config.BASE_DIR, 'upload', image.file.split("|")[1])
+    dist_file_path = os.path.join(config.BASE_DIR, 'upload', image.file.file_path)
     try:
         for line in cli.build(fileobj=open(dist_file_path, 'rb'), rm=True,
                               tag=f"{image.name}:{image.version}",
                               custom_context=True):
             logger.info(line)
+            cache.lpush(ConstCacheKey.TASK_BUILD_LOG % image.id, line)
         image.status = ImageResource.STATUS_SUCCESS
     except docker.errors.APIError as e:
         logger.exception(e)
@@ -74,7 +76,7 @@ def build_question_tar(image_id):
         image.build_result = "镜像文件不存在"
         image.file = None
     db_session.commit()
-    logger.info(f"build finish{image.build_result}")
+    logger.info(f"build finish{image.id}")
 
 
 def crontab_monitoring_docker_api():
@@ -92,3 +94,10 @@ def crontab_monitoring_docker_api():
             pass
     db_session.commit()
     logger.info("crontab_monitoring_docker_api ok")
+
+
+if __name__ == "__main__":
+    import sys, os
+
+    sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+    build_question_tar(1)
