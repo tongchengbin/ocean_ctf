@@ -204,8 +204,9 @@ def image_delete():
     host = request.get_json().get("host")
     instance = db.session.query(Host).filter(Host.id == host).one_or_none()
     try:
-        client = docker.DockerClient("http://{}".format(instance.addr))
+        client = docker.DockerClient(instance.docker_api)
         res = client.images.remove(tag)
+        print(res)
     except docker_error.DockerException as e:
         error_str = str(e)
         if "is using its referenced image" in error_str:
@@ -214,7 +215,7 @@ def image_delete():
             return make_error_response("当前有对应容器正在运行，请停止对应容器！")
         if "image is referenced in multiple repositories" in error_str:
             return make_error_response("镜像被多个仓库依赖！")
-        return make_error_response("删除失败", 400)
+        return make_error_response(f"删除失败({error_str})", 400)
     return jsonify({"status": 0})
 
 
