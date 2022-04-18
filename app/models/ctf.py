@@ -47,7 +47,7 @@ class Question(MainBase):
     desc = Column(String(128), default="", comment="描述")
     flag = Column(String(64), comment="Flag", nullable=True)
     active_flag = Column(Boolean(), default=False, comment="是否时动态Flag")
-    attachment = Column(String, comment="附件")
+    attachment = Column(String(64), comment="附件")
     image_id = Column(ForeignKey('image_resource.id', ondelete='CASCADE'), nullable=True)
     image = relationship(ImageResource)
 
