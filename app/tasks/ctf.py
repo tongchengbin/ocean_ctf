@@ -1,4 +1,4 @@
-import logging
+import logging, os
 from datetime import datetime
 from urllib.parse import urlparse
 
@@ -96,8 +96,3 @@ def crontab_monitoring_docker_api():
     logger.info("crontab_monitoring_docker_api ok")
 
 
-if __name__ == "__main__":
-    import sys, os
-
-    sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-    build_question_tar(1)
