@@ -128,7 +128,7 @@ def login():
         db.session.commit()
         return success({"token": token})
     else:
-        return fail(msg="用户名或密码不允许为空")
+        return fail(msg="用户名不存在或密码错误!")
 
 
 @bp.route('/info', methods=['get'])
