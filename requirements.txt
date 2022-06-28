@@ -1,8 +1,8 @@
-Flask==2.0.3
+Flask==2.1.2
 Flask-SQLAlchemy==2.5.1
-python-dotenv==0.19.2
-mysqlclient==2.1.0
-Flask-APScheduler==1.12.3
-redis==4.1.4
+python-dotenv==0.20.0
+mysqlclient==2.1.1
+Flask-APScheduler==1.12.4
+redis==4.3.4
 uwsgi==2.0.20
-docker==4.3.1
+docker==5.0.3
