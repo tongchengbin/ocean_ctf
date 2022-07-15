@@ -25,8 +25,8 @@
 ## 🚀 预览
 
 线上地址 http://94.74.111.52/
-管理后台 http://94.74.111.52/manager  访客账号  test/test  
-默认超级管理员账号 admin/admin
+管理后台 http://94.74.111.52/manager
+测试账号 test/test
 
 ## 🌍 使用
 
@@ -59,11 +59,12 @@ git clone --recursive https://github.com/tongchengbin/ocean_ctf.git /opt/ocean_c
 docker、docker-compose
 ```
 
-##### compose编排
+##### 安装
 ```
 cd /opt/ocean_ctf
 docker-compose up -d
 ```
+> 访问 /manager 设置管理员账号和初始化
 
 
 ## ❗ 常见问题&注意事项
@@ -79,23 +80,25 @@ docker-compose up -d
 
 
 
-## 开发
+### 开发
 
   后台管理源码：https://github.com/tongchengbin/ocean_manager
   
-## License
+### License
 
 [MIT](https://github.com/tongchengbin/ocean_ctf/blob/master/LICENSE)
 
 Copyright (c) 2022-present tongcb
 
-## 其他截图
+### 截图
 
-- ![](./doc/image/6.png)
+- 初始化界面
+  ![](./doc/image/init.png)
+
 
 - 容器主机详情
-
-  ​	![](./doc/image/7.png)
+  - ![](./doc/image/6.png)
+  ![](./doc/image/7.png)
 
 - 编译镜像
 
