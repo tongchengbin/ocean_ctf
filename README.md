@@ -38,9 +38,6 @@
 ```angular2html
 docker api: unix:///var/run/docker.sock
 ```
-   
-
-
 
 ## 📖 安装步骤
 
@@ -84,6 +81,7 @@ docker-compose up -d
 [MIT](https://github.com/tongchengbin/ocean_ctf/blob/master/LICENSE)
 
 Copyright (c) 2022-present tongcb
+
 
 ### 截图
 
