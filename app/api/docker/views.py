@@ -2,17 +2,19 @@ import os
 from datetime import datetime
 
 import docker
-import requests
 from docker import errors as docker_error
 from flask import Blueprint, jsonify, request, g
 
-from app import db
+from app import db, scheduler
 from app.api.docker.service import fetch_system_info_by_docker_api
 from app.lib.exceptions import make_error_response
+from app.lib.rest_response import fail, success
 from app.models.admin import TaskList
 from app.models.docker import (Host, )
 from app.tasks import task_docker
+import logging
 
+logger = logging.getLogger('app')
 bp = Blueprint("admin_docker", __name__, url_prefix="/api/admin/docker")
 
 
@@ -37,12 +39,16 @@ def host_crate():
         return make_error_response("主机地址不允许为空！")
     if not ip:
         return make_error_response("IP不允许为空！")
+    # 判断出口ip 是否存在
+    if db.session.query(Host).filter(Host.docker_api == docker_api).first():
+        return fail("docker api 地址已存在!")
+    if db.session.query(Host).filter(Host.ip == ip).first():
+        return fail(msg="出口IP已存在!", status=400)
     # 测试主机连通性
-    try:
-        system = fetch_system_info_by_docker_api(docker_api)
-    except requests.exceptions.ConnectionError:
-        return make_error_response("该主机不在线")
-    db.session.add(Host(name=name, docker_api=docker_api, active=active, remark=remark, ip=ip, system=system))
+    host_info = fetch_system_info_by_docker_api(docker_api)
+    if not host_info:
+        return fail(msg="docker api 无法连接、请检查地址！", status=400)
+    db.session.add(Host(name=name, docker_api=docker_api, active=active, remark=remark, ip=ip, system=host_info))
     db.session.commit()
     return jsonify({"status": "ok"})
 
@@ -105,7 +111,7 @@ def host_list():
     search = request.args.get("search")
     query = db.session.query(Host)
     if search:
-        query = query.filter(Host.name.contains("%"+search+"%") | Host.ip.contains("%"+search+"%"))
+        query = query.filter(Host.name.contains("%" + search + "%") | Host.ip.contains("%" + search + "%"))
     page = query.paginate(page=page, per_page=page_size)
     data = []
     for item in page.items:
@@ -209,6 +215,7 @@ def image_delete():
         print(res)
     except docker_error.DockerException as e:
         error_str = str(e)
+        logger.info("ERROR %s" % error_str)
         if "is using its referenced image" in error_str:
             return make_error_response("当前镜像被占用，请先删除对应容器！")
         if "is being used by running container" in error_str:
@@ -253,7 +260,7 @@ def container_stop():
     container_id = request.get_json().get("id")
     instance = db.session.query(Host).filter(Host.id == host).one_or_none()
     try:
-        client = docker.DockerClient("http://{}".format(instance.addr))
+        client = docker.DockerClient(instance.docker_api)
         container = client.containers.get(container_id)
         container.stop()
     except docker_error.DockerException:
@@ -271,7 +278,7 @@ def container_start():
     container_id = request.get_json().get("id")
     instance = db.session.query(Host).filter(Host.id == host).one_or_none()
     try:
-        client = docker.DockerClient("http://{}".format(instance.addr))
+        client = docker.DockerClient(instance.docker_api)
         container = client.containers.get(container_id)
         res = container.start()
     except docker_error.DockerException:
@@ -290,7 +297,7 @@ def container_action():
     action = request.get_json().get("action")
     instance = db.session.query(Host).filter(Host.id == host).one_or_none()
     try:
-        client = docker.DockerClient("http://{}".format(instance.addr))
+        client = docker.DockerClient(instance.docker_api)
         container = client.containers.get(container_id)
         action_fun = getattr(container, action)
         action_fun()
@@ -310,14 +317,14 @@ def image_detail(host, image):
 
     instance = db.session.query(Host).filter(Host.id == host).one_or_none()
     try:
-        client = docker.DockerClient("http://{}".format(instance.addr))
+        client = docker.DockerClient(instance.docker_api)
         image = client.images.get(image).attrs
     except docker_error.DockerException as e:
         image = {}
     data = {
         "id": instance.id,
         "name": instance.name,
-        "url": instance.addr,
+        "docker_api": instance.docker_api,
         "remark": instance.remark,
         "image": image
     }
@@ -346,5 +353,23 @@ def image_create(host):
         kwargs = {"dockerfile": request.get_json().get("dockerfile")}
     else:
         kwargs = {}
-    task_docker.build_delay.apply_async(args=args, kwargs=kwargs)
+    scheduler.add_job(f"build_delay", task_docker.build_delay, args=args, kwargs=kwargs)
     return jsonify({"status": 'ok', 'data': {"task": task.id}})
+
+
+@bp.get('/host/<int:host>/image_list')
+def image_list(host):
+    instance = db.session.query(Host).filter(Host.id == host).one_or_none()
+    try:
+        client = docker.DockerClient(instance.docker_api)
+        images_list = client.images.list()
+    except docker_error.DockerException as e:
+        return fail(msg="容器主机无法连接", status=400)
+    repos = []
+    for i in images_list:
+        attrs = i.attrs
+        if not attrs["RepoTags"]:
+            continue
+        for r in i.tags:
+            repos.append(r)
+    return success(repos)

@@ -5,6 +5,7 @@ class Cache(object):
     """
         缓存  代理模式避免循环引入
     """
+    INIT_OK = False
 
     def __init__(self):
         self._cache = None
@@ -18,6 +19,13 @@ class Cache(object):
             return object.__getattribute__(self, item)
         except AttributeError:
             return object.__getattribute__(self._cache, item)
+
+    def ping(self):
+        try:
+            self._cache.ping()
+            return True
+        except:
+            return False
 
 
 cache = Cache()

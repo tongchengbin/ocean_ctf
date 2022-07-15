@@ -11,7 +11,6 @@ services:
       TZ: ${TZ}
     volumes:
       - ./install/db_init:/docker-entrypoint-initdb.d/
-    restart: unless-stopped
     privileged: true
     logging:
       driver: "json-file"
@@ -44,7 +43,7 @@ services:
       - db
       - redis
     working_dir: /opt/ocean_ctf
-    command: uwsgi --ini uwsgi.ini
+    command: [ "/bin/bash","-c","chmod +x install/docker/wait-for-it.sh && ./install/docker/wait-for-it.sh db:3306 -s -t 60 && uwsgi --ini uwsgi.ini"]
     environment:
       TZ: ${TZ}
 

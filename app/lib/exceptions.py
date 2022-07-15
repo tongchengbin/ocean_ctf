@@ -57,6 +57,11 @@ class PermissionFailed(RestExceptions):
     default_status = 400
 
 
+class ServerUnableError(RestExceptions):
+    default_code = 4003
+    default_msg = "服务初始化未完成"
+    default_status = 400
+
 
 def make_error_response(message, code=400):
     return make_response(jsonify({"msg": message}), code)

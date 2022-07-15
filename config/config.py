@@ -2,7 +2,6 @@ import os
 import logging.config
 from dotenv import load_dotenv
 
-
 BASE_DIR = os.path.dirname(os.path.abspath(os.path.dirname(__file__)))
 
 load_dotenv(verbose=True)
@@ -48,13 +47,13 @@ LOGGING = {
         },
         'full': {
             'format':
-                '%(asctime)s - %(levelname)-4.4s [%(name)s,%(filename)s:%(lineno)d] %(message)s',
+                '%(asctime)s - %(levelname)5s %(name)10.10s %(message)s',
         },
     },
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
-            'formatter': 'basic',
+            'formatter': 'full',
             'level': logging.DEBUG,
             'stream': 'ext://sys.stdout',
         },
@@ -94,7 +93,7 @@ LOGGING = {
             'handlers': ['console'],
         },
         'app': {
-            'handlers': ['app_file', 'console']
+            'handlers': ['console']
         },
         'werkzeug': {
             'handlers': ['console_mini'],
@@ -109,7 +108,9 @@ UPLOAD_DIR = os.path.join(BASE_DIR, 'upload')
 
 WHITE_URL_LIST = ('/api/admin/login', '/api/admin/logout')
 
-
 enable_utc = False
 
 logging.config.dictConfig(LOGGING)
+
+# 应用初始化 db 和 redis 初始化有延迟
+API_INIT = False

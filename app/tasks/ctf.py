@@ -22,14 +22,20 @@ def finish_container(container_id):
 
         定时任务 定时结束容器
     """
-    logger.info("recv container:%s" % container_id)
+    logger.info("finish container:%s" % container_id)
     session = sessionmaker(bind=db.engine)()
     container = session.query(ContainerResource).get(container_id)
-    if not container: return
+    if not container:
+        logger.info("container not found")
+        return
+
     if container.destroy_time > datetime.now():
+        logger.info(container.destroy_time)
+        logger.info(datetime.now())
+        logger.info("container time is delay ")
         return
     try:
-        client = docker.DockerClient(container.image_resource.host.docker_api, timeout=3)
+        client = docker.DockerClient(container.question.host.docker_api, timeout=3)
         docker_container = client.containers.get(container.container_id)
         docker_container.kill()
         docker_container.remove()
@@ -94,5 +100,3 @@ def crontab_monitoring_docker_api():
             pass
     db_session.commit()
     logger.info("crontab_monitoring_docker_api ok")
-
-

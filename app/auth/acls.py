@@ -3,7 +3,6 @@ from functools import wraps
 
 from flask import request, g, jsonify, make_response
 from app import db
-from app.exceptions import APIForbidden
 from app.models.user import User
 from app.models.admin import Admin
 
@@ -28,7 +27,7 @@ def admin_required(func):
             g.user = admin
             return func(*args, **kwargs)
         else:
-            return APIForbidden(response=make_response(jsonify({"msg": "Forbidden", "code": 401}), 401))
+            return make_response(jsonify({"msg": "Forbidden", "code": 401}), 401)
 
     return inner
 

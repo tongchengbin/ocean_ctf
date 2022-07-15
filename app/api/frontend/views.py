@@ -21,7 +21,7 @@ from app.models.ctf import ImageResource, ContainerResource, Answer, Question, A
 from app.models.user import User
 from app.tasks.ctf import finish_container
 import logging
-
+from docker.errors import  APIError,NotFound
 bp = Blueprint("view", __name__, url_prefix='/api')
 
 logger = logging.getLogger('app')
@@ -314,13 +314,11 @@ def question_start(question):
     instance = db.session.query(Question).get(question)
     if not instance.active_flag:
         return fail(msg="静态题库无需动态生成")
-    image_resource = instance.image
-    if not image_resource:
+    if not instance.image_id or not instance.host_id or not instance.active_flag:
         return fail(msg="服务器没有资源")
-    connect_url = image_resource.host.docker_api
-    client = docker.DockerClient(connect_url)
+    client = docker.DockerClient(instance.host.docker_api)
     try:
-        image = client.images.get('{}:{}'.format(image_resource.name, image_resource.version))
+        image = client.images.get(instance.image_id)
     except docker.errors.ImageNotFound:
         return fail(msg="当前题目环境缺失、请联系管理员！")
     # 解析镜像端口
@@ -355,8 +353,8 @@ def question_start(question):
     command = "/start.sh '{}'".format(flag)
     docker_container.exec_run(cmd=command, detach=True)
     # 创建容器记录
-    container = ContainerResource(image_resource_id=image_resource.id, flag=flag, question_id=question)
-    container.addr = image_resource.host.ip
+    container = ContainerResource(image_id=instance.image_id, flag=flag, question_id=question)
+    container.addr = instance.host.ip
     container.container_id = docker_container_response.attrs["Id"]
     container.image_id = image.attrs["Id"]
     container.container_name = container_name
@@ -364,14 +362,14 @@ def question_start(question):
     container.container_port = random_port
     container.user_id = user.id
     # 销毁时间
-    container.destroy_time = datetime.now() + timedelta(minutes=10)
+    container.destroy_time = datetime.now() + timedelta(seconds=10)
     # 创建容器
     db.session.add(container)
     db.session.commit()
     # 创建定时任务  到时间后销毁
     scheduler.add_job("finish_container_{}".format(container.id), finish_container, trigger='date',
                       args=(container.id,),
-                      next_run_time=datetime.now() + timedelta(minutes=10))
+                      next_run_time=datetime.now() + timedelta(seconds=10))
     return success({})
 
 
@@ -408,12 +406,10 @@ def question_destroy(question):
     instance = db.session.query(Question).get(question)
     if not instance.active_flag:
         return fail("静态题库无需动态生成")
-    containers = db.session.query(ContainerResource, ImageResource).join(ImageResource,
-                                                                         ImageResource.id == ContainerResource.image_resource_id). \
-        filter(ImageResource.id == instance.image_id, ContainerResource.user_id == g.user.id)
-    for (container, image_resource) in containers:
+    containers = db.session.query(ContainerResource).filter(ContainerResource.question_id == instance.id, ContainerResource.user_id == g.user.id)
+    for container in containers:
         try:
-            client = docker.DockerClient(image_resource.host.docker_api, timeout=3)
+            client = docker.DockerClient(container.question.host.docker_api, timeout=3)
             docker_container = client.containers.get(container.container_id)
             docker_container.kill()
             docker_container.remove()

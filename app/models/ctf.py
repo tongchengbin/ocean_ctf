@@ -8,6 +8,7 @@ from sqlalchemy.orm import relationship
 
 from app.models.base import MainBase
 from app.models.docker import Host
+from app.models.user import User
 
 
 class QType(Enum):
@@ -33,7 +34,7 @@ class ImageResource(MainBase):
     cpu = Column(Integer, comment="CPU个数")
     memory = Column(Integer, comment="内存大小M")
     file_id = Column(Integer, ForeignKey('attachment.id'), comment="文件名")
-    file = relationship("Attachment",)
+    file = relationship("Attachment", )
     host = relationship(Host, backref='image_resource')
     build_result = Column(String(4096), comment="镜像状态说明")
 
@@ -48,8 +49,9 @@ class Question(MainBase):
     flag = Column(String(64), comment="Flag", nullable=True)
     active_flag = Column(Boolean(), default=False, comment="是否时动态Flag")
     attachment = Column(String(64), comment="附件")
-    image_id = Column(ForeignKey('image_resource.id', ondelete='CASCADE'), nullable=True)
-    image = relationship(ImageResource)
+    image_id = Column(String(128), default="", comment="镜像ID")
+    host_id = Column(Integer, ForeignKey('docker_host.id'))
+    host = relationship(Host, backref='question_ref')
 
 
 class Attachment(MainBase):
@@ -66,7 +68,7 @@ class ContainerResource(MainBase):
     """
         实际的容器资源 不一定是实际的主机容器  主要是用来记录用户对容器的使用 同时绑定Flag
     """
-    image_resource_id = Column(Integer, ForeignKey('image_resource.id'), comment="容器对应的镜像资源")
+    image_id = Column(String(128), default="", comment="镜像ID")
     container_name = Column(String(64), comment="容器名称")
     status = Column(Integer, comment="1-启用/2-销毁", default=1)
     container_id = Column(String(64), comment="容器的实际ID", nullable=True)
@@ -75,9 +77,10 @@ class ContainerResource(MainBase):
     container_port = Column(String(64), comment="端口映射", nullable=True)
     addr = Column(String(64), comment="快照主机IP")
     user_id = Column(Integer, ForeignKey('user.id'), comment="关联用户")
-    image = relationship('ImageResource', backref='containers')
+    user = relationship(User, backref='container_ref')
     destroy_time = Column(DateTime, comment="销毁时间")
     question_id = Column(Integer, ForeignKey('ctf_question.id'), comment="对应的题库")
+    question = relationship(Question, backref='container_ref')
     # 应该还需要对应用户
 
 

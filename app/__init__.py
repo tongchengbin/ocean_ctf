@@ -1,9 +1,11 @@
 from __future__ import absolute_import
 
 import logging
+import sys
 from urllib.parse import urljoin, urlparse
 
 import redis
+from sqlalchemy.exc import OperationalError
 from apscheduler.schedulers.background import BackgroundScheduler
 from werkzeug.exceptions import HTTPException
 from werkzeug.security import generate_password_hash
@@ -21,7 +23,6 @@ from app.lib.middlewares import before_req_cache_ip
 from app.lib.tools import telnet_port
 from config import config
 
-logger = logging.getLogger('app')
 permission_white_list = ("/admin/login",)
 
 
@@ -65,8 +66,6 @@ def register_custom_helpers(scope_app):
 
 
 def exception_handle(e):
-    logger = logging.getLogger()
-    logger.exception(e)
     if isinstance(e, redis.exceptions.ConnectionError):
         return make_response(jsonify({"msg": "缓存服务不可用"}), 503)
     if isinstance(e, RestExceptions):
@@ -75,6 +74,7 @@ def exception_handle(e):
         return make_response(jsonify({"msg": e.name, "code": e.code}), e.code)
 
     exc_info = (type(e), e, e.__traceback__)
+    logger = logging.getLogger('app')
     logger.error('Exception occurred', exc_info=exc_info)
     return make_response(jsonify({"msg": type(e).__name__, "code": 500}), 500)
 
@@ -108,14 +108,14 @@ def register_blueprints(flask_app):
     """
     from app.api.ctf.views import bp as admin_ctf_bp
     from app.api.docker.views import bp as admin_docker_bp
-    from app.api.sys.views import bp as admin_bp
-
+    from app.api.sys.views import bp as admin_bp, system_bp
     # 用户平台注册
     from app.api.frontend.views import bp as view_bp
 
     """Register Flask blueprints."""
     flask_app.register_blueprint(view_bp)
     flask_app.register_blueprint(admin_bp)
+    flask_app.register_blueprint(system_bp)
     flask_app.register_blueprint(admin_ctf_bp)
     flask_app.register_blueprint(admin_docker_bp)
 
@@ -137,20 +137,10 @@ def create_default_data():
         db.session.commit()
 
 
-def init_data():
-    """
-     初始化数据
-    @return:
-    """
-    if not telnet_port(config.DB_HOST, int(config.DB_PORT), 30):
-        logger.error("mysql service un connection!")
-        exit(1)
-    db.create_all()
-    create_default_data()
-
-
 app = create_app()
 db = SQLAlchemy(app)
+
+
 scheduler = APScheduler(BackgroundScheduler())
 scheduler.init_app(app)
 scheduler.start()

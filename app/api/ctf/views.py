@@ -43,10 +43,7 @@ def container_list():
     page_size = int(request.args.get("page_size", 10))
     username = request.args.get("username")
     question_name = request.args.get("question")
-    query = db.session.query(ContainerResource, ImageResource, Question, User).join(ImageResource,
-                                                                                    ImageResource.id == ContainerResource.image_resource_id) \
-        .join(Question, Question.image_id == ImageResource.id) \
-        .join(User, ContainerResource.user_id == User.id)
+    query = db.session.query(ContainerResource, Question, User).join(User, ContainerResource.user_id == User.id).join(Question,Question.id==ContainerResource.question_id)
     if username:
         query = query.filter(User.username.ilike("%{}%".format(username)))
     if question_name:
@@ -54,9 +51,9 @@ def container_list():
     page = query.order_by(ContainerResource.id.desc()).paginate(page=page, per_page=page_size)
     data = []
     for item in page.items:
-        container_resource, image_resource, question, user_obj = item
+        container_resource, question, user_obj = item
         data.append({
-            "image": "{}:{}".format(image_resource.name, image_resource.version),
+            "image": question.image_id,
             "container_resource": container_resource.id,
             "date_created": container_resource.date_created.strftime(
                 "%Y-%m-%d %H:%M:%S") if container_resource.date_created else None,
@@ -88,21 +85,17 @@ def ctf_containers_refresh(container_resource):
         :param :container_resource :题目容器
         :return
     """
-
-    item = db.session.query(ContainerResource, ImageResource, Question, User).join(ImageResource,
-                                                                                   ImageResource.id == ContainerResource.image_resource_id) \
-        .join(Question, Question.id == ImageResource.question_id) \
-        .join(User, ContainerResource.user_id == User.id) \
-        .filter(ContainerResource.id == container_resource).one_or_none()
-    container_resource, image_resource, question, user_obj = item
+    container = db.session.query(ContainerResource).get(container_resource)
+    question = container.question
+    user_obj = container.user
     try:
-        client = docker.DockerClient(container_resource.image_resource.host.docker_api)
-        docker_container = client.containers.get(container_resource.container_id)
+        client = docker.DockerClient(question.host.docker_api)
+        docker_container = client.containers.get(container.container_id)
     except docker_error.DockerException:
-        container_resource.container_status = "Outline".lower()
+        container.container_status = "Outline".lower()
         db.session.commit()
         return make_response(jsonify({"msg": "容器不在线"}))
-    container_resource.container_status = docker_container.attrs["State"]["Status"].lower()
+    container.container_status = docker_container.attrs["State"]["Status"].lower()
     db.session.commit()
     return jsonify({})
 
@@ -115,7 +108,7 @@ def ctf_containers_remove(pk):
         :return
     """
     container = db.session.query(ContainerResource).get(pk)
-    host = container.image.host
+    host = container.question.host
     try:
         client = docker.DockerClient(host.docker_api)
         docker_container = client.containers.get(container.container_id)
@@ -206,8 +199,8 @@ def question_list():
     page = query.order_by(Question.id.desc()).paginate(page=page, per_page=page_size)
     data = []
     for item in page.items:
-        if item.active and item.image:
-            host_id = item.image.host_id
+        if item.active and item.image_id:
+            host_id = item.host_id
         else:
             host_id = None
         if item.attachment:
@@ -248,6 +241,7 @@ def question_create():
     q_type = data["type"]
     score = data["score"]
     image_id = data.get("image_id")
+    host_id = data.get("host_id")
     attachment = data.get('attachment', [])
     if not name:
         raise exceptions.CheckException("名称字段不允许为空")
@@ -259,6 +253,7 @@ def question_create():
                         type=q_type,
                         score=score,
                         attachment=",".join([str(i) for i in attachment]),
+                        host_id = host_id,
                         image_id=image_id)
     db.session.add(question)
     db.session.flush()
@@ -282,6 +277,7 @@ def question_update(pk):
     score = data.get("score")
     flag = data.get("flag")
     desc = data.get("desc")
+    host_id = data.get("host_id")
     image_id = data.get("image_id")
     if active_flag is not None:
         instance.active_flag = active_flag
@@ -295,6 +291,7 @@ def question_update(pk):
         instance.image_id = image_id
     if desc is not None:
         instance.desc = desc
+    instance.host_id = host_id
     attachment = data.get('attachment', [])
     active = data.get("active")
     if active is not None:

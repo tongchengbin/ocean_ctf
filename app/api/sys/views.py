@@ -1,3 +1,4 @@
+import logging
 import os
 import uuid
 from datetime import datetime
@@ -5,6 +6,7 @@ from operator import or_
 
 from flask import Blueprint, make_response, jsonify, request, g, current_app
 from sqlalchemy import func, desc
+from sqlalchemy.exc import ProgrammingError, OperationalError
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from app import cache
@@ -13,6 +15,7 @@ from app.api.sys.service import insert_operator
 from app.auth.acls import admin_required
 from app.lib import exceptions
 from app.lib.decorators import check_permission
+from app.lib.rest_response import success, fail
 from app.lib.utils.authlib import create_token
 from app.models.admin import (Admin, TaskList, Operator)
 from app.models.admin import RequestState, Role, Notice
@@ -20,6 +23,9 @@ from app.models.ctf import ContainerResource, Question
 from app.models.user import User
 
 bp = Blueprint("admin", __name__, url_prefix="/api/admin")
+
+system_bp = Blueprint("system", __name__, url_prefix="/api/system")
+logger = logging.getLogger('app')
 
 
 @bp.route('/rest_pass', methods=['post'])
@@ -493,3 +499,43 @@ def operator_list():
         _item["code"] = item.code
         data.append(_item)
     return jsonify({"data": data, "total": page_query.total})
+
+
+@system_bp.post('/init')
+def system_init():
+    # 检测是否已经初始化
+    query = db.session.query(Admin)
+    if query.first():
+        return fail(msg="系统已初始化完成!", status=400)
+    data = request.get_json()
+    username = data.get("username")
+    password = data.get("password")
+    db.session.add(Admin(username=username, password=generate_password_hash(password)))
+    # 判断是否有角色信息
+    for role in ('超级管理员', '运维管理员', '审计员', '访客'):
+        if not db.session.query(Role).filter(Role.name == role).first():
+            db.session.add(Role(name=role))
+    db.session.commit()
+    logger.info(request.get_json())
+    return success({"token": 1})
+
+
+@system_bp.get('/check')
+def system_check():
+    # 检测是否已经初始化
+    try:
+        has_table = db.engine.dialect.has_table(db.engine.connect(), Admin.__tablename__)
+    except OperationalError:
+        return fail(msg="系统正在初始化、请稍后!", status=400)
+    if not has_table:
+        db.create_all()
+    query = db.session.query(Admin)
+    data = {
+        "init": False
+    }
+    try:
+        if query.first():
+            data["init"] = True
+    except ProgrammingError:
+        return fail(msg="系统未初始化完成、请稍后!", status=400)
+    return success(data)

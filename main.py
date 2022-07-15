@@ -1,8 +1,6 @@
-from app import app, register_blueprints, init_data
-
+from app import app, register_blueprints
 
 register_blueprints(app)
-init_data()
 
 
 def main():

@@ -9,6 +9,7 @@ from app import db
 from app.models.admin import TaskList
 from app.models.docker import Host
 import logging
+
 logger = logging.getLogger('app')
 
 
@@ -28,15 +29,21 @@ def task_add_log(task: int, line: dict):
     """
         处理日志存储
     """
+
     if isinstance(line, bytes):
         line = json.loads(line)
     task_key = "task_%s" % task
+    # cache.rpush(task_key, line)
     if "progress" in line:
         cache.rpush(task_key, "%s:%s" % (line["status"], line["progress"]))
     elif "error" in line:
         cache.rpush(task_key, "%s:%s" % ("ERROR", line["error"]))
     elif "status" in line:
         cache.rpush(task_key, line["status"])
+    elif "stream" in line:
+        cache.rpush(task_key, line["stream"])
+    else:
+        cache.rpush(task_key, json.dumps(line))
 
 
 def build_delay(task: int, host, build_type, tag, admin, pt=None, dockerfile=None):
@@ -44,13 +51,10 @@ def build_delay(task: int, host, build_type, tag, admin, pt=None, dockerfile=Non
         编译镜像
     """
     task = db.session.query(TaskList).get(task)
+    if not task:
+        return
     instance = db.session.query(Host).filter(Host.id == host).one_or_none()
-    if instance.docker_api.startswith("http"):
-        _url = urlparse(instance.docker_api)
-        address = "{}:{}".format(_url.hostname, _url.port)
-    else:
-        address = instance.docker_api
-    cli = APIClient(base_url='tcp://{}'.format(address))
+    cli = APIClient(instance.docker_api)
     if build_type == 'tar':
         f = open(pt, 'rb')
         for line in cli.build(fileobj=f, rm=True, tag=tag, custom_context=True):
