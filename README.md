@@ -45,26 +45,19 @@ docker api: unix:///var/run/docker.sock
 ##### clone
 > 注意使用 --recursive参数拉去子模块、否则无法加载界面！
 
+* 克隆代码
 ```
 git clone --recursive https://github.com/tongchengbin/ocean_ctf.git /opt/ocean_ctf
 ```
 
-### docker方式
-
-> docker 编排会引用.env文件中的环境变量
-
-##### 前置环境
-
-```
-docker、docker-compose
-```
-
-##### 安装
+* docker-compose 编排镜像
 ```
 cd /opt/ocean_ctf
 docker-compose up -d
 ```
-> 访问 /manager 设置管理员账号和初始化
+* 初始化系统
+
+访问 /manager 设置管理员账号和初始化
 
 
 ## ❗ 常见问题&注意事项
