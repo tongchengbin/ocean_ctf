@@ -2,6 +2,3 @@
 	path = install/frontend
 	url = https://github.com/tongchengbin/ocean-player.git
 
-[submodule "install/manager"]
-	path = install/manager
-	url = https://github.com/tongchengbin/ocean_manager.git
