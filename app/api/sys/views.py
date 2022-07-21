@@ -526,7 +526,7 @@ def system_check():
     try:
         has_table = db.engine.dialect.has_table(db.engine.connect(), Admin.__tablename__)
     except OperationalError:
-        return fail(msg="系统正在初始化、请稍后!", status=400)
+        return fail(msg="系统正在初始化、请稍后!", status=200)
     if not has_table:
         db.create_all()
     query = db.session.query(Admin)
@@ -537,5 +537,5 @@ def system_check():
         if query.first():
             data["init"] = True
     except ProgrammingError:
-        return fail(msg="系统未初始化完成、请稍后!", status=400)
+        return fail(msg="系统未初始化完成、请稍后!", status=200)
     return success(data)
