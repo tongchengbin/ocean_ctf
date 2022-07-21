@@ -80,3 +80,13 @@ class Operator(MainBase):
     ip = Column(String(15), comment="操作IP")
     content = Column(String(128), comment="操作内容")
     role = Column(String(10), comment="操作人角色")
+
+
+class Config(MainBase):
+    CONFIG_MAP = {
+        "ctf_container_seconds": ("int", 180)
+    }
+
+    key = Column(String(255), comment="键")
+    val = Column(String(255), comment="值")
+    type = Column(String(32),comment="数据类型")

@@ -11,6 +11,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from app import db, scheduler
 from app.api.frontend.services import FrontendService, RankService
+from app.api.sys.service import get_config_val
 from app.auth.acls import auth_cookie
 from app.lib.decorators import check_user_permission
 from app.lib.rest_response import fail, success
@@ -21,7 +22,8 @@ from app.models.ctf import ImageResource, ContainerResource, Answer, Question, A
 from app.models.user import User
 from app.tasks.ctf import finish_container
 import logging
-from docker.errors import  APIError,NotFound
+from docker.errors import APIError, NotFound
+
 bp = Blueprint("view", __name__, url_prefix='/api')
 
 logger = logging.getLogger('app')
@@ -290,8 +292,9 @@ def challenge_detail(question):
         "score": instance.score,
         "id": instance.id,
         "name": instance.name,
-        "attachment": [{"name": i["filename"], "url": "/api/upload/{}?filename={}".format(i["file_path"], i["filename"])} for i
-                       in attachment_info],
+        "attachment": [
+            {"name": i["filename"], "url": "/api/upload/{}?filename={}".format(i["file_path"], i["filename"])} for i
+            in attachment_info],
         "desc": instance.desc,
         "active_flag": instance.active_flag,
         "type": instance.type,
@@ -362,14 +365,15 @@ def question_start(question):
     container.container_port = random_port
     container.user_id = user.id
     # 销毁时间
-    container.destroy_time = datetime.now() + timedelta(seconds=10)
+    container_seconds = get_config_val("ctf_container_seconds")
+    container.destroy_time = datetime.now() + timedelta(seconds=container_seconds)
     # 创建容器
     db.session.add(container)
     db.session.commit()
     # 创建定时任务  到时间后销毁
     scheduler.add_job("finish_container_{}".format(container.id), finish_container, trigger='date',
                       args=(container.id,),
-                      next_run_time=datetime.now() + timedelta(seconds=10))
+                      next_run_time=datetime.now() + timedelta(seconds=container_seconds))
     return success({})
 
 
@@ -406,7 +410,8 @@ def question_destroy(question):
     instance = db.session.query(Question).get(question)
     if not instance.active_flag:
         return fail("静态题库无需动态生成")
-    containers = db.session.query(ContainerResource).filter(ContainerResource.question_id == instance.id, ContainerResource.user_id == g.user.id)
+    containers = db.session.query(ContainerResource).filter(ContainerResource.question_id == instance.id,
+                                                            ContainerResource.user_id == g.user.id)
     for container in containers:
         try:
             client = docker.DockerClient(container.question.host.docker_api, timeout=3)

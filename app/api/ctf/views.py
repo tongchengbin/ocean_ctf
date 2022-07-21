@@ -459,3 +459,13 @@ def ctf_upload_attachment():
     db.session.add(at)
     db.session.commit()
     return jsonify({"filename": filename, "uuid": at.id})
+
+
+@bp.get('/config')
+def get_ctf_config():
+    pass
+
+
+@bp.get('/config')
+def set_ctf_config():
+    pass

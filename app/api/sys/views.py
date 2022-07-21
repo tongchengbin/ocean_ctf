@@ -17,7 +17,7 @@ from app.lib import exceptions
 from app.lib.decorators import check_permission
 from app.lib.rest_response import success, fail
 from app.lib.utils.authlib import create_token
-from app.models.admin import (Admin, TaskList, Operator)
+from app.models.admin import (Admin, TaskList, Operator, Config)
 from app.models.admin import RequestState, Role, Notice
 from app.models.ctf import ContainerResource, Question
 from app.models.user import User
@@ -525,7 +525,8 @@ def system_check():
     # 检测是否已经初始化
     try:
         has_table = db.engine.dialect.has_table(db.engine.connect(), Admin.__tablename__)
-    except OperationalError:
+    except OperationalError as e:
+        logger.exception(e)
         return fail(msg="系统正在初始化、请稍后!", status=200)
     if not has_table:
         db.create_all()
@@ -538,4 +539,34 @@ def system_check():
             data["init"] = True
     except ProgrammingError:
         return fail(msg="系统未初始化完成、请稍后!", status=200)
+    return success(data)
+
+
+@system_bp.post('/config')
+def set_config():
+    data = request.get_json()
+    for k, v in data.items():
+        if k not in Config.CONFIG_MAP:
+            continue
+        # 校验数据
+        val_type = Config.CONFIG_MAP[k][0]
+        if val_type == "int" and not isinstance(v, int):
+            return fail(msg="数据格式错误", status=400)
+        old = db.session.query(Config).filter(Config.key == k).first()
+        if old:
+            old.val = v
+        else:
+            db.session.add(Config(key=k, val=v))
+    db.session.commit()
+    return success()
+
+
+@system_bp.get('/config')
+def get_config():
+    config_list = db.session.query(Config).all()
+    data = {}
+    for ite in config_list:
+        val_type = Config.CONFIG_MAP[ite.key][0]
+        if val_type == "int":
+            data[ite.key] = int(ite.val)
     return success(data)
