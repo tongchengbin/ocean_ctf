@@ -371,7 +371,6 @@ def question_start(question):
     db.session.add(container)
     db.session.commit()
     db.session.flush()
-    logger.info(">>>>>>>>>>%s" % container.date_created)
     # 创建定时任务  到时间后销毁
     scheduler.add_job("finish_container_{}".format(container.id), finish_container, trigger='date',
                       args=(container.id,),
