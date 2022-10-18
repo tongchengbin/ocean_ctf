@@ -4,15 +4,21 @@ from datetime import datetime
 import docker
 from docker import errors as docker_error
 from flask import Blueprint, jsonify, request, g
+from flask_pydantic import validate
+from sqlalchemy import or_
 
 from app import db, scheduler
 from app.api.docker.service import fetch_system_info_by_docker_api
 from app.lib.exceptions import make_error_response
 from app.lib.rest_response import fail, success
 from app.models.admin import TaskList
-from app.models.docker import (Host, )
-from app.tasks import task_docker
+from app.models.docker import (Host, ComposeDB, ComposeRunner, )
+from app.api.docker import task
+from .form import PageForm, ComposeDBForm
 import logging
+
+from app.api.docker import task
+from ...lib.tools import model2dict
 
 logger = logging.getLogger('app')
 bp = Blueprint("admin_docker", __name__, url_prefix="/api/admin/docker")
@@ -373,3 +379,53 @@ def image_list(host):
         for r in i.tags:
             repos.append(r)
     return success(repos)
+
+
+@bp.get("/compose_db")
+@validate()
+def compose_db_list(query: PageForm):
+    db_query = db.session.query(ComposeDB).filter()
+    page = db_query.paginate(page=query.page, per_page=query.page_size)
+    data = []
+    for item in page.items:
+        data.append(model2dict(item))
+    return jsonify({
+        "total": page.total,
+        "data": data
+    })
+
+
+@bp.post("/compose_db")
+@validate()
+def compose_db_create(body: ComposeDBForm):
+    if db.session.query(ComposeDB).filter(or_(ComposeDB.name==body.name , ComposeDB.path==body.path)).count():
+        return fail(msg="compose已存在", status=400)
+    ComposeDB.create(name=body.name, path=body.path)
+    return jsonify({})
+
+
+@bp.delete("/compose_db/<int:pk>")
+def compose_db_delete(pk):
+    ComposeDB.get_by_id(pk).delete()
+    return jsonify({})
+
+
+@bp.post("/compose_db/<int:pk>/build")
+def compose_db_build(pk):
+    instance = ComposeDB.get_by_id(pk)
+    scheduler.add_job(f"build_compose", task.compose_build, args=(instance.id,))
+    return jsonify({})
+
+
+@bp.get("/compose_runner")
+@validate()
+def compose_runner_list(query: PageForm):
+    db_query = db.session.query(ComposeRunner).filter()
+    page = db_query.paginate(page=query.page, per_page=query.page_size)
+    data = []
+    for item in page.items:
+        data.append(model2dict(item))
+    return jsonify({
+        "total": page.total,
+        "data": data
+    })

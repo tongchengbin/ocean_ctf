@@ -7,15 +7,18 @@ import docker
 from docker import errors as docker_error
 from flask import Blueprint, make_response, jsonify, request
 from flask import current_app
+
+from app.api.docker.service import user_compose_down
 from config import config
 from app import db, scheduler
 from app.lib import exceptions
 from app.lib.rest_response import success, fail
-from app.models.ctf import QType, ImageResource, ContainerResource, Answer, Attachment
+from app.models.ctf import QType, ImageResource, CtfResource, Answer, Attachment
 from app.models.ctf import Question
 from app.models.docker import Host
 from app.models.user import User
 from app.tasks.ctf import build_question_tar
+from flask_pydantic import validate
 
 logger = logging.getLogger('app')
 bp = Blueprint("admin_ctf", __name__, url_prefix="/api/admin/ctf")
@@ -33,40 +36,36 @@ def question_type():
     })
 
 
-@bp.route('/containers', methods=['get'])
-def container_list():
+@bp.route('/resource', methods=['get'])
+def resource_list():
     """
     :return : 已生成题目容器
     """
-
     page = int(request.args.get('page', 1))
     page_size = int(request.args.get("page_size", 10))
     username = request.args.get("username")
     question_name = request.args.get("question")
-    query = db.session.query(ContainerResource, Question, User).join(User, ContainerResource.user_id == User.id).join(Question,Question.id==ContainerResource.question_id)
+    query = db.session.query(CtfResource, Question, User).join(User, CtfResource.user_id == User.id).join(
+        Question, Question.id == CtfResource.question_id)
     if username:
         query = query.filter(User.username.ilike("%{}%".format(username)))
     if question_name:
         query = query.filter(Question.name.ilike("%{}%".format(question_name)))
-    page = query.order_by(ContainerResource.id.desc()).paginate(page=page, per_page=page_size)
+    page = query.order_by(CtfResource.id.desc()).paginate(page=page, per_page=page_size)
     data = []
     for item in page.items:
-        container_resource, question, user_obj = item
+        resource, question, user_obj = item
         data.append({
-            "image": question.image_id,
-            "container_resource": container_resource.id,
-            "date_created": container_resource.date_created.strftime(
-                "%Y-%m-%d %H:%M:%S") if container_resource.date_created else None,
-            "date_modified": container_resource.date_modified.strftime(
-                "%Y-%m-%d %H:%M:%S") if container_resource.date_modified else None,
-            "container_name": container_resource.container_name,
-            "container_id": container_resource.container_id,
-            "container_status": container_resource.container_status,
-            "container_port": container_resource.container_port,
-            "addr": container_resource.addr,
-            "flag": container_resource.flag,
-            "destroy_time": container_resource.destroy_time.strftime(
-                "%Y-%m-%d %H:%M") if container_resource.destroy_time else None,
+            "id": resource.id,
+            "name": resource.compose_runner.name,
+            "date_created": resource.date_created.strftime(
+                "%Y-%m-%d %H:%M:%S") if resource.date_created else None,
+            "date_modified": resource.date_modified.strftime(
+                "%Y-%m-%d %H:%M:%S") if resource.date_modified else None,
+            "container_port": resource.compose_runner.port_info,
+            "flag": resource.flag,
+            "destroy_time": resource.destroy_time.strftime(
+                "%Y-%m-%d %H:%M") if resource.destroy_time else None,
             "username": user_obj.username,
             "question": {
                 "name": question.name
@@ -78,6 +77,44 @@ def container_list():
     })
 
 
+@bp.put('/question/<int:pk>')
+def question_update(pk):
+    """
+                    修改题目
+                :param question: 题目ID
+                :return:
+                @param pk:
+                """
+    data = request.get_json()
+    instance = db.session.query(Question).get(pk)
+    name = data.get("name")
+    _type = data.get("type")
+    active_flag = data.get("active_flag")
+    score = data.get("score")
+    flag = data.get("flag")
+    desc = data.get("desc")
+    if active_flag is not None:
+        instance.active_flag = active_flag
+    if name is not None:
+        instance.name = name
+    if score is not None:
+        instance.score = score
+    if _type is not None:
+        instance.type = _type
+    if desc is not None:
+        instance.desc = desc
+    attachment = data.get('attachment', [])
+    active = data.get("active")
+    if active is not None:
+        instance.active = active
+    instance.attachment = ",".join([str(i) for i in attachment])
+    if active_flag is not None:
+        if not active_flag:
+            instance.flag = flag
+    db.session.commit()
+    return jsonify({})
+
+
 @bp.route('/containers/<int:container_resource>/refresh', methods=['post'])
 def ctf_containers_refresh(container_resource):
     """
@@ -85,7 +122,7 @@ def ctf_containers_refresh(container_resource):
         :param :container_resource :题目容器
         :return
     """
-    container = db.session.query(ContainerResource).get(container_resource)
+    container = db.session.query(CtfResource).get(container_resource)
     question = container.question
     user_obj = container.user
     try:
@@ -100,27 +137,15 @@ def ctf_containers_refresh(container_resource):
     return jsonify({})
 
 
-@bp.route('/containers/<int:pk>/remove', methods=['post'])
-def ctf_containers_remove(pk):
+@bp.route('/resource/<int:pk>/remove', methods=['post'])
+def resource_remove(pk):
     """
         删除题目容器 如果容器不在线需要自己手动删除
         :param :container_resource 题目容器id
         :return
     """
-    container = db.session.query(ContainerResource).get(pk)
-    host = container.question.host
-    try:
-        client = docker.DockerClient(host.docker_api)
-        docker_container = client.containers.get(container.container_id)
-        docker_container.kill()
-        docker_container.remove()
-        db.session.delete(container)
-        db.session.commit()
-    except docker_error.DockerException as e:
-        logger.exception(e)
-        db.session.delete(container)
-        db.session.commit()
-        return make_response(jsonify({"msg": "容器不在线，请自行删除容器实例!"}), 200)
+    container = db.session.query(CtfResource).get(pk)
+    user_compose_down(container.compose_runner_id)
     return jsonify({"msg": "删除成功"})
 
 
@@ -199,10 +224,6 @@ def question_list():
     page = query.order_by(Question.id.desc()).paginate(page=page, per_page=page_size)
     data = []
     for item in page.items:
-        if item.active and item.image_id:
-            host_id = item.host_id
-        else:
-            host_id = None
         if item.attachment:
             attachment = item.attachment.split(",")
             attachment_query = db.session.query(Attachment).filter(Attachment.id.in_(attachment))
@@ -210,9 +231,9 @@ def question_list():
         else:
             attachment_info = []
         data.append({
+            "compose_id": item.compose_id,
+            "compose_name": item.compose.name if item.compose_id else None,
             "attachment": attachment_info,
-            "host_id": host_id,
-            "image_id": item.image_id,
             "id": item.id,
             "date_created": item.date_created.strftime("%Y-%m-%d %H:%M:%S") if item.date_created else None,
             "date_modified": item.date_modified.strftime("%Y-%m-%d %H:%M:%S") if item.date_modified else None,
@@ -230,7 +251,8 @@ def question_list():
     })
 
 
-@bp.route('/question', methods=['post'])
+@bp.post('/question')
+@validate()
 def question_create():
     data = request.get_json()
     name = data["name"]
@@ -240,77 +262,23 @@ def question_create():
     flag = data["flag"]
     q_type = data["type"]
     score = data["score"]
-    image_id = data.get("image_id")
-    host_id = data.get("host_id")
+    compose_id = data.get("compose_id")
     attachment = data.get('attachment', [])
     if not name:
         raise exceptions.CheckException("名称字段不允许为空")
-    question = Question(name=name,
-                        active=active,
-                        active_flag=active_flag,
-                        desc=desc,
-                        flag=flag,
-                        type=q_type,
-                        score=score,
-                        attachment=",".join([str(i) for i in attachment]),
-                        host_id = host_id,
-                        image_id=image_id)
-    db.session.add(question)
-    db.session.flush()
-    db.session.commit()
+    Question.create(name=name,
+                    active=active,
+                    active_flag=active_flag,
+                    desc=desc,
+                    flag=flag,
+                    type=q_type,
+                    score=score,
+                    attachment=",".join([str(i) for i in attachment]),
+                    compose_id=compose_id)
     return jsonify({})
 
 
-@bp.route('/question/<int:pk>', methods=['put'])
-def question_update(pk):
-    """
-                    修改题目
-                :param question: 题目ID
-                :return:
-                @param pk:
-                """
-    data = request.get_json()
-    instance = db.session.query(Question).get(pk)
-    name = data.get("name")
-    _type = data.get("type")
-    active_flag = data.get("active_flag")
-    score = data.get("score")
-    flag = data.get("flag")
-    desc = data.get("desc")
-    host_id = data.get("host_id")
-    image_id = data.get("image_id")
-    if active_flag is not None:
-        instance.active_flag = active_flag
-    if name is not None:
-        instance.name = name
-    if score is not None:
-        instance.score = score
-    if _type is not None:
-        instance.type = _type
-    if image_id is not None:
-        instance.image_id = image_id
-    if desc is not None:
-        instance.desc = desc
-    instance.host_id = host_id
-    attachment = data.get('attachment', [])
-    active = data.get("active")
-    if active is not None:
-        instance.active = active
-    # if attachment is not None:
-    #     # 删除之前的数据  重新关联  这里可以判断优化一下
-    #     db.session.query(QuestionFile).filter(QuestionFile.question_id == instance.id).delete()
-    #     for file in attachment:
-    #         db.session.add(
-    #             QuestionFile(question_id=pk, filename=file["filename"], file_path=file["file_path"]))
-    instance.attachment = ",".join([str(i) for i in attachment])
-    if active_flag is not None:
-        if not active_flag:
-            instance.flag = flag
-    db.session.commit()
-    return jsonify({})
-
-
-@bp.route('/question/<int:pk>', methods=['DELETE'])
+@bp.delete('/question/<int:pk>')
 def question_delete(pk):
     """
                     删除题库  判断是否是动态题库 动态题库删除容器  实体容器 镜像
@@ -318,8 +286,8 @@ def question_delete(pk):
                 """
     instance = db.session.query(Question).get(pk)
     if instance.active_flag:
-        containers = db.session.query(ContainerResource).join(ImageResource,
-                                                              ImageResource.id == ContainerResource.image_resource_id)
+        containers = db.session.query(CtfResource).join(ImageResource,
+                                                        ImageResource.id == CtfResource.image_resource_id)
         # kill
         for container in containers:
             db.session.delete(container)
@@ -335,7 +303,7 @@ def question_delete(pk):
     return jsonify({})
 
 
-@bp.route('/images', methods=['get'])
+@bp.get('/images')
 def images_list():
     page = int(request.args.get('page', 1))
     page_size = int(request.args.get("page_size", 10))
@@ -366,12 +334,12 @@ def images_list():
     return success(data=data)
 
 
-@bp.route('/images/<int:pk>', methods=['delete'])
+@bp.delete('/images/<int:pk>')
 def images_delete(pk):
     """
         删除镜像 目前仅仅删除数据库数据 判断是否有容器在运行 否则不允许删除
     """
-    if db.session.query(ContainerResource).filter(ContainerResource.image_resource_id == pk).count():
+    if db.session.query(CtfResource).filter(CtfResource.image_resource_id == pk).count():
         return fail(msg="无法删除当前镜像、因为相关容器正在运行中!", status=400)
     instance = db.session.query(ImageResource).get(pk)
     db.session.delete(instance)
@@ -379,7 +347,7 @@ def images_delete(pk):
     return success()
 
 
-@bp.route('/images', methods=['post'])
+@bp.post('/images')
 def images_create():
     _data = request.get_json()
     name = _data.get("name")
@@ -397,7 +365,7 @@ def images_create():
     return success()
 
 
-@bp.route('/images/<int:pk>', methods=['put'])
+@bp.put('/images/<int:pk>')
 def image_update(pk):
     _data = request.get_json()
     name = _data.get("name")
@@ -418,7 +386,7 @@ def image_update(pk):
     return success()
 
 
-@bp.route('/upload_docker_tar', methods=['post'])
+@bp.post('/upload_docker_tar')
 def upload_docker_tar():
     pk = request.form.get("host")
     host_ = db.session.query(Host).get(pk)

@@ -11,7 +11,7 @@ from config import config
 from sqlalchemy.orm import sessionmaker
 from app import db, cache
 from app.api.docker.service import fetch_system_info_by_docker_api
-from app.models.ctf import ContainerResource, ImageResource
+from app.models.ctf import CtfResource, ImageResource
 from app.models.docker import Host
 
 logger = logging.getLogger('app')
@@ -24,7 +24,7 @@ def finish_container(container_id):
     """
     logger.info("finish container:%s" % container_id)
     session = sessionmaker(bind=db.engine)()
-    container = session.query(ContainerResource).get(container_id)
+    container = session.query(CtfResource).get(container_id)
     if not container:
         logger.info("container not found")
         return
@@ -100,3 +100,5 @@ def crontab_monitoring_docker_api():
             pass
     db_session.commit()
     logger.info("crontab_monitoring_docker_api ok")
+
+

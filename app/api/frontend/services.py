@@ -1,81 +1,73 @@
+import os
+import shutil
+
+from compose.cli.command import project_from_options
 import docker
 from docker import errors as docker_error
 from sqlalchemy import func, desc
 
 from app import db
-from app.models.ctf import Question, Answer, ContainerResource
+from app.api.docker.service import user_compose_down
+from app.lib.tools import generate_flag
+from app.models.ctf import Question, Answer, CtfResource
+from app.models.docker import ComposeDB, ComposeRunner
 from app.models.user import User
 
 
-class FrontendService:
-    @staticmethod
-    def submit(question, flag, user, ip=None):
-        instance = db.session.query(Question).get(question)
-        answer = Answer(question_id=instance.id, user_id=user.id, flag=flag, ip=ip)
-        # 判断是否有正确的提交记录
-        is_answer = db.session.query(Answer).filter(Answer.question_id == instance.id, Answer.user_id == user.id,
-                                                    Answer.status == Answer.status_ok).count()
+def submit(question, flag, user, ip=None):
+    instance = db.session.query(Question).get(question)
+    answer = Answer(question_id=instance.id, user_id=user.id, flag=flag, ip=ip)
+    # 判断是否有正确的提交记录
+    is_answer = db.session.query(Answer).filter(Answer.question_id == instance.id, Answer.user_id == user.id,
+                                                Answer.status == Answer.status_ok).count()
 
-        if instance.active_flag:
-            # 获取镜像资源
-            container = db.session.query(ContainerResource).filter(ContainerResource.question_id == instance.id,
-                                                                   ContainerResource.user_id == user.id).first()
-            if not container:
-                answer.status = answer.status_error
-                db.session.commit()
-                return 1, "题库无效，请联系管理员或重新生成!"
-            # 判断是否是作弊
-            ok_container = db.session.query(ContainerResource).filter(ContainerResource.question_id == instance.id,
-                                                                      ContainerResource.flag == flag).first()
-            if ok_container and ok_container != container:
-                # 作弊
-                answer.status = answer.status_cheat
-                db.session.add(answer)
-                db.session.commit()
-                return 1, "请勿作弊"
+    if instance.active_flag:
+        # 获取镜像资源
+        resource = db.session.query(CtfResource).filter(CtfResource.question_id == instance.id,
+                                                         CtfResource.user_id == user.id).first()
+        if not resource:
+            answer.status = answer.status_error
+            db.session.commit()
+            return 1, "题库无效，请联系管理员或重新生成!"
+        # 判断是否是作弊
+        ok_container = db.session.query(CtfResource).filter(CtfResource.question_id == instance.id,
+                                                            CtfResource.flag == flag).first()
+        if ok_container and ok_container != resource:
+            # 作弊
+            answer.status = answer.status_cheat
+            db.session.add(answer)
+            db.session.commit()
+            return 1, "请勿作弊"
 
-            try:
-                client = docker.DockerClient(container.question.host.docker_api)
-                docker_container = client.containers.get(container.container_id)
-            except docker_error.DockerException:
-                return 1, "容器不在线"
-            if container.flag == flag:
-                answer.score = instance.score
-                # 判断是否作弊
-                answer.status = answer.status_repeat if is_answer else answer.status_ok
-                answer.rank = db.session.query(Answer.id).filter(Answer.question_id == question,
-                                                                 Answer.status == Answer.status_ok).count() + 1
-                # 销毁容器
-                docker_container.kill()
-                docker_container.remove()
-                db.session.delete(container)
-                db.session.add(answer)
-                db.session.commit()
-                return 0, "提交成功"
-            else:
-                answer.status = answer.status_error
-                answer.rank = db.session.query(Answer.id).filter(Answer.question_id == question,
-                                                                 Answer.status == Answer.status_ok).count() + 1
-                db.session.add(answer)
-                db.session.commit()
-                return 1, "Flag错误!"
-        elif instance.flag == flag:
+        if resource.flag == flag:
             answer.score = instance.score
+            # 判断是否作弊
             answer.status = answer.status_repeat if is_answer else answer.status_ok
+            answer.rank = db.session.query(Answer.id).filter(Answer.question_id == question,
+                                                             Answer.status == Answer.status_ok).count() + 1
+
+            user_compose_down(resource.compose_runner_id)
+            return 0, "提交成功"
+        else:
+            answer.status = answer.status_error
             answer.rank = db.session.query(Answer.id).filter(Answer.question_id == question,
                                                              Answer.status == Answer.status_ok).count() + 1
             db.session.add(answer)
             db.session.commit()
-            return 0, "提交成功"
-        else:
-            answer.status = answer.status_error
-            db.session.add(answer)
-            db.session.commit()
-            return 1, "flag错误!"
-
-
-class CtfAnswer(object):
-    pass
+            return 1, "Flag错误!"
+    elif instance.flag == flag:
+        answer.score = instance.score
+        answer.status = answer.status_repeat if is_answer else answer.status_ok
+        answer.rank = db.session.query(Answer.id).filter(Answer.question_id == question,
+                                                         Answer.status == Answer.status_ok).count() + 1
+        db.session.add(answer)
+        db.session.commit()
+        return 0, "提交成功"
+    else:
+        answer.status = answer.status_error
+        db.session.add(answer)
+        db.session.commit()
+        return 1, "flag错误!"
 
 
 class RankService(object):
@@ -121,7 +113,3 @@ class RankService(object):
             "total": page.total,
             "data": data
         }
-
-
-if __name__ == "__main__":
-    print(RankService.score_rank(username="as"))

@@ -6,8 +6,8 @@ from enum import Enum
 from sqlalchemy import Column, String, Boolean, Integer, ForeignKey, DateTime, JSON
 from sqlalchemy.orm import relationship
 
-from app.models.base import MainBase
-from app.models.docker import Host
+from app.database import MainBase
+from app.models.docker import Host, ComposeDB, ComposeRunner
 from app.models.user import User
 
 
@@ -49,9 +49,8 @@ class Question(MainBase):
     flag = Column(String(64), comment="Flag", nullable=True)
     active_flag = Column(Boolean(), default=False, comment="是否时动态Flag")
     attachment = Column(String(64), comment="附件")
-    image_id = Column(String(128), default="", comment="镜像ID")
-    host_id = Column(Integer, ForeignKey('docker_host.id'))
-    host = relationship(Host, backref='question_ref')
+    compose_id = Column(Integer, ForeignKey('compose_db.id'), comment="关联compose")
+    compose = relationship(ComposeDB)
 
 
 class Attachment(MainBase):
@@ -63,25 +62,19 @@ class Attachment(MainBase):
     file_path = Column(String(128), comment="文件相对路径")
 
 
-class ContainerResource(MainBase):
-    __tablename__ = 'container_resource'
+class CtfResource(MainBase):
+    __tablename__ = 'ctf_resource'
     """
         实际的容器资源 不一定是实际的主机容器  主要是用来记录用户对容器的使用 同时绑定Flag
     """
-    image_id = Column(String(128), default="", comment="镜像ID")
-    container_name = Column(String(64), comment="容器名称")
-    status = Column(Integer, comment="1-启用/2-销毁", default=1)
-    container_id = Column(String(64), comment="容器的实际ID", nullable=True)
-    flag = Column(String(64), nullable=True, comment="容器的Flag")
-    container_status = Column(String(8), comment="容器状态 不实时显示")
-    container_port = Column(String(64), comment="端口映射", nullable=True)
-    addr = Column(String(64), comment="快照主机IP")
+    compose_runner_id = Column(Integer, ForeignKey(ComposeRunner.id), comment="compose ID")
+    compose_runner = relationship(ComposeRunner,cascade="all,delete")
+    flag = Column(String(64), nullable=True, comment="环境flag")
     user_id = Column(Integer, ForeignKey('user.id'), comment="关联用户")
     user = relationship(User, backref='container_ref')
     destroy_time = Column(DateTime, comment="销毁时间")
     question_id = Column(Integer, ForeignKey('ctf_question.id'), comment="对应的题库")
     question = relationship(Question, backref='container_ref')
-    # 应该还需要对应用户
 
 
 class Answer(MainBase):
@@ -111,5 +104,3 @@ class Answer(MainBase):
     @property
     def status_name(self):
         return dict(self.status_choices).get(self.status)
-
-

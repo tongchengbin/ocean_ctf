@@ -19,7 +19,7 @@ from app.lib.rest_response import success, fail
 from app.lib.utils.authlib import create_token
 from app.models.admin import (Admin, TaskList, Operator, Config)
 from app.models.admin import RequestState, Role, Notice
-from app.models.ctf import ContainerResource, Question
+from app.models.ctf import CtfResource, Question
 from app.models.user import User
 
 bp = Blueprint("admin", __name__, url_prefix="/api/admin")
@@ -215,8 +215,8 @@ def index_state():
     """
                 :return:今日容器启动数量、今日IP数量、题库数量
                 """
-    today_query = db.session.query(ContainerResource).filter(
-        func.date(ContainerResource.date_created) == datetime.today().date())
+    today_query = db.session.query(CtfResource).filter(
+        func.date(CtfResource.date_created) == datetime.today().date())
     challenges_cnt = db.session.query(Question).count()
     user_cnt = db.session.query(User).count()
     today_register = db.session.query(User).filter(
@@ -550,13 +550,14 @@ def set_config():
             continue
         # 校验数据
         val_type = Config.CONFIG_MAP[k][0]
-        if val_type == "int" and not isinstance(v, int):
+        if not isinstance(v, val_type):
             return fail(msg="数据格式错误", status=400)
         old = db.session.query(Config).filter(Config.key == k).first()
         if old:
             old.val = v
+            old.type = val_type.__name__
         else:
-            db.session.add(Config(key=k, val=v))
+            db.session.add(Config(key=k, val=v, type=val_type.__name__))
     db.session.commit()
     return success()
 
@@ -569,4 +570,6 @@ def get_config():
         val_type = Config.CONFIG_MAP[ite.key][0]
         if val_type == "int":
             data[ite.key] = int(ite.val)
+        else:
+            data[ite.key] = ite.val
     return success(data)

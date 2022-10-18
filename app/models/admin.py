@@ -1,7 +1,7 @@
 from sqlalchemy import Column, String, Boolean, Integer, ForeignKey, DateTime, Date
 from sqlalchemy.orm import relationship
 
-from app.models.base import MainBase
+from app.database import MainBase
 
 
 class Role(MainBase):
@@ -84,9 +84,10 @@ class Operator(MainBase):
 
 class Config(MainBase):
     CONFIG_MAP = {
-        "ctf_container_seconds": ("int", 180)
+        "ip": (str, "127.0.0.1"),
+        "ctf_container_seconds": (int, 180)
     }
 
     key = Column(String(255), comment="键")
     val = Column(String(255), comment="值")
-    type = Column(String(32),comment="数据类型")
+    type = Column(String(32), comment="数据类型")
