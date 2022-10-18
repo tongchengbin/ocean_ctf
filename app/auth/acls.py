@@ -32,6 +32,9 @@ def admin_required(func):
     return inner
 
 
+
+
+
 def auth_user(func):
     """
         用户认证  不做权限过滤

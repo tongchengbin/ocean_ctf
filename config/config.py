@@ -17,6 +17,8 @@ DB_NAME = 'ocean'
 
 # cache
 REDIS_HOST = os.getenv("REDIS_HOST")
+IP = os.getenv("IP", "127.0.0.1")
+CONTAINER_TIMEOUT = 600
 REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")
 # end cache
 

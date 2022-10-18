@@ -1,27 +1,22 @@
 from __future__ import absolute_import
 
 import logging
-import sys
 from urllib.parse import urljoin, urlparse
 
 import redis
-from sqlalchemy.exc import OperationalError
-from apscheduler.schedulers.background import BackgroundScheduler
 from werkzeug.exceptions import HTTPException
 from werkzeug.security import generate_password_hash
 from flask import Flask, jsonify, make_response
 from flask import g
 from flask import request
 from flask import url_for
-from flask_apscheduler import APScheduler
-from flask_sqlalchemy import SQLAlchemy
-
 from app.lib import command as command_app
 from app.lib.cache import cache
 from app.lib.exceptions import RestExceptions
 from app.lib.middlewares import before_req_cache_ip
 from app.lib.tools import telnet_port
 from config import config
+from .extensions import db, scheduler
 
 permission_white_list = ("/admin/login",)
 
@@ -32,16 +27,17 @@ def create_app():
         当然也可以通过app_name 参数实现 但是需要使用单例模式 否者api和task 会启动两个app 一个提供接口 一个提供对celery的连接 感觉不太合理
     Application factory.
     """
-    global db
     flask_app = Flask('main')
     flask_app.config.from_object(config)
     # 注册缓存
     cache.init_app(flask_app)
     register_extensions(flask_app)
+    register_blueprints(flask_app)
+    db.create_all()
     register_custom_helpers(flask_app)
-
-    command_app.init_app(flask_app)
     flask_app.before_request_funcs.setdefault(None, []).append(before_req_cache_ip)
+    flask_app.register_error_handler(Exception, exception_handle)
+    db.create_all()
     return flask_app
 
 
@@ -82,6 +78,10 @@ def exception_handle(e):
 def register_extensions(scope_app):
     """异常捕获"""
 
+    db.init_app(scope_app)
+    scope_app.app_context().push()
+    scheduler.init_app(scope_app)
+    scheduler.start()
     public_paths = ['/favicon.ico', '/static/']
 
     def always_authorize():
@@ -135,13 +135,3 @@ def create_default_data():
     if not db.session.query(Admin).filter(Admin.username == 'admin').first():
         db.session.add(Admin(username='admin', password=generate_password_hash('admin'), role_id=superuser_role_id))
         db.session.commit()
-
-
-app = create_app()
-db = SQLAlchemy(app)
-
-
-scheduler = APScheduler(BackgroundScheduler())
-scheduler.init_app(app)
-scheduler.start()
-app.register_error_handler(Exception, exception_handle)

@@ -4,7 +4,7 @@
 
 from sqlalchemy import Column, String, Boolean
 
-from app.models.base import MainBase
+from app.database import MainBase
 
 
 class User(MainBase):

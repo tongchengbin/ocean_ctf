@@ -10,26 +10,29 @@ from sqlalchemy import func, desc
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from app import db, scheduler
-from app.api.frontend.services import FrontendService, RankService
+from app.api.docker.service import user_compose_down, user_compose_up
+from app.api.frontend import services
 from app.api.sys.service import get_config_val
-from app.auth.acls import auth_cookie
-from app.lib.decorators import check_user_permission
+from app.lib.decorators import login_required, user_required
 from app.lib.rest_response import fail, success
 from app.lib.tools import get_ip
 from app.lib.utils.authlib import create_token
 from app.models.admin import Notice
-from app.models.ctf import ImageResource, ContainerResource, Answer, Question, Attachment
+from app.models.ctf import ImageResource, CtfResource, Answer, Question, Attachment
+from app.api.docker import task
 from app.models.user import User
 from app.tasks.ctf import finish_container
 import logging
-from docker.errors import APIError, NotFound
+from docker.errors import APIError
+
+from config import config
 
 bp = Blueprint("view", __name__, url_prefix='/api')
 
 logger = logging.getLogger('app')
 
 
-@bp.route('/upload/<path:filename>')
+@bp.get('/upload/<path:filename>')
 def send_upload_file(filename):
     name = request.args.get("filename")
     cache_timeout = None
@@ -48,8 +51,8 @@ def generate_flag():
     return "flag{ocean%s}" % rd_str
 
 
-@bp.route('/', methods=['get'])
-@auth_cookie
+@bp.get('/')
+@login_required()
 def index():
     """
         :return :首页 后端渲染
@@ -69,10 +72,10 @@ def index():
     links = {}
     if g.user:
         # 获取镜像资源
-        containers = db.session.query(ContainerResource, ImageResource.question_id) \
-            .join(ImageResource, ImageResource.id == ContainerResource.image_resource_id
+        containers = db.session.query(CtfResource, ImageResource.question_id) \
+            .join(ImageResource, ImageResource.id == CtfResource.image_resource_id
                   ) \
-            .join(User, User.id == ContainerResource.user_id).order_by(desc(ContainerResource.id)).all()
+            .join(User, User.id == CtfResource.user_id).order_by(desc(CtfResource.id)).all()
         # 获取用户容器
         for c in containers:
             container, question_id = c
@@ -115,7 +118,7 @@ def index():
     return response
 
 
-@bp.route('/login', methods=['post'])
+@bp.post('/login')
 def login():
     """
     用户登录
@@ -133,8 +136,8 @@ def login():
         return fail(msg="用户名不存在或密码错误!")
 
 
-@bp.route('/info', methods=['get'])
-@check_user_permission
+@bp.get('/info')
+@user_required()
 def info():
     """
         获取用户信息
@@ -171,8 +174,8 @@ def register():
     return success()
 
 
-@bp.route('/logout', methods=['post'])
-@check_user_permission
+@bp.post('/logout')
+@user_required()
 def logout():
     """
     用户登出
@@ -183,8 +186,8 @@ def logout():
     return success()
 
 
-@bp.route('/rest_pass', methods=['post'])
-@check_user_permission
+@bp.post('/rest_pass')
+@user_required()
 def rest_pass():
     """
         修改密码
@@ -205,7 +208,8 @@ def rest_pass():
     return success()
 
 
-@bp.route('/challenge', methods=['get'])
+@bp.get('/challenge')
+@user_required(required=False)
 def challenge_list():
     """
         题目列表
@@ -241,8 +245,8 @@ def challenge_list():
     return success(data=data)
 
 
-@bp.route('/challenge/<int:question>', methods=['get'])
-@check_user_permission
+@bp.get('/challenge/<int:question>')
+@user_required()
 def challenge_detail(question):
     """
         题目详情 包括已解决的用户情况  点赞情况
@@ -254,9 +258,7 @@ def challenge_detail(question):
         return fail(msg="题目不存在、请刷新页面！")
     answer_object = db.session.query(Answer).filter(Answer.user_id == g.user.id, Answer.status == Answer.status_ok,
                                                     Answer.question_id == question).first()
-    container = db.session.query(ContainerResource).filter(ContainerResource.user_id == g.user.id,
-                                                           ContainerResource.question_id == instance.id,
-                                                           ContainerResource.destroy_time > datetime.now()).first()
+
     # 获取前三名
     ans = db.session.query(User.username).select_from(Answer).filter(Answer.question_id == question,
                                                                      Answer.status == Answer.status_ok,
@@ -265,13 +267,20 @@ def challenge_detail(question):
     ans = [i[0] for i in ans]
     ans = list(ans) + [None] * (3 - len(list(ans)))
     first_blood, second_blood, third_blood = ans
-
-    if container:
+    resource = db.session.query(CtfResource).filter(CtfResource.user_id == g.user.id,
+                                                    CtfResource.question_id == instance.id,
+                                                    CtfResource.destroy_time > datetime.now()).first()
+    if resource:
+        urls = []
+        for origin, port in resource.compose_runner.port_info.items():
+            urls.append({
+                "url": "http://{}:{}".format(config.IP, port),
+                "origin": origin
+            })
         container_data = {
-            "create_time": container.date_created.strftime("%Y-%m-%d %H:%M:%S"),
-            "url": "http://{}:{}".format(container.addr, container.container_port),
-            "destroy_time": container.destroy_time.strftime("%Y-%m-%d %H:%M:%S"),
-            "seconds": (container.destroy_time - container.date_created).total_seconds()
+            "timeout": config.CONTAINER_TIMEOUT,
+            "create_time": resource.date_created.strftime("%Y-%m-%d %H:%M:%S"),
+            "urls": urls,
         }
     else:
         container_data = None
@@ -305,8 +314,8 @@ def challenge_detail(question):
     return success(data)
 
 
-@bp.route('/challenge/<int:question>/start', methods=['POST'])
-@check_user_permission
+@bp.post('/challenge/<int:question>/start')
+@user_required()
 def question_start(question):
     """
         创建一个题目容器
@@ -317,78 +326,31 @@ def question_start(question):
     instance = db.session.query(Question).get(question)
     if not instance.active_flag:
         return fail(msg="静态题库无需动态生成")
-    if not instance.image_id or not instance.host_id or not instance.active_flag:
+    if not instance.compose_id or not instance.active_flag:
         return fail(msg="服务器没有资源")
-    client = docker.DockerClient(instance.host.docker_api)
-    try:
-        image = client.images.get(instance.image_id)
-    except docker.errors.ImageNotFound:
-        return fail(msg="当前题目环境缺失、请联系管理员！")
-    # 解析镜像端口
-    image_config = image.attrs["ContainerConfig"]
-    random_port = ""
-    if "ExposedPorts" in image_config:
-        port_dict = image.attrs["ContainerConfig"]["ExposedPorts"]
-        for docker_port, host_port in port_dict.items():
-            # docker_port_int = docker_port.replace("/", "").replace("tcp", "").replace("udp", "")
-            random_port = str(random.randint(20000, 65535))
-            port_dict[docker_port] = random_port
-    else:
-        port_dict = {}
-    image_name = image.attrs["RepoTags"][0].replace(":", ".")
-    container_name = f"{image_name}_{user.id}"
-    # 检查docker 是否已存在
-    try:
-        c = client.containers.get(container_name)
-        c.stop()
-        c.remove()
-    except docker.errors.NotFound:
-        pass
-    try:
-        docker_container_response = client.containers.run(image=image.id, name=container_name, ports=port_dict,
-                                                          detach=True)
-    except docker.errors.APIError as e:
-        logger.exception(e)
-        return fail(msg="题目启动失败")
-    # 获取创建的容器
-    docker_container = client.containers.get(container_name)
-    flag = generate_flag()
-    command = "/start.sh '{}'".format(flag)
-    docker_container.exec_run(cmd=command, detach=True)
-    # 创建容器记录
-    container = ContainerResource(image_id=instance.image_id, flag=flag, question_id=question)
-    container.addr = instance.host.ip
-    container.container_id = docker_container_response.attrs["Id"]
-    container.image_id = image.attrs["Id"]
-    container.container_name = container_name
-    container.container_status = docker_container_response.attrs["State"]["Status"]
-    container.container_port = random_port
-    container.user_id = user.id
-    # 销毁时间
-    container_seconds = get_config_val("ctf_container_seconds")
-    container.destroy_time = datetime.now() + timedelta(seconds=container_seconds)
-    # 创建容器
-    db.session.add(container)
-    db.session.commit()
-    db.session.flush()
-    # 创建定时任务  到时间后销毁
-    scheduler.add_job("finish_container_{}".format(container.id), finish_container, trigger='date',
-                      args=(container.id,),
-                      next_run_time=datetime.now() + timedelta(seconds=container_seconds))
+    compose_runner_id, flag = user_compose_up(instance.compose_id, user.id)
+    CtfResource.create(
+        compose_runner_id=compose_runner_id,
+        flag=flag,
+        user_id=user.id,
+        question_id=instance.id,
+        destroy_time=datetime.now() + timedelta(seconds=config.CONTAINER_TIMEOUT)
+    )
+    print(instance.id, user.id, compose_runner_id, flag)
     return success({})
 
 
-@bp.route('/challenge/<int:question>/delayed', methods=['POST'])
-@check_user_permission
+@bp.post('/challenge/<int:question>/delayed')
+@user_required()
 def question_delayed(question):
     """
         延长容器时间
     :param question:
     :return:
     """
-    container = db.session.query(ContainerResource).filter(ContainerResource.user_id == g.user.id,
-                                                           ContainerResource.question_id == question).order_by(
-        desc(ContainerResource.id)).first()
+    container = db.session.query(CtfResource).filter(CtfResource.user_id == g.user.id,
+                                                     CtfResource.question_id == question).order_by(
+        desc(CtfResource.id)).first()
     if not container:
         return fail("当前状态无法延长题目时间")
     # 最多延长三小时
@@ -400,8 +362,8 @@ def question_delayed(question):
     return success()
 
 
-@bp.route('/challenge/<int:question>/destroy', methods=['POST'])
-@check_user_permission
+@bp.post('/challenge/<int:question>/destroy')
+@user_required()
 def question_destroy(question):
     """
         销毁容器
@@ -411,23 +373,16 @@ def question_destroy(question):
     instance = db.session.query(Question).get(question)
     if not instance.active_flag:
         return fail("静态题库无需动态生成")
-    containers = db.session.query(ContainerResource).filter(ContainerResource.question_id == instance.id,
-                                                            ContainerResource.user_id == g.user.id)
-    for container in containers:
-        try:
-            client = docker.DockerClient(container.question.host.docker_api, timeout=3)
-            docker_container = client.containers.get(container.container_id)
-            docker_container.kill()
-            docker_container.remove()
-        except docker_error.DockerException:
-            pass
-        db.session.delete(container)
-    db.session.commit()
+    resources = db.session.query(CtfResource).filter(CtfResource.question_id == instance.id,
+                                                     CtfResource.user_id == g.user.id)
+    for resource in resources:
+        scheduler.add_job(f"task.delay_compose_down", task.delay_compose_down, args=(resource.compose_runner_id,))
+        resource.delete()
     return success()
 
 
-@bp.route('/user', methods=['post'])
-@check_user_permission
+@bp.post('/user')
+@user_required()
 def user_center():
     """
         修改用户信息
@@ -443,21 +398,21 @@ def user_center():
     return success()
 
 
-@bp.route('challenge/submit', methods=["post"])
-@check_user_permission
+@bp.post('challenge/submit')
+@user_required()
 def challenge_submit():
     ip = get_ip()
     data = request.get_json()
     question_id = data.get("id")
     flag = data.get("flag")
-    code, msg = FrontendService.submit(question_id, flag, g.user, ip=ip)
+    code, msg = services.submit(question_id, flag, g.user, ip=ip)
     if code:
         return fail(code, msg)
     else:
         return success(msg=msg)
 
 
-@bp.route('notice', methods=['get'])
+@bp.get('notice')
 def notice():
     """
         公告列表
@@ -477,7 +432,7 @@ def notice():
     return success(data=notices)
 
 
-@bp.route('rank/score', methods=['get'])
+@bp.get('rank/score')
 def score_rank():
     """
         积分排行
