@@ -10,14 +10,14 @@ from sqlalchemy import func, desc
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from app import db, scheduler
-from app.api.docker.service import user_compose_down, user_compose_up
+from app.api.docker.service import user_compose_down, user_compose_up, start_docker_resource
 from app.api.frontend import services
 from app.api.sys.service import get_config_val
 from app.lib.decorators import login_required, user_required
 from app.lib.rest_response import fail, success
 from app.lib.tools import get_ip
 from app.lib.utils.authlib import create_token
-from app.models.admin import Notice
+from app.models.admin import Notice, Config
 from app.models.ctf import ImageResource, CtfResource, Answer, Question, Attachment
 from app.api.docker import task
 from app.models.user import User
@@ -272,13 +272,13 @@ def challenge_detail(question):
                                                     CtfResource.destroy_time > datetime.now()).first()
     if resource:
         urls = []
-        for origin, port in resource.compose_runner.port_info.items():
+        for origin, port in resource.docker_runner.port_info.items():
             urls.append({
                 "url": "http://{}:{}".format(config.IP, port),
                 "origin": origin
             })
         container_data = {
-            "timeout": config.CONTAINER_TIMEOUT,
+            "timeout": Config.get_config(Config.KEY_CTF_TIMEOUT),
             "create_time": resource.date_created.strftime("%Y-%m-%d %H:%M:%S"),
             "urls": urls,
         }
@@ -326,17 +326,20 @@ def question_start(question):
     instance = db.session.query(Question).get(question)
     if not instance.active_flag:
         return fail(msg="静态题库无需动态生成")
-    if not instance.compose_id or not instance.active_flag:
+    if not instance.resource_id or not instance.active_flag:
         return fail(msg="服务器没有资源")
-    compose_runner_id, flag = user_compose_up(instance.compose_id, user.id)
+    flag = generate_flag()
+    try:
+        docker_runner = start_docker_resource(instance.resource_id, user.id, flag=flag)
+    except ValueError as e:
+        return fail(msg=e)
     CtfResource.create(
-        compose_runner_id=compose_runner_id,
+        docker_runner_id=docker_runner.id,
         flag=flag,
         user_id=user.id,
         question_id=instance.id,
-        destroy_time=datetime.now() + timedelta(seconds=config.CONTAINER_TIMEOUT)
+        destroy_time=datetime.now() + timedelta(seconds=Config.get_config(Config.KEY_CTF_TIMEOUT))
     )
-    print(instance.id, user.id, compose_runner_id, flag)
     return success({})
 
 

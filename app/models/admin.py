@@ -2,6 +2,7 @@ from sqlalchemy import Column, String, Boolean, Integer, ForeignKey, DateTime, D
 from sqlalchemy.orm import relationship
 
 from app.database import MainBase
+from app.extensions import db
 
 
 class Role(MainBase):
@@ -83,11 +84,31 @@ class Operator(MainBase):
 
 
 class Config(MainBase):
+    KEY_DOCKER_API = "docker_api"
+    KEY_PORT_RANGE = "port_range"
+    KEY_CTF_TIMEOUT = "ctf_timeout"
     CONFIG_MAP = {
         "ip": (str, "127.0.0.1"),
-        "ctf_container_seconds": (int, 180)
+        KEY_DOCKER_API: (str, "unix:///var/run/docker.sock"),
+        KEY_PORT_RANGE: (str, "40000-50000"),
+        KEY_CTF_TIMEOUT: (int, 180)
     }
 
     key = Column(String(255), comment="键")
     val = Column(String(255), comment="值")
     type = Column(String(32), comment="数据类型")
+
+    @staticmethod
+    def get_config(key):
+        if key not in Config.CONFIG_MAP:
+            raise ValueError("该KEY值不是合法的配置键")
+        val_type = Config.CONFIG_MAP[key][0]
+        val_default = Config.CONFIG_MAP[key][1]
+        config_item = db.session.query(Config).filter(Config.key == key).first()
+        if config_item:
+            config_val = config_item.val
+            if val_type == "int":
+                return int(config_val)
+            return config_item.val
+        else:
+            return val_default

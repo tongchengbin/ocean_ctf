@@ -11,12 +11,11 @@ from flask import g
 from flask import request
 from flask import url_for
 from app.lib import command as command_app
-from app.lib.cache import cache
 from app.lib.exceptions import RestExceptions
 from app.lib.middlewares import before_req_cache_ip
 from app.lib.tools import telnet_port
 from config import config
-from .extensions import db, scheduler
+from .extensions import db, scheduler, cache
 
 permission_white_list = ("/admin/login",)
 
@@ -79,6 +78,7 @@ def register_extensions(scope_app):
     """异常捕获"""
 
     db.init_app(scope_app)
+    cache.init_app(scope_app)
     scope_app.app_context().push()
     scheduler.init_app(scope_app)
     scheduler.start()
