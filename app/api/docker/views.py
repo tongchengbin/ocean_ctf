@@ -1,3 +1,4 @@
+import json
 import os
 from datetime import datetime
 
@@ -6,19 +7,19 @@ from docker import errors as docker_error
 from flask import Blueprint, jsonify, request, g
 from flask_pydantic import validate
 from sqlalchemy import or_
-
 from app import db, scheduler
 from app.api.docker.service import fetch_system_info_by_docker_api
 from app.lib.exceptions import make_error_response
 from app.lib.rest_response import fail, success
 from app.models.admin import TaskList
-from app.models.docker import (Host, ComposeDB, ComposeRunner, )
+from app.models.docker import (Host, ComposeDB, ComposeRunner, DockerResource, )
 from app.api.docker import task
-from .form import PageForm, ComposeDBForm
+from .form import PageForm, ComposeDBForm, DockerResourceForm
 import logging
 
 from app.api.docker import task
 from ...lib.tools import model2dict
+from app.extensions import cache
 
 logger = logging.getLogger('app')
 bp = Blueprint("admin_docker", __name__, url_prefix="/api/admin/docker")
@@ -398,7 +399,7 @@ def compose_db_list(query: PageForm):
 @bp.post("/compose_db")
 @validate()
 def compose_db_create(body: ComposeDBForm):
-    if db.session.query(ComposeDB).filter(or_(ComposeDB.name==body.name , ComposeDB.path==body.path)).count():
+    if db.session.query(ComposeDB).filter(or_(ComposeDB.name == body.name, ComposeDB.path == body.path)).count():
         return fail(msg="compose已存在", status=400)
     ComposeDB.create(name=body.name, path=body.path)
     return jsonify({})
@@ -429,3 +430,52 @@ def compose_runner_list(query: PageForm):
         "total": page.total,
         "data": data
     })
+
+
+@bp.get("/resource")
+@validate()
+def docker_resource_list(query: PageForm):
+    db_query = db.session.query(DockerResource).filter()
+    page = db_query.paginate(page=query.page, per_page=query.page_size)
+    data = []
+    for item in page.items:
+        info = model2dict(item)
+        info["docker_type_name"] = item.docker_type_name
+        info["status_name"] = item.status_name
+        data.append(info)
+    return jsonify({
+        "total": page.total,
+        "data": data
+    })
+
+
+@bp.post("/resource")
+@validate()
+def docker_resource_create(body: DockerResourceForm):
+    DockerResource.create(**body.dict())
+    return success()
+
+
+@bp.post("/resource/<int:pk>/build")
+def docker_resource_build(pk):
+    """
+        资源编译
+    """
+    scheduler.add_job("delay_docker_resource_build_{}".format(pk), task.delay_docker_resource_build, args=(pk,))
+    return success()
+
+
+@bp.get("/resource/<int:pk>/logs")
+def docker_resource_logs(pk):
+    resource = DockerResource.get_by_id(pk)
+    start = int(request.args.get('start', 0))
+    key = "DOCKER_RESOURCE_%s" % pk
+    data = []
+    for log in cache.lrange(key, start, -1):
+        data.append(json.loads(log))
+
+    results = {
+        "status": resource.status,
+        "data": data
+    }
+    return success(results)

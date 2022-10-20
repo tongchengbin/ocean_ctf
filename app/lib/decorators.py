@@ -54,7 +54,7 @@ def user_required(required=True):
             authorization = request.headers.get("Authorization")
             if not authorization:
                 if required:
-                    raise APIForbidden()
+                    raise APIForbidden(status=200)
                 else:
                     g.user = None
                     return fn(*args, **kwargs)
@@ -63,7 +63,7 @@ def user_required(required=True):
                 g.user = admin
                 return fn(*args, **kwargs)
             else:
-                raise APIForbidden()
+                raise APIForbidden(status=200)
 
         return inner
 

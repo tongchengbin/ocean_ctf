@@ -8,7 +8,9 @@ from docker import errors as docker_error
 from flask import Blueprint, make_response, jsonify, request
 from flask import current_app
 
-from app.api.docker.service import user_compose_down
+from app.api.ctf.form import QuestionForm
+from app.api.docker.service import user_compose_down, destroy_docker_runner
+from app.auth.acls import admin_required
 from config import config
 from app import db, scheduler
 from app.lib import exceptions
@@ -25,15 +27,14 @@ bp = Blueprint("admin_ctf", __name__, url_prefix="/api/admin/ctf")
 
 
 @bp.route('/question/type', methods=['get'])
+@admin_required
 def question_type():
     """
         题库列表
     :return:
     """
     data = [i.value for i in QType]
-    return jsonify({
-        "results": data
-    })
+    return success(data)
 
 
 @bp.route('/resource', methods=['get'])
@@ -57,12 +58,12 @@ def resource_list():
         resource, question, user_obj = item
         data.append({
             "id": resource.id,
-            "name": resource.compose_runner.name,
+            "name": resource.docker_runner.name,
             "date_created": resource.date_created.strftime(
                 "%Y-%m-%d %H:%M:%S") if resource.date_created else None,
             "date_modified": resource.date_modified.strftime(
                 "%Y-%m-%d %H:%M:%S") if resource.date_modified else None,
-            "container_port": resource.compose_runner.port_info,
+            "container_port": resource.docker_runner.port_info,
             "flag": resource.flag,
             "destroy_time": resource.destroy_time.strftime(
                 "%Y-%m-%d %H:%M") if resource.destroy_time else None,
@@ -144,8 +145,10 @@ def resource_remove(pk):
         :param :container_resource 题目容器id
         :return
     """
-    container = db.session.query(CtfResource).get(pk)
-    user_compose_down(container.compose_runner_id)
+    ctf_resource = db.session.query(CtfResource).get(pk)
+    destroy_docker_runner(ctf_resource.docker_runner_id)
+    # 删除自己记录
+
     return jsonify({"msg": "删除成功"})
 
 
@@ -231,8 +234,8 @@ def question_list():
         else:
             attachment_info = []
         data.append({
-            "compose_id": item.compose_id,
-            "compose_name": item.compose.name if item.compose_id else None,
+            "resource_id": item.resource_id,
+            "resource_name": item.resource.name if item.resource_id else None,
             "attachment": attachment_info,
             "id": item.id,
             "date_created": item.date_created.strftime("%Y-%m-%d %H:%M:%S") if item.date_created else None,
@@ -253,28 +256,19 @@ def question_list():
 
 @bp.post('/question')
 @validate()
-def question_create():
+@admin_required
+def question_create(body: QuestionForm):
     data = request.get_json()
-    name = data["name"]
-    active = data["active"]
-    active_flag = data["active_flag"]
-    desc = data["desc"]
-    flag = data["flag"]
-    q_type = data["type"]
-    score = data["score"]
-    compose_id = data.get("compose_id")
     attachment = data.get('attachment', [])
-    if not name:
-        raise exceptions.CheckException("名称字段不允许为空")
-    Question.create(name=name,
-                    active=active,
-                    active_flag=active_flag,
-                    desc=desc,
-                    flag=flag,
-                    type=q_type,
-                    score=score,
-                    attachment=",".join([str(i) for i in attachment]),
-                    compose_id=compose_id)
+    Question.create(name=body.name,
+                    active=body.active,
+                    active_flag=body.active_flag,
+                    desc=body.desc,
+                    flag=body.flag,
+                    type=body.type,
+                    score=body.score,
+                    resource_id=body.resource_id,
+                    attachment=",".join([str(i) for i in attachment]))
     return jsonify({})
 
 
@@ -427,13 +421,3 @@ def ctf_upload_attachment():
     db.session.add(at)
     db.session.commit()
     return jsonify({"filename": filename, "uuid": at.id})
-
-
-@bp.get('/config')
-def get_ctf_config():
-    pass
-
-
-@bp.get('/config')
-def set_ctf_config():
-    pass

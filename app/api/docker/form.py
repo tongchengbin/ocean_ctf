@@ -9,3 +9,11 @@ class PageForm(BaseModel):
 class ComposeDBForm(BaseModel):
     path: str
     name: str
+
+
+class DockerResourceForm(BaseModel):
+    resource_type: str
+    docker_type: int
+    image: str
+    name: str
+    description: str

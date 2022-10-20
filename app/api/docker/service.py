@@ -1,13 +1,19 @@
+import logging
 import os
+import random
 import shutil
 
 import docker
+from docker.errors import ImageNotFound, NotFound
 
 from app.lib.tools import generate_flag
-from app.models.docker import ComposeRunner, ComposeDB
+from app.models.admin import Config
+from app.models.docker import ComposeRunner, ComposeDB, DockerResource, DockerRunner
 from app.extensions import db
 from compose.cli.command import project_from_options
 import compose
+
+logger = logging.getLogger(__name__)
 
 
 def fetch_system_info_by_docker_api(docker_api):
@@ -90,8 +96,86 @@ def user_compose_up(compose_id, user_id) -> (str, str):
     return compose_runner.id, flag
 
 
+def get_free_port(start_port: int, end_port: int):
+    # todo 检查端口是否被暂用
+    random_port = str(random.randint(start_port, end_port))
+    return random_port
+
+
+def start_docker_resource(resource_id, user_id, flag=None) -> DockerRunner:
+    """
+        启动docker 资源
+    """
+    resource = DockerResource.get_by_id(resource_id)
+    client = docker.DockerClient(Config.get_config(Config.KEY_DOCKER_API))
+    try:
+        image = client.images.get(resource.image)
+    except ImageNotFound:
+        raise ValueError("当前题目环境缺失、请联系管理员！")
+    # 解析镜像端口
+    image_config = image.attrs["ContainerConfig"]
+    port_range = Config.get_config(Config.KEY_PORT_RANGE)
+    try:
+        start_port, end_port = port_range.split("-")
+        start_port, end_port = int(start_port), int(end_port)
+        assert start_port < end_port
+    except (AssertionError, ValueError, IndexError):
+        raise ValueError("服务器缺少资源、请联系管理员")
+    if "ExposedPorts" in image_config:
+        port_dict = image.attrs["ContainerConfig"]["ExposedPorts"]
+        for docker_port, host_port in port_dict.items():
+            port_dict[docker_port] = get_free_port(start_port, end_port)
+    else:
+        port_dict = {}
+    image_name = image.attrs["RepoTags"][0].replace(":", ".")
+    container_name = f"{image_name}_{user_id}"
+    # 检查docker 是否已存在
+    try:
+        c = client.containers.get(container_name)
+        c.stop()
+        c.remove()
+    except docker.errors.NotFound:
+        pass
+    try:
+        docker_container = client.containers.run(image=image.id, name=container_name, ports=port_dict,
+                                                 detach=True)
+    except docker.errors.APIError as e:
+        logger.exception(e)
+        raise ValueError("题目启动失败")
+    if flag:
+        command = "/start.sh '{}'".format(flag)
+        docker_container.exec_run(cmd=command, detach=True)
+    # 查看是否有历史记录
+    docker_runner = db.session.query(DockerRunner).filter(DockerRunner.name == docker_container.name).first()
+    if docker_runner:
+        docker_runner.container_id = docker_container.id
+        docker_runner.port_info = port_dict
+        docker_runner.save()
+    else:
+        docker_runner = DockerRunner.create(name=docker_container.name, resource_id=resource_id,
+                                            type=DockerRunner.TYPE_USER, port_info=port_dict,
+                                            user_id=user_id,
+                                            container_id=docker_container.id)
+    return docker_runner
+
+
+def destroy_docker_runner(docker_runner_id):
+    docker_runner = DockerRunner.get_by_id(docker_runner_id)
+    client = docker.DockerClient(Config.get_config(Config.KEY_DOCKER_API))
+    try:
+        docker_container = client.containers.get(docker_runner.container_id)
+        docker_container.stop()
+        docker_container.remove()
+    except NotFound:
+        logger.warning("容器未找到：{}".format(docker_runner.name))
+
+    docker_runner.delete()
+    return True
+
+
 if __name__ == "__main__":
     from app import create_app, db
 
     create_app().app_context().push()
-    user_compose_up(6, 1)
+    # user_compose_up(6, 1)
+    start_docker_resource(1, 1)

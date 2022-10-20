@@ -17,5 +17,5 @@ def before_req_cache_ip():
     else:
         ip = request.remote_addr or '127.0.0.1'
     today = datetime.today().strftime("%Y%m%d")
-    cache.sadd('ip-%s' % today, ip)
-    cache.incr("req-%s" % today)
+    # cache.sadd('ip-%s' % today, ip)
+    # cache.incr("req-%s" % today)

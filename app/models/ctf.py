@@ -7,7 +7,7 @@ from sqlalchemy import Column, String, Boolean, Integer, ForeignKey, DateTime, J
 from sqlalchemy.orm import relationship
 
 from app.database import MainBase
-from app.models.docker import Host, ComposeDB, ComposeRunner
+from app.models.docker import Host, ComposeDB, ComposeRunner, DockerResource, DockerRunner
 from app.models.user import User
 
 
@@ -49,8 +49,8 @@ class Question(MainBase):
     flag = Column(String(64), comment="Flag", nullable=True)
     active_flag = Column(Boolean(), default=False, comment="是否时动态Flag")
     attachment = Column(String(64), comment="附件")
-    compose_id = Column(Integer, ForeignKey('compose_db.id'), comment="关联compose")
-    compose = relationship(ComposeDB)
+    resource_id = Column(Integer, ForeignKey('docker_resource.id'), comment="关联compose")
+    resource = relationship(DockerResource)
 
 
 class Attachment(MainBase):
@@ -67,8 +67,8 @@ class CtfResource(MainBase):
     """
         实际的容器资源 不一定是实际的主机容器  主要是用来记录用户对容器的使用 同时绑定Flag
     """
-    compose_runner_id = Column(Integer, ForeignKey(ComposeRunner.id), comment="compose ID")
-    compose_runner = relationship(ComposeRunner,cascade="all,delete")
+    docker_runner_id = Column(Integer, ForeignKey(DockerRunner.id), comment="compose ID")
+    docker_runner = relationship(DockerRunner, cascade="all,delete")
     flag = Column(String(64), nullable=True, comment="环境flag")
     user_id = Column(Integer, ForeignKey('user.id'), comment="关联用户")
     user = relationship(User, backref='container_ref')
@@ -92,7 +92,7 @@ class Answer(MainBase):
         (status_cheat, "作弊"),
         (status_repeat, "有效不计分")
     )
-    __tablename__ = 'answer'
+    __tablename__ = 'ctf_answer'
     status = Column(Integer, default=1, comment="状态")
     user_id = Column(Integer, ForeignKey('user.id'), comment="关联用户")
     question_id = Column(Integer, ForeignKey('ctf_question.id'), comment="对应题目")
