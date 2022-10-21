@@ -5,6 +5,8 @@ import docker
 from docker import errors as docker_error
 from flask import Blueprint, make_response, jsonify, request
 from flask import current_app
+from sqlalchemy.exc import IntegrityError
+
 from app.api.ctf.form import QuestionForm
 from app.api.docker.service import destroy_docker_runner
 from config import config
@@ -142,7 +144,12 @@ def resource_remove(pk):
     ctf_resource = db.session.query(CtfResource).get(pk)
     destroy_docker_runner(ctf_resource.docker_runner_id)
     # 删除自己记录
-
+    docker_runner = ctf_resource.docker_runner
+    ctf_resource.delete()
+    try:
+        docker_runner.delete()
+    except IntegrityError:
+        db.session.rollback()
     return jsonify({"msg": "删除成功"})
 
 

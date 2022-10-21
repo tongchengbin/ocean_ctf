@@ -7,6 +7,7 @@ import docker
 from docker.errors import NotFound
 from flask import Blueprint, render_template, request, make_response, g, send_from_directory
 from sqlalchemy import func, desc
+from sqlalchemy.exc import IntegrityError
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from app import db, scheduler
@@ -354,13 +355,12 @@ def question_delayed(question):
                                                      CtfResource.question_id == question).order_by(
         desc(CtfResource.id)).first()
     if not container:
-        return fail("当前状态无法延长题目时间")
+        return fail(msg="当前状态无法延长题目时间")
     # 最多延长三小时
     if (container.destroy_time - timedelta(hours=3)) > datetime.now():
-        return fail("时间已达上限")
+        return fail(msg="时间已达上限")
     container.destroy_time = container.destroy_time + timedelta(minutes=10)
-    db.session.commit()
-
+    container.save()
     return success()
 
 
@@ -386,8 +386,12 @@ def question_destroy(question):
         except NotFound:
             continue
         finally:
+            docker_runner = ctf_resource.docker_runner
             ctf_resource.delete()
-            ctf_resource.docker_runner.delete()
+            try:
+                docker_runner.delete()
+            except IntegrityError:
+                db.session.rollback()
     return success()
 
 
