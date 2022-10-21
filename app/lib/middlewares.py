@@ -2,14 +2,13 @@
 中间件
 """
 from datetime import datetime
-from flask import request
-
-from .cache import cache
-from .exceptions import ServerUnableError
+from flask import request, g, make_response, jsonify
+from app.models.admin import Admin
+from app.extensions import db, cache
 
 
 def before_req_cache_ip():
-    """l
+    """
         缓存IP
     """
     if request.access_route:
@@ -17,5 +16,30 @@ def before_req_cache_ip():
     else:
         ip = request.remote_addr or '127.0.0.1'
     today = datetime.today().strftime("%Y%m%d")
-    # cache.sadd('ip-%s' % today, ip)
-    # cache.incr("req-%s" % today)
+    cache.sadd('ip-%s' % today, ip)
+    cache.incr("req-%s" % today)
+
+
+WHITE_PATH_LIST = (
+    "/api/admin/login",
+)
+
+
+def global_admin_required():
+    """
+        admin 请求拦截器
+    """
+    if request.method == "OPTIONS":
+        return
+    if request.path in WHITE_PATH_LIST:
+        return
+    if request.path.startswith("/api/admin"):
+        authorization = request.environ.get("HTTP_AUTHORIZATION")
+        if not authorization:
+            return make_response(jsonify({"msg": "Forbidden", "code": 401}), 401)
+        admin = db.session.query(Admin).filter(Admin.token == authorization).one_or_none()
+        if admin:
+            g.user = admin
+            return
+        else:
+            return make_response(jsonify({"msg": "Forbidden", "code": 401}), 401)

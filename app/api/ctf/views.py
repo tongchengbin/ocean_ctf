@@ -1,19 +1,14 @@
-import json
 import logging
 import os
 import uuid
-
 import docker
 from docker import errors as docker_error
 from flask import Blueprint, make_response, jsonify, request
 from flask import current_app
-
 from app.api.ctf.form import QuestionForm
-from app.api.docker.service import user_compose_down, destroy_docker_runner
-from app.auth.acls import admin_required
+from app.api.docker.service import destroy_docker_runner
 from config import config
 from app import db, scheduler
-from app.lib import exceptions
 from app.lib.rest_response import success, fail
 from app.models.ctf import QType, ImageResource, CtfResource, Answer, Attachment
 from app.models.ctf import Question
@@ -27,7 +22,6 @@ bp = Blueprint("admin_ctf", __name__, url_prefix="/api/admin/ctf")
 
 
 @bp.route('/question/type', methods=['get'])
-@admin_required
 def question_type():
     """
         题库列表
@@ -256,7 +250,6 @@ def question_list():
 
 @bp.post('/question')
 @validate()
-@admin_required
 def question_create(body: QuestionForm):
     data = request.get_json()
     attachment = data.get('attachment', [])

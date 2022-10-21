@@ -3,9 +3,9 @@ from __future__ import absolute_import
 import logging
 from datetime import datetime, timedelta
 
-from app import db, scheduler
+from app import db, scheduler, cache
 from app.models.admin import RequestState
-from app.lib.cache import cache, ConstCacheKey
+from app.lib.const import ConstCacheKey
 logger = logging.getLogger('app')
 
 
