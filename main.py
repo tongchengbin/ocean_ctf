@@ -1,9 +1,10 @@
-from app import create_app, register_blueprints
+from app import create_app
+
+app = create_app()
 
 
 def main():
-    app = create_app()
-    app.run(host='0.0.0.0', port=9000, debug=True)
+    app.run(host='0.0.0.0', port=8000, debug=True)
 
 
 if __name__ == "__main__":
