@@ -9,32 +9,6 @@ from app.models.admin import Admin
 log = logging.getLogger(__name__)
 
 
-def admin_required(func):
-    """
-        管理员权限认证
-    :param func:
-    :return:
-    """
-
-    @wraps(func)
-    def inner(*args, **kwargs):
-        authorization = request.headers.environ.get('HTTP_AUTHORIZATION')
-        if not authorization:
-            g.user = None
-            return func(*args, **kwargs)
-        admin = db.session.query(Admin).filter(Admin.token == authorization).one_or_none()
-        if admin:
-            g.user = admin
-            return func(*args, **kwargs)
-        else:
-            return make_response(jsonify({"msg": "Forbidden", "code": 401}), 401)
-
-    return inner
-
-
-
-
-
 def auth_user(func):
     """
         用户认证  不做权限过滤

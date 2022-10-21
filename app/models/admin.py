@@ -84,11 +84,12 @@ class Operator(MainBase):
 
 
 class Config(MainBase):
+    KEY_IP = "ip"
     KEY_DOCKER_API = "docker_api"
     KEY_PORT_RANGE = "port_range"
     KEY_CTF_TIMEOUT = "ctf_timeout"
     CONFIG_MAP = {
-        "ip": (str, "127.0.0.1"),
+        KEY_IP: (str, "127.0.0.1"),
         KEY_DOCKER_API: (str, "unix:///var/run/docker.sock"),
         KEY_PORT_RANGE: (str, "40000-50000"),
         KEY_CTF_TIMEOUT: (int, 180)

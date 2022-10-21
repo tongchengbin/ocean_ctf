@@ -1,22 +1,23 @@
 import json
 import os
 from datetime import datetime
-
+import yaml
 import docker
+import requests
 from docker import errors as docker_error
 from flask import Blueprint, jsonify, request, g
 from flask_pydantic import validate
 from sqlalchemy import or_
+from sqlalchemy.exc import IntegrityError
+
 from app import db, scheduler
 from app.api.docker.service import fetch_system_info_by_docker_api
 from app.lib.exceptions import make_error_response
 from app.lib.rest_response import fail, success
-from app.models.admin import TaskList
+from app.models.admin import TaskList, Config
 from app.models.docker import (Host, ComposeDB, ComposeRunner, DockerResource, )
-from app.api.docker import task
 from .form import PageForm, ComposeDBForm, DockerResourceForm
 import logging
-
 from app.api.docker import task
 from ...lib.tools import model2dict
 from app.extensions import cache
@@ -170,6 +171,38 @@ def host_detail(pk):
         "docker_api": instance.docker_api,
         "remark": instance.remark,
         "ip": instance.ip,
+        "info": info
+    }
+    return jsonify({"data": data})
+
+
+@bp.get('/info')
+def docker_info():
+    api = Config.get_config(Config.KEY_DOCKER_API)
+    ip = Config.get_config(Config.KEY_IP)
+    try:
+        client = docker.DockerClient(api)
+        info = client.info()
+    except docker_error.DockerException:
+        info = {}
+    from pprint import pprint
+    pprint(info)
+    if info:
+        """数据格式化"""
+        info = {
+            "name":info["Name"],
+            "containers": info["Containers"],
+            "images": info["Images"],
+            "version": info["KernelVersion"],
+            "memory": round(info["MemTotal"] / 1024 / 2024 / 1024, 2),
+            "cpu": info["NCPU"],
+            "system": info["OperatingSystem"],
+            "system_time": info["SystemTime"]
+
+        }
+    data = {
+        "docker_api": api,
+        "ip": ip,
         "info": info
     }
     return jsonify({"data": data})
@@ -479,3 +512,43 @@ def docker_resource_logs(pk):
         "data": data
     }
     return success(results)
+
+
+@bp.post("/resource/sync")
+def docker_resource_sync():
+    url = request.get_json().get("url")
+    try:
+        res = requests.get(url, verify=False, timeout=10, proxies={"https": "http://10.13.20.43:10808"})
+    except requests.exceptions.RequestException as e:
+        logger.error(e)
+        return fail(msg="同步失败、同步服务器连接失败", status=400)
+    data = yaml.load(res.text, Loader=yaml.SafeLoader)
+    resources = data.get("resources", [])
+    res_dict = {}
+    add_count = 0
+    if resources:
+        # 获取当前数据
+        query = db.session.query(DockerResource).all()
+        for i in query:
+            res_dict[i.name] = (i.image, i.resource_type)
+    for item in resources:
+        old_res = res_dict.get(item["name"])
+        if old_res and old_res == item["resource_type"]:
+            continue
+        if item["resource_type"] not in ("CTF", "VUL"):
+            continue
+        DockerResource.create(name=item["name"], resource_type=item["resource_type"], description=item["desc"])
+        add_count += 1
+    results = {
+        "total": add_count,
+    }
+    return success(results)
+
+
+@bp.delete("/resource/<int:pk>")
+def resource_delete(pk):
+    try:
+        DockerResource.get_by_id(pk).delete()
+    except IntegrityError:
+        return fail(msg="资源占用中、当前状态无法删除,请检查引用对象!", status=400)
+    return jsonify({})

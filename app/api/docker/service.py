@@ -5,11 +5,10 @@ import shutil
 
 import docker
 from docker.errors import ImageNotFound, NotFound
-
+from app import db
 from app.lib.tools import generate_flag
 from app.models.admin import Config
 from app.models.docker import ComposeRunner, ComposeDB, DockerResource, DockerRunner
-from app.extensions import db
 from compose.cli.command import project_from_options
 import compose
 
@@ -81,7 +80,6 @@ def user_compose_up(compose_id, user_id) -> (str, str):
             for host_port in v:
                 if host_port["HostIp"] == "0.0.0.0":
                     ports[port] = host_port["HostPort"]
-    print(ports)
     compose_runner = db.session.query(ComposeRunner).filter(ComposeRunner.project_dir == project_dir).first()
     if compose_runner:
         compose_runner.name = f"{user_id}" + compose.name
@@ -173,9 +171,9 @@ def destroy_docker_runner(docker_runner_id):
     return True
 
 
-if __name__ == "__main__":
-    from app import create_app, db
-
-    create_app().app_context().push()
+# if __name__ == "__main__":
+    # from app import create_app, db
+    #
+    # create_app().app_context().push()
     # user_compose_up(6, 1)
-    start_docker_resource(1, 1)
+    # start_docker_resource(1, 1)

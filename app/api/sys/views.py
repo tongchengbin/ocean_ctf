@@ -9,10 +9,9 @@ from sqlalchemy import func, desc
 from sqlalchemy.exc import ProgrammingError, OperationalError
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from app import cache
+from app.extensions import cache
 from app import db
 from app.api.sys.service import insert_operator
-from app.auth.acls import admin_required
 from app.lib import exceptions
 from app.lib.decorators import check_permission
 from app.lib.rest_response import success, fail
@@ -224,7 +223,7 @@ def index_state():
     today_create_cnt = today_query.count()
     today = datetime.today().strftime("%Y%m%d")
     ip_count = cache.scard('ip-%s' % today)
-    req_count = int(cache.get("req-%s" % today).decode())
+    req_count = cache.get("req-%s" % today).decode() or 0
 
     # 统计半月用户访问情况
     req_state = db.session.query(RequestState).order_by(RequestState.day)
@@ -234,21 +233,6 @@ def index_state():
             {"label": "活跃IP", "data": []}, {"label": "处理请求", "data": []}
         ]
     }
-    """
-     # {
-    #     x_data: ['1', '2', '3', '4', '5'],
-    #     lines: [
-    #         {
-    #             label: "2",
-    #             data: [1, 2, 3, 4, 5]
-    #         },
-    #         {
-    #             label: "1",
-    #             data: [5, 2, 3, 4, 5]
-    #         }
-    #     ]
-    # }
-    """
     for dy in req_state:
         req_data["x_data"].append(dy.day.strftime("%m-%d"))
         req_data["lines"][0]["data"].append(dy.ip_count)
@@ -343,8 +327,7 @@ def notice_delete(pk):
     return jsonify({})
 
 
-@bp.route('/login', methods=['get'])
-@admin_required
+@bp.route('/userinfo', methods=['get'])
 def login_info():
     admin = g.user
     ret = {
