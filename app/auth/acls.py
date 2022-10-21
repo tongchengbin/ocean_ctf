@@ -1,10 +1,9 @@
 import logging
 from functools import wraps
 
-from flask import request, g, jsonify, make_response
+from flask import request, g
 from app import db
 from app.models.user import User
-from app.models.admin import Admin
 
 log = logging.getLogger(__name__)
 

@@ -1,7 +1,5 @@
 import logging
 from functools import wraps
-
-import typing
 from flask import request, g
 
 from app.lib.exceptions import APIForbidden
@@ -9,7 +7,6 @@ from app.lib.rest_response import fail, Code
 from app.models.admin import Admin
 from app.models.base import db
 from app.models.user import User
-from config.config import WHITE_URL_LIST
 
 logger = logging.getLogger('app')
 
@@ -68,20 +65,6 @@ def user_required(required=True):
         return inner
 
     return decorator
-
-
-def check_permission(func):
-    @wraps(func)
-    def inner(*args, **kwargs):
-        user = g.user
-        # 如果没有用户 不校验权限
-        method = request.method
-        full_path = request.path
-        if user and user.role_id == 4 and method not in ('OPTIONS', 'GET') and full_path not in WHITE_URL_LIST:
-            raise APIForbidden(msg="访客无权操作", code=4003)
-        return func(*args, **kwargs)
-
-    return inner
 
 
 def check_user_permission(func):

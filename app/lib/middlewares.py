@@ -1,10 +1,13 @@
 """
 中间件
 """
+import logging
 from datetime import datetime
 from flask import request, g, make_response, jsonify
 from app.models.admin import Admin
 from app.extensions import db, cache
+
+logger = logging.getLogger(__name__)
 
 
 def before_req_cache_ip():

@@ -13,7 +13,6 @@ from app.extensions import cache
 from app import db
 from app.api.sys.service import insert_operator
 from app.lib import exceptions
-from app.lib.decorators import check_permission
 from app.lib.rest_response import success, fail
 from app.lib.utils.authlib import create_token
 from app.models.admin import (Admin, TaskList, Operator, Config)
@@ -253,7 +252,6 @@ def index_state():
 
 
 @bp.route('/notice', methods=['get'])
-@check_permission
 def notice_list():
     page = int(request.args.get('page', 1))
     page_size = int(request.args.get("page_size", 10))

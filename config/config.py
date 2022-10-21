@@ -107,8 +107,6 @@ REDIS_URL = 'redis://:{REDIS_PASSWORD}@{REDIS_HOST}:6379'.format(REDIS_HOST=REDI
                                                                  REDIS_PASSWORD=REDIS_PASSWORD)
 UPLOAD_DIR = os.path.join(BASE_DIR, 'upload')
 
-WHITE_URL_LIST = ('/api/admin/login', '/api/admin/logout')
-
 enable_utc = False
 
 logging.config.dictConfig(LOGGING)

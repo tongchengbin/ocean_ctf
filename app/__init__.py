@@ -17,8 +17,6 @@ from app.lib.tools import telnet_port
 from config import config
 from .extensions import db, scheduler, cache
 
-permission_white_list = ("/admin/login",)
-
 
 def create_app():
     """
