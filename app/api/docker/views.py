@@ -190,7 +190,7 @@ def docker_info():
     if info:
         """数据格式化"""
         info = {
-            "name":info["Name"],
+            "name": info["Name"],
             "containers": info["Containers"],
             "images": info["Images"],
             "version": info["KernelVersion"],
@@ -208,16 +208,15 @@ def docker_info():
     return jsonify({"data": data})
 
 
-@bp.route('/host/<int:host>/images', methods=['get'])
-def host_images(host):
+@bp.get('/images')
+def docker_images():
     """
         获取镜像列表
-    :param host: 主机ID
     :return:
     """
-    instance = db.session.query(Host).filter(Host.id == host).one_or_none()
+    docker_api = Config.get_config(Config.KEY_DOCKER_API)
     try:
-        client = docker.DockerClient(instance.docker_api)
+        client = docker.DockerClient(docker_api)
         images = client.images.list()
     except docker_error.DockerException:
         images = []
@@ -234,23 +233,15 @@ def host_images(host):
             "tags": [i.split(":")[1] for i in attrs["RepoTags"]]
         }
         images_list.append(tmp)
-    data = {
-        "id": instance.id,
-        "name": instance.name,
-        "docker_api": instance.docker_api,
-        "remark": instance.remark,
-        "images": images_list
-    }
-    return jsonify({"data": data})
+    return jsonify({"data": images_list})
 
 
-@bp.route('/images', methods=['delete'])
+@bp.delete('/images')
 def image_delete():
     tag = request.get_json().get('id')
-    host = request.get_json().get("host")
-    instance = db.session.query(Host).filter(Host.id == host).one_or_none()
+    docker_api = Config.get_config(Config.KEY_DOCKER_API)
     try:
-        client = docker.DockerClient(instance.docker_api)
+        client = docker.DockerClient(docker_api)
         res = client.images.remove(tag)
         print(res)
     except docker_error.DockerException as e:
@@ -273,21 +264,14 @@ def host_docker_container():
     :return:
     """
     pk = request.args.get("id")
-    instance = db.session.query(Host).filter(Host.id == pk).one_or_none()
+    docker_api = Config.get_config(Config.KEY_DOCKER_API)
     try:
-        client = docker.DockerClient(instance.docker_api)
+        client = docker.DockerClient(docker_api)
         containers = client.containers.list(all=True)
     except docker_error.DockerException:
         containers = []
     containers = [container.attrs for container in containers]
-    data = {
-        "id": instance.id,
-        "name": instance.name,
-        "docker_api": instance.docker_api,
-        "remark": instance.remark,
-        "containers": containers
-    }
-    return jsonify({"data": data})
+    return jsonify({"data": containers})
 
 
 @bp.route('/containerStop', methods=['post'])
@@ -332,12 +316,11 @@ def container_action():
         容器操作
     :return:
     """
-    host = request.get_json().get("host")
     container_id = request.get_json().get("id")
     action = request.get_json().get("action")
-    instance = db.session.query(Host).filter(Host.id == host).one_or_none()
+    docker_api = Config.get_config(Config.KEY_DOCKER_API)
     try:
-        client = docker.DockerClient(instance.docker_api)
+        client = docker.DockerClient(docker_api)
         container = client.containers.get(container_id)
         action_fun = getattr(container, action)
         action_fun()
