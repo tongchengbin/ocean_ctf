@@ -267,11 +267,12 @@ def challenge_detail(question):
     resource = db.session.query(CtfResource).filter(CtfResource.user_id == g.user.id,
                                                     CtfResource.question_id == instance.id,
                                                     CtfResource.destroy_time > datetime.now()).first()
+    ip = Config.get_config(Config.KEY_IP)
     if resource:
         urls = []
         for origin, port in resource.docker_runner.port_info.items():
             urls.append({
-                "url": "http://{}:{}".format(config.IP, port),
+                "url": "http://{}:{}".format(ip, port),
                 "origin": origin
             })
 
@@ -330,7 +331,7 @@ def question_start(question):
     try:
         docker_runner = start_docker_resource(instance.resource_id, user.id, flag=flag)
     except ValueError as e:
-        return fail(msg=e)
+        return fail(msg=str(e))
     CtfResource.create(
         docker_runner_id=docker_runner.id,
         flag=flag,

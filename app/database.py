@@ -30,6 +30,7 @@ class CRUDMixin(object):
         for attr, value in kwargs.items():
             setattr(self, attr, value)
         if commit:
+            db.session.flush()
             return self.save()
         return self
 
@@ -37,6 +38,7 @@ class CRUDMixin(object):
         """Save the record."""
         db.session.add(self)
         if commit:
+            db.session.flush()
             db.session.commit()
         return self
 
@@ -44,6 +46,7 @@ class CRUDMixin(object):
         """Remove the record from the database."""
         db.session.delete(self)
         if commit:
+            db.session.flush()
             return db.session.commit()
         return
 

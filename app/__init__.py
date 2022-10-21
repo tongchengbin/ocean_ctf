@@ -30,7 +30,6 @@ def create_app():
     cache.init_app(flask_app)
     register_extensions(flask_app)
     register_blueprints(flask_app)
-    db.create_all()
     register_custom_helpers(flask_app)
     flask_app.before_request_funcs.setdefault(None, []).append(before_req_cache_ip)
     flask_app.before_request_funcs.setdefault(None, []).append(global_admin_required)

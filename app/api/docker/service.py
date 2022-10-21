@@ -126,7 +126,7 @@ def start_docker_resource(resource_id, user_id, flag=None) -> DockerRunner:
     else:
         port_dict = {}
     image_name = image.attrs["RepoTags"][0].replace(":", ".")
-    container_name = f"{image_name}_{user_id}"
+    container_name = f"{image_name}_{user_id}".replace("/", "-")
     # 检查docker 是否已存在
     try:
         c = client.containers.get(container_name)
@@ -170,10 +170,9 @@ def destroy_docker_runner(docker_runner_id):
     docker_runner.delete()
     return True
 
-
 # if __name__ == "__main__":
-    # from app import create_app, db
-    #
-    # create_app().app_context().push()
-    # user_compose_up(6, 1)
-    # start_docker_resource(1, 1)
+# from app import create_app, db
+#
+# create_app().app_context().push()
+# user_compose_up(6, 1)
+# start_docker_resource(1, 1)

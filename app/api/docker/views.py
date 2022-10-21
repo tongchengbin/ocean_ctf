@@ -515,12 +515,14 @@ def docker_resource_sync():
         for i in query:
             res_dict[i.name] = (i.image, i.resource_type)
     for item in resources:
+        logger.info(item)
         old_res = res_dict.get(item["name"])
         if old_res and old_res == item["resource_type"]:
             continue
         if item["resource_type"] not in ("CTF", "VUL"):
             continue
-        DockerResource.create(name=item["name"], resource_type=item["resource_type"], description=item["desc"])
+        DockerResource.create(name=item["name"], image=item["image"], resource_type=item["resource_type"],
+                              description=item["desc"])
         add_count += 1
     results = {
         "total": add_count,
