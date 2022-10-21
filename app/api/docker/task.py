@@ -38,11 +38,13 @@ def delay_docker_resource_build(resource_id: int):
     except DockerException as e:
         logger.exception(e)
         return
+    logger.info("============start build {}".format(resource.image))
     # 清空 cache
     key = "DOCKER_RESOURCE_%s" % resource_id
     cache.delete(key)
     for log_dic in client.pull(resource.image, stream=True, decode=True):
         # 添加到日志
+        logger.info(log_dic)
         cache.lpush(key, json.dumps(log_dic))
     resource.status = DockerResource.STATUS_BUILD
     resource.save()
