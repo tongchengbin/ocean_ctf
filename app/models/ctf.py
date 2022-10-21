@@ -68,7 +68,7 @@ class CtfResource(MainBase):
         实际的容器资源 不一定是实际的主机容器  主要是用来记录用户对容器的使用 同时绑定Flag
     """
     docker_runner_id = Column(Integer, ForeignKey(DockerRunner.id), comment="compose ID")
-    docker_runner = relationship(DockerRunner, cascade="all,delete")
+    docker_runner = relationship(DockerRunner,backref="ctf_resource", cascade="all,delete")
     flag = Column(String(64), nullable=True, comment="环境flag")
     user_id = Column(Integer, ForeignKey('user.id'), comment="关联用户")
     user = relationship(User, backref='container_ref')

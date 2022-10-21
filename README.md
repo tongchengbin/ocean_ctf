@@ -30,23 +30,13 @@
 
 测试账号 test/test
 
-## 🌍 使用
-
-如何添加容器主机？
-
-通过docker-compose 启动默认挂在unix:///var/run/docker.sock文件，只需要在添加宿主机时填写默认参数即可
-```angular2html
-docker api: unix:///var/run/docker.sock
-```
 
 ## 📖 安装步骤
 
 ##### clone
-> 注意使用 --recursive参数拉去子模块、否则无法加载界面！
-
 * 克隆代码
 ```
-git clone --recursive https://github.com/tongchengbin/ocean_ctf.git /opt/ocean_ctf
+git clone https://github.com/tongchengbin/ocean_ctf.git /opt/ocean_ctf
 ```
 
 * docker-compose 编排镜像
@@ -89,10 +79,9 @@ Copyright (c) 2022-present tongcb
   ![](./doc/image/init.png)
 
 
-- 容器主机详情
-  - ![](./doc/image/6.png)
-  ![](./doc/image/7.png)
-
+- 资源中心
+  ![](./doc/image/resource.png)
+  
 - 编译镜像
 
   ![](./doc/image/9.png)
@@ -113,7 +102,7 @@ Copyright (c) 2022-present tongcb
 
   ![](./doc/image/首页.png)
 
-* 启动容器
+- 启动容器
 
   ![](./doc/image/启动容器.png)
 

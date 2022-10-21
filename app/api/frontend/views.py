@@ -379,6 +379,7 @@ def question_destroy(question):
                                                          CtfResource.user_id == g.user.id)
     for ctf_resource in ctf_resources:
         client = docker.DockerClient(Config.get_config(Config.KEY_DOCKER_API))
+        docker_runner = ctf_resource.docker_runner
         try:
             container = client.containers.get(ctf_resource.docker_runner.container_id)
             container.stop()
@@ -387,7 +388,10 @@ def question_destroy(question):
             continue
         finally:
             ctf_resource.delete()
-            ctf_resource.docker_runner.delete()
+            if docker_runner.ctf_resource:
+                # 如果绑定了其他环境就先不删除
+                continue
+            docker_runner.delete()
     return success()
 
 
@@ -475,4 +479,3 @@ def score_rank():
     # 公告
     code, data = services.score_rank(**request.args)
     return success(data=data)
-
