@@ -518,7 +518,7 @@ def docker_resource_logs(pk):
 def docker_resource_sync():
     url = request.get_json().get("url")
     try:
-        res = requests.get(url, verify=False, timeout=10, proxies={"https": "http://10.13.20.43:10808"})
+        res = requests.get(url, verify=False, timeout=10)
     except requests.exceptions.RequestException as e:
         logger.error(e)
         return fail(msg="同步失败、同步服务器连接失败", status=400)
