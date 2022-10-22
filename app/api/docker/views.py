@@ -535,5 +535,6 @@ def resource_delete(pk):
     try:
         DockerResource.get_by_id(pk).delete()
     except IntegrityError:
+        db.session.rollback()
         return fail(msg="资源占用中、当前状态无法删除,请检查引用对象!", status=400)
     return jsonify({})
