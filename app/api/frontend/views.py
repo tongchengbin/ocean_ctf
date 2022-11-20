@@ -381,6 +381,8 @@ def question_destroy(question):
                                                          CtfResource.user_id == g.user.id)
     for ctf_resource in ctf_resources:
         client = docker.DockerClient(Config.get_config(Config.KEY_DOCKER_API))
+        # 默认一个docker run 只能绑定一个用户吧 所以直接删除docker run  采用数据库的连表删除自动删除其他索引
+        docker_runner = ctf_resource.docker_runner
         try:
             container = client.containers.get(ctf_resource.docker_runner.container_id)
             container.stop()
@@ -388,12 +390,7 @@ def question_destroy(question):
         except NotFound:
             continue
         finally:
-            docker_runner = ctf_resource.docker_runner
-            ctf_resource.delete()
-            try:
-                docker_runner.delete()
-            except IntegrityError:
-                db.session.rollback()
+            docker_runner.delete()
     return success()
 
 

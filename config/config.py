@@ -6,7 +6,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(os.path.dirname(__file__)))
 
 load_dotenv(verbose=True)
 
-DEBUG = True
+DEBUG = False
 # db
 DB_HOST = os.getenv('DB_HOST')
 DB_USER = os.getenv('DB_USER')
@@ -28,7 +28,8 @@ THREADS_PER_PAGE = 2
 SQLALCHEMY_ECHO = False
 DATABASE_CONNECT_OPTIONS = {}
 SQLALCHEMY_TRACK_MODIFICATIONS = False
-SQLALCHEMY_DATABASE_URI = "mysql+mysqldb://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}".format(
+# 不设置自动提交会导致多进程下数据缓存未更新问题
+SQLALCHEMY_DATABASE_URI = "mysql+mysqldb://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}?autocommit=true".format(
     db_user=DB_USER,
     db_password=DB_PASSWORD,
     db_host=DB_HOST,

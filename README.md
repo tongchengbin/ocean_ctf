@@ -16,10 +16,10 @@
 - [ ] 大屏展示
 - [x] 权限分离
 - [x] 一键部署
-- [ ] 多端口开放
+- [x] 多端口开放
 - [ ] compose容器支持
 - [ ] fix bug
-
+- [ ] 添加镜像功能页面重构
 
 
 ## 🚀 预览
@@ -30,23 +30,13 @@
 
 测试账号 test/test
 
-## 🌍 使用
 
-如何添加容器主机？
-
-通过docker-compose 启动默认挂在unix:///var/run/docker.sock文件，只需要在添加宿主机时填写默认参数即可
-```angular2html
-docker api: unix:///var/run/docker.sock
-```
-
-## 📖 安装步骤
+## 📖 安装
 
 ##### clone
-> 注意使用 --recursive参数拉去子模块、否则无法加载界面！
-
 * 克隆代码
 ```
-git clone --recursive https://github.com/tongchengbin/ocean_ctf.git /opt/ocean_ctf
+git clone https://github.com/tongchengbin/ocean_ctf.git /opt/ocean_ctf
 ```
 
 * docker-compose 编排镜像
@@ -59,9 +49,19 @@ docker-compose up -d
 访问 /manager 设置管理员账号和初始化
 
 
-## ❗ 常见问题&注意事项
+## 使用
 
+#### 小记
+经过几次的改版还是觉得单纯的docker方式比docker-compose更加方便;启动和关闭的速度更快、
+题目共享、磁盘释放更方便等，
+同时对于ctf比赛docker-compose的场景比较小，因此CTF动态仅支持docker启动。后续会有靶场相关会支持docker-compose以及docker启动，
+关于为何移除docker 远程调用目前是觉得增加了初级用户的使用难度所以暂时移除。
 
+### 动态题目
+通过虚拟化-资源中心添加题目资源，题目资源可以使用本地镜像、远程镜像、如CTFDB项目中提供了默认题目可以通过同步功能拉取题库或在[dockerhub](https://hub.docker.com/r/tongchengbin/easy_web)中查看题目
+
+添加资源后需要进行编译（PULL）、因为编译是个比较耗时的操作(和网络环境有关)、所以建议先本地拉取image后点击编译按钮。
+后续的操作与之前的版本一样、添加赛事题库选择动态题目和对应的资源环境即可。
 
 ## 📃 题库
 
@@ -89,10 +89,9 @@ Copyright (c) 2022-present tongcb
   ![](./doc/image/init.png)
 
 
-- 容器主机详情
-  - ![](./doc/image/6.png)
-  ![](./doc/image/7.png)
-
+- 资源中心
+  ![](./doc/image/resource.png)
+  
 - 编译镜像
 
   ![](./doc/image/9.png)
@@ -113,7 +112,7 @@ Copyright (c) 2022-present tongcb
 
   ![](./doc/image/首页.png)
 
-* 启动容器
+- 启动容器
 
   ![](./doc/image/启动容器.png)
 

@@ -108,7 +108,8 @@ def start_docker_resource(resource_id, user_id, flag=None) -> DockerRunner:
     client = docker.DockerClient(Config.get_config(Config.KEY_DOCKER_API))
     try:
         image = client.images.get(resource.image)
-    except ImageNotFound:
+    except ImageNotFound as e:
+        logger.warning(e)
         raise ValueError("当前题目环境缺失、请联系管理员！")
     # 解析镜像端口
     image_config = image.attrs["ContainerConfig"]
