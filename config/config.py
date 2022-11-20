@@ -89,10 +89,12 @@ LOGGING = {
 
     'loggers': {
         '': {
-            'level': 'DEBUG',
+            'propagate': False,
+            'level': 'INFO',
             'handlers': ['console'],
         },
         'app': {
+            'propagate': False,
             'handlers': ['console']
         },
         'werkzeug': {
