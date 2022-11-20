@@ -27,7 +27,7 @@ from config import config
 
 bp = Blueprint("view", __name__, url_prefix='/api')
 
-logger = logging.getLogger('app')
+logger = logging.getLogger(__name__)
 
 
 @bp.get('/upload/<path:filename>')
@@ -329,9 +329,11 @@ def question_start(question):
     if not instance.resource_id or not instance.active_flag:
         return fail(msg="服务器没有资源")
     flag = generate_flag()
+    logger.info(flag)
     try:
         docker_runner = start_docker_resource(instance.resource_id, user.id, flag=flag)
     except ValueError as e:
+        logger.exception(e)
         return fail(msg=str(e))
     CtfResource.create(
         docker_runner_id=docker_runner.id,
@@ -479,4 +481,3 @@ def score_rank():
     # 公告
     code, data = services.score_rank(**request.args)
     return success(data=data)
-
