@@ -142,7 +142,7 @@ def start_docker_resource(resource_id, user_id, flag=None) -> DockerRunner:
         logger.exception(e)
         raise ValueError("题目启动失败")
     if flag:
-        command = "/start.sh '{}'".format(flag)
+        command = "/start.sh '{0}' || echo {0} > /flag".format(flag)
         docker_container.exec_run(cmd=command, detach=True)
     # 查看是否有历史记录
     docker_runner = db.session.query(DockerRunner).filter(DockerRunner.name == docker_container.name).first()
