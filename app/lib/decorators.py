@@ -5,7 +5,7 @@ from flask import request, g
 from app.lib.exceptions import APIForbidden
 from app.lib.rest_response import fail, Code
 from app.models.admin import Admin
-from app.models.base import db
+from app.extensions import db
 from app.models.user import User
 
 logger = logging.getLogger('app')
