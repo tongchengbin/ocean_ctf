@@ -7,7 +7,6 @@ import docker
 from docker.errors import NotFound
 from flask import Blueprint, render_template, request, make_response, g, send_from_directory
 from sqlalchemy import func, desc
-from sqlalchemy.exc import IntegrityError
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from app import db, scheduler
@@ -20,6 +19,7 @@ from app.lib.utils.authlib import create_token
 from app.models.admin import Notice, Config
 from app.models.ctf import ImageResource, CtfResource, Answer, Question, Attachment
 from app.api.docker import task
+from app.models.docker import DockerRunner
 from app.models.user import User
 import logging
 
@@ -382,7 +382,6 @@ def question_destroy(question):
     for ctf_resource in ctf_resources:
         client = docker.DockerClient(Config.get_config(Config.KEY_DOCKER_API))
         # 默认一个docker run 只能绑定一个用户吧 所以直接删除docker run  采用数据库的连表删除自动删除其他索引
-        docker_runner = ctf_resource.docker_runner
         try:
             container = client.containers.get(ctf_resource.docker_runner.container_id)
             container.stop()
@@ -390,7 +389,8 @@ def question_destroy(question):
         except NotFound:
             continue
         finally:
-            docker_runner.delete()
+            db.session.query(DockerRunner).filter(DockerRunner.id == ctf_resource.docker_runner_id).delete(
+                synchronize_session='fetch')
     return success()
 
 
