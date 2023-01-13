@@ -42,6 +42,10 @@ class CRUDMixin(object):
 
     def delete(self, commit: bool = True) -> None:
         """Remove the record from the database."""
+        if hasattr(self, 'deleted'):
+            setattr(self, 'deleted', True)
+            self.save()
+            return
         db.session.delete(self)
         if commit:
             return db.session.commit()
@@ -97,3 +101,11 @@ class MainBase(Model):
             else:
                 _dict[col.name] = val
         return _dict
+
+
+class LogicBase(MainBase):
+    __abstract__ = True
+    """
+        逻辑删除
+    """
+    deleted = Column(db.Boolean, default=False, comment="逻辑删除")

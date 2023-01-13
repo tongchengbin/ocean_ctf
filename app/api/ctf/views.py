@@ -220,11 +220,11 @@ def question_list():
     page_size = int(request.args.get("page_size", 10))
     subject = request.args.get("subject")
     search = request.args.get('search')
-    query = db.session.query(Question)
+    query = db.session.query(Question).filter(Question.deleted.is_(False))
     if subject:
-        query = query.filter(Question.type == subject)
+        query = query.filter_by(Question.type == subject)
     if search:
-        query = query.filter(Question.name.contains(search))
+        query = query.filter_by(Question.name.contains(search))
     page = query.order_by(Question.id.desc()).paginate(page=page, per_page=page_size)
     data = []
     for item in page.items:
@@ -278,7 +278,8 @@ def question_delete(pk):
                     删除题库  判断是否是动态题库 动态题库删除容器  实体容器 镜像
                     :param : question 题目ID
                 """
-    instance = db.session.query(Question).get(pk)
+    # 使用逻辑删除
+    instance: Question = db.session.query(Question).get(pk)
     if instance.active_flag:
         containers = db.session.query(CtfResource).join(ImageResource,
                                                         ImageResource.id == CtfResource.image_resource_id)
@@ -289,11 +290,9 @@ def question_delete(pk):
             docker_container = client.containers.get(container.container_id)
             docker_container.stop()
             container.status = 2
+            db.session.commit()
     # 删除镜像
-
-    db.session.delete(instance)
-
-    db.session.commit()
+    instance.delete()
     return jsonify({})
 
 

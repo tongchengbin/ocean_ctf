@@ -4,6 +4,7 @@ import logging
 from urllib.parse import urljoin, urlparse
 
 import redis
+import sqlalchemy.exc
 from werkzeug.exceptions import HTTPException
 from werkzeug.security import generate_password_hash
 from flask import Flask, jsonify, make_response
@@ -34,7 +35,11 @@ def create_app():
     flask_app.before_request_funcs.setdefault(None, []).append(before_req_cache_ip)
     flask_app.before_request_funcs.setdefault(None, []).append(global_admin_required)
     flask_app.register_error_handler(Exception, exception_handle)
-    db.create_all()
+    try:
+        db.create_all()
+    except sqlalchemy.exc.OperationalError:
+        logging.error("数据库未就绪")
+        exit(1)
     create_default_data()
     return flask_app
 

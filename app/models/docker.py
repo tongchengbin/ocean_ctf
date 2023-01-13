@@ -92,7 +92,7 @@ class DockerRunner(MainBase):
     resource_id = Column(db.Integer, ForeignKey(DockerResource.id), comment="漏洞环境")
     resource = relationship(DockerResource)
     type = Column(db.Integer, default=1)
-    user_id = Column(db.Integer, ForeignKey(User.id), comment="启动用户")
+    user_id = Column(db.Integer, ForeignKey(User.id,ondelete='CASCADE'), comment="启动用户")
     user = relationship(User)
     create_time = Column(db.DateTime, nullable=False, default=datetime.utcnow)
     update_time = Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)

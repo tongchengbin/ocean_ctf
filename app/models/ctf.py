@@ -6,7 +6,7 @@ from enum import Enum
 from sqlalchemy import Column, ForeignKey
 from sqlalchemy.orm import relationship
 from app.extensions import db
-from app.database import MainBase
+from app.database import MainBase, LogicBase
 from app.models.docker import Host, DockerResource, DockerRunner
 from app.models.user import User
 
@@ -39,7 +39,7 @@ class ImageResource(MainBase):
     build_result = Column(db.String(4096), comment="镜像状态说明")
 
 
-class Question(MainBase):
+class Question(LogicBase):
     __tablename__ = 'ctf_question'
     name = Column(db.String(256), nullable=False, comment='题目名称')
     type = Column(db.String(16), comment="分类")
@@ -73,7 +73,7 @@ class CtfResource(MainBase):
     user_id = Column(db.Integer, ForeignKey('user.id'), comment="关联用户")
     user = relationship(User, backref='container_ref')
     destroy_time = Column(db.DateTime, comment="销毁时间")
-    question_id = Column(db.Integer, ForeignKey('ctf_question.id'), comment="对应的题库")
+    question_id = Column(db.Integer, ForeignKey(Question.id), comment="对应的题库")
     question = relationship(Question, backref='container_ref')
 
 
@@ -94,7 +94,7 @@ class Answer(MainBase):
     )
     __tablename__ = 'ctf_answer'
     status = Column(db.Integer, default=1, comment="状态")
-    user_id = Column(db.Integer, ForeignKey('user.id'), comment="关联用户")
+    user_id = Column(db.Integer, ForeignKey('user.id', ondelete='CASCADE'), comment="关联用户")
     question_id = Column(db.Integer, ForeignKey('ctf_question.id'), comment="对应题目")
     rank = Column(db.Integer, comment="解题名次")
     flag = Column(db.String(64), comment="提交内容")
