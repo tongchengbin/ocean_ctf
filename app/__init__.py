@@ -35,6 +35,7 @@ def create_app():
     flask_app.before_request_funcs.setdefault(None, []).append(global_admin_required)
     flask_app.register_error_handler(Exception, exception_handle)
     db.create_all()
+    create_default_data()
     return flask_app
 
 

@@ -3,7 +3,6 @@ services:
   db:
     image: mysql
     container_name: db
-    command: --default-authentication-plugin=mysql_native_password
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
       MYSQL_DATABASE: ocean
@@ -42,8 +41,9 @@ services:
     depends_on:
       - db
       - redis
+    restart: always
     working_dir: /opt/ocean_ctf
-    command: [ "/bin/bash","-c","chmod +x install/docker/wait-for-it.sh && ./install/docker/wait-for-it.sh db:3306 -s -t 60 && uwsgi --ini uwsgi.ini"]
+    command: "uwsgi --ini uwsgi.ini"
     environment:
       TZ: ${TZ}
 
