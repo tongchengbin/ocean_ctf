@@ -1,19 +1,20 @@
 import json
 import logging
+from io import BytesIO
+
 from compose.cli.command import project_from_options
 from docker import APIClient
 from docker.errors import DockerException
 
 from app.api.docker.service import user_compose_down
-from app.models.admin import Config
+from app.models.admin import Config, TaskList
 from app.models.docker import ComposeDB, DockerResource
-from app.extensions import scheduler, cache
+from app.extensions import cache, celery
 
 logger = logging.getLogger(__name__)
 
 
 def compose_build(compose_id):
-    scheduler.app.app_context().push()
     instance = ComposeDB.get_by_id(compose_id)
     project_dir = instance.path
     project = project_from_options(project_dir, {})
@@ -22,16 +23,16 @@ def compose_build(compose_id):
     instance.save()
 
 
+@celery.task
 def delay_compose_down(*args):
-    scheduler.app.app_context().push()
     user_compose_down(*args)
 
 
+@celery.task
 def delay_docker_resource_build(resource_id: int):
     """
         资源编译  编译之后的状态可以直接运行
     """
-    scheduler.app.app_context().push()
     resource = DockerResource.get_by_id(resource_id)
     try:
         client = APIClient(Config.get_config(Config.KEY_DOCKER_API))
@@ -51,13 +52,73 @@ def delay_docker_resource_build(resource_id: int):
     logger.info("编译完成:{}".format(resource.name))
 
 
+def task_add_log(task: int, line: dict):
+    """
+        处理日志存储
+    """
+
+    if isinstance(line, bytes):
+        line = json.loads(line)
+    task_key = "task_%s" % task
+    # cache.rpush(task_key, line)
+    if "progress" in line:
+        cache.rpush(task_key, "%s:%s" % (line["status"], line["progress"]))
+    elif "error" in line:
+        cache.rpush(task_key, "%s:%s" % ("ERROR", line["error"]))
+    elif "status" in line:
+        cache.rpush(task_key, line["status"])
+    elif "stream" in line:
+        cache.rpush(task_key, line["stream"])
+    else:
+        cache.rpush(task_key, json.dumps(line))
+
+
+@celery.task
+def build_delay(task_id: int, build_type, tag, admin, pt=None, dockerfile=None):
+    """
+        编译镜像
+    """
+    task = TaskList.get_by_id(task_id)
+    if not task:
+        return
+    try:
+        client = APIClient(Config.get_config(Config.KEY_DOCKER_API))
+    except DockerException as e:
+        logger.exception(e)
+        return
+
+    if build_type == 'tar':
+        f = open(pt, 'rb')
+        for line in client.build(fileobj=f, rm=True, tag=tag, custom_context=True):
+            logger.info(line)
+            task_add_log(task.id, line)
+        task.status = task.STATUS_DONE
+    elif build_type == 'pull':
+        for line in client.pull(tag, stream=True, decode=True):
+            task_add_log(task.id, line)
+        task.status = task.STATUS_DONE
+    else:
+        try:
+            f = BytesIO(dockerfile.encode('utf-8'))
+            for line in client.build(fileobj=f, rm=True, tag=tag):
+                task_add_log(task.id, line)
+            task.status = task.STATUS_DONE
+        except DockerException as e:
+            task.status = task.STATUS_ERROR
+            task.remark = str(e)
+    task.save()
+
+
+if __name__ == '__main__':
+    build_delay(139, 14, 'pull', 'nginx:lastest', 1)
+
 if __name__ == "__main__":
     from app import create_app
 
     create_app()
     # delay_docker_resource_build(1)
-    start =0
+    start = 0
     data = []
-    for log in cache.lrange("DOCKER_RESOURCE_1",start,-1):
+    for log in cache.lrange("DOCKER_RESOURCE_1", start, -1):
         data.append(json.loads(log))
     print(data)

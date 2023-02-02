@@ -40,7 +40,7 @@ def global_admin_required():
         authorization = request.environ.get("HTTP_AUTHORIZATION")
         if not authorization:
             return make_response(jsonify({"msg": "Forbidden", "code": 401}), 401)
-        admin = db.session.query(Admin).filter(Admin.token == authorization).one_or_none()
+        admin = db.session.query(Admin).filter(Admin.token == authorization).first()
         if admin:
             g.user = admin
             return

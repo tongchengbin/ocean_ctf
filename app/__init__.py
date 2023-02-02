@@ -16,7 +16,7 @@ from app.lib.exceptions import RestExceptions
 from app.lib.middlewares import before_req_cache_ip, global_admin_required
 from app.lib.tools import telnet_port
 from config import config
-from .extensions import db, scheduler, cache
+from .extensions import db, celery, cache
 
 
 def create_app():
@@ -37,7 +37,8 @@ def create_app():
     flask_app.register_error_handler(Exception, exception_handle)
     try:
         db.create_all()
-    except sqlalchemy.exc.OperationalError:
+    except sqlalchemy.exc.OperationalError as e:
+        logging.error(e)
         logging.error("数据库未就绪")
         exit(1)
     create_default_data()
@@ -84,8 +85,6 @@ def register_extensions(scope_app):
     db.init_app(scope_app)
     cache.init_app(scope_app)
     scope_app.app_context().push()
-    scheduler.init_app(scope_app)
-    scheduler.start()
     public_paths = ['/favicon.ico', '/static/']
 
     def always_authorize():

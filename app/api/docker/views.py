@@ -10,7 +10,7 @@ from flask_pydantic import validate
 from sqlalchemy import or_
 from sqlalchemy.exc import IntegrityError
 
-from app import db, scheduler
+from app import db
 from app.api.docker.service import fetch_system_info_by_docker_api
 from app.lib.exceptions import make_error_response
 from app.lib.rest_response import fail, success
@@ -354,19 +354,19 @@ def image_detail(host, image):
     return jsonify({"results": data})
 
 
-@bp.route('/host/<int:host>/image', methods=['post'])
-def image_create(host):
+@bp.route('/image', methods=['post'])
+def image_create():
     """
         编译是一个比较耗时的任务 这里回采取延迟执行方式
     """
     build_type = request.args.get('build_type')
-    task = TaskList(admin_id=g.user.id, target_id=host, title="build image for %s" % build_type)
-    db.session.add(task)
+    task_obj = TaskList(admin_id=g.user.id, target_id=None, title="build image for %s" % build_type)
+    db.session.add(task_obj)
     db.session.commit()
     tag = request.args.get('tag')
     if len(tag.split(":")) != 2:
         return make_error_response("images name 格式错误请指定tag")
-    args = (task.id, host, build_type, tag, g.user.id)
+    args = (task_obj.id, build_type, tag, g.user.id)
     if build_type == 'tar':
         file = request.files.get('files')
         pt = os.path.join('upload', file.filename)
@@ -376,8 +376,8 @@ def image_create(host):
         kwargs = {"dockerfile": request.get_json().get("dockerfile")}
     else:
         kwargs = {}
-    scheduler.add_job(f"build_delay", task_docker.build_delay, args=args, kwargs=kwargs)
-    return jsonify({"status": 'ok', 'data': {"task": task.id}})
+    task.build_delay.apply_async(args=args, kwargs=kwargs)
+    return jsonify({"status": 'ok', 'data': {"task": task_obj.id}})
 
 
 @bp.get('/host/<int:host>/image_list')
@@ -429,8 +429,9 @@ def compose_db_delete(pk):
 
 @bp.post("/compose_db/<int:pk>/build")
 def compose_db_build(pk):
+    # todo
     instance = ComposeDB.get_by_id(pk)
-    scheduler.add_job(f"build_compose", task.compose_build, args=(instance.id,))
+    # scheduler.add_job(f"build_compose", task.compose_build, args=(instance.id,))
     return jsonify({})
 
 
@@ -477,7 +478,7 @@ def docker_resource_build(pk):
     """
         资源编译
     """
-    scheduler.add_job("delay_docker_resource_build_{}".format(pk), task.delay_docker_resource_build, args=(pk,))
+    task.delay_docker_resource_build.apply_async(args=(pk,))
     return success()
 
 

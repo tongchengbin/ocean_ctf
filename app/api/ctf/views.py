@@ -3,6 +3,7 @@ import os
 import uuid
 import docker
 from docker import errors as docker_error
+from docker.errors import DockerException
 from flask import Blueprint, make_response, jsonify, request
 from flask import current_app
 from sqlalchemy.exc import IntegrityError
@@ -10,7 +11,7 @@ from sqlalchemy.exc import IntegrityError
 from app.api.ctf.form import QuestionForm
 from app.api.docker.service import destroy_docker_runner
 from config import config
-from app import db, scheduler
+from app import db
 from app.lib.rest_response import success, fail
 from app.models.ctf import QType, ImageResource, CtfResource, Answer, Attachment
 from app.models.ctf import Question
@@ -342,6 +343,7 @@ def images_delete(pk):
 
 @bp.post('/images')
 def images_create():
+    # Deprecated
     _data = request.get_json()
     name = _data.get("name")
     host_id = _data.get("host")
@@ -354,12 +356,13 @@ def images_create():
     )
     db.session.add(instance)
     db.session.commit()
-    scheduler.add_job(f"build_question_tar_{instance.id}", build_question_tar, args=(instance.id,))
+    # scheduler.add_job(f"build_question_tar_{instance.id}", build_question_tar, args=(instance.id,))
     return success()
 
 
 @bp.put('/images/<int:pk>')
 def image_update(pk):
+    # Deprecated
     _data = request.get_json()
     name = _data.get("name")
     host_id = _data.get("host_id")
@@ -375,12 +378,13 @@ def image_update(pk):
     instance.file_id = _data["file_id"]
     instance.status = ImageResource.STATUS_BUILDING
     db.session.commit()
-    scheduler.add_job("test", build_question_tar, args=(instance.id,))
+    # scheduler.add_job("test", build_question_tar, args=(instance.id,))
     return success()
 
 
 @bp.post('/upload_docker_tar')
 def upload_docker_tar():
+    # Deprecated
     pk = request.form.get("host")
     host_ = db.session.query(Host).get(pk)
     if not host_:
@@ -389,7 +393,7 @@ def upload_docker_tar():
     # 测试连通性
     try:
         docker.DockerClient(docker_api, timeout=1)
-    except docker.errors.DockerException:
+    except DockerException:
         return fail(msg="Docker主机不在线", status=400)
     file = request.files["file"]
     filename = file.name

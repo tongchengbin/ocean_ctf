@@ -28,6 +28,7 @@ THREADS_PER_PAGE = 2
 SQLALCHEMY_ECHO = False
 DATABASE_CONNECT_OPTIONS = {}
 SQLALCHEMY_TRACK_MODIFICATIONS = False
+SQLALCHEMY_ENGINE_OPTIONS = {'pool_pre_ping': True}
 # 不设置自动提交会导致多进程下数据缓存未更新问题
 SQLALCHEMY_DATABASE_URI = "mysql+mysqldb://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}?autocommit=true".format(
     db_user=DB_USER,
@@ -36,6 +37,7 @@ SQLALCHEMY_DATABASE_URI = "mysql+mysqldb://{db_user}:{db_password}@{db_host}:{db
     db_port=DB_PORT,
     db_name=DB_NAME)
 # 日志配置
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -115,3 +117,6 @@ logging.config.dictConfig(LOGGING)
 
 # 应用初始化 db 和 redis 初始化有延迟
 API_INIT = False
+
+# celery
+broker_url = REDIS_URL

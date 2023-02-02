@@ -3,13 +3,13 @@ from __future__ import absolute_import
 import logging
 from datetime import datetime, timedelta
 
-from app import db, scheduler, cache
+from app import db, cache
 from app.models.admin import RequestState
 from app.lib.const import ConstCacheKey
+
 logger = logging.getLogger('app')
 
 
-@scheduler.task("cron", day="*",hour="0")
 def day_upload_req():
     """
 
@@ -22,5 +22,3 @@ def day_upload_req():
     instance = RequestState(day=day, ip_count=ip_count, req_count=req_count)
     db.session.add(instance)
     db.session.commit()
-
-
