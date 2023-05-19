@@ -453,34 +453,6 @@ def logs():
     return jsonify({"data": data[-lines:]})
 
 
-@bp.route('/operator', methods=['get'])
-def operator_list():
-    """
-        审计日志
-    :return:
-    """
-    page = int(request.args.get('page', 1))
-    page_size = int(request.args.get("page_size", 10))
-    search = request.args.get("search")
-    query = db.session.query(Operator)
-    if search:
-        query = query.filter(or_(Operator.username.contains(search),
-                                 Operator.content.contains(search)))
-    query = query.order_by(desc(Operator.id))
-    page_query = query.paginate(page=page, per_page=page_size)
-    data = []
-    for item in page_query.items:
-        _item = dict()
-        _item["id"] = item.id
-        _item["content"] = item.content
-        _item["role"] = item.role
-        _item["username"] = item.username
-        _item["ip"] = item.ip
-        _item["create_time"] = item.create_time_format
-        _item["code"] = item.code
-        data.append(_item)
-    return jsonify({"data": data, "total": page_query.total})
-
 
 @system_bp.post('/init')
 def system_init():
@@ -561,3 +533,33 @@ def get_config():
         if k not in data:
             data[k] = v[1]
     return success(data)
+
+
+
+@bp.route('/operator', methods=['get'])
+def operator_list():
+    """
+        审计日志
+    :return:
+    """
+    page = int(request.args.get('page', 1))
+    page_size = int(request.args.get("page_size", 10))
+    search = request.args.get("search")
+    query = db.session.query(Operator)
+    if search:
+        query = query.filter(or_(Operator.username.contains(search),
+                                 Operator.content.contains(search)))
+    query = query.order_by(desc(Operator.id))
+    page_query = query.paginate(page=page, per_page=page_size)
+    data = []
+    for item in page_query.items:
+        _item = dict()
+        _item["id"] = item.id
+        _item["content"] = item.content
+        _item["role"] = item.role
+        _item["username"] = item.username
+        _item["ip"] = item.ip
+        _item["create_time"] = item.create_time_format
+        _item["code"] = item.code
+        data.append(_item)
+    return jsonify({"data": data, "total": page_query.total})

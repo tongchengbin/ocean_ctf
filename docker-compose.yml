@@ -32,8 +32,6 @@ services:
       context: .
       dockerfile: ./install/docker/ocean_web.Dockerfile
     image: ocean_web:v1
-    ports:
-      - "8080:8080"
     container_name: web
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
