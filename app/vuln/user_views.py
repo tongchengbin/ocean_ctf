@@ -45,10 +45,16 @@ def vuln_list():
         info = model2dict(item)
         info["docker_type_name"] = item.docker_type_name
         info["status_name"] = item.status_name
-        run_info = model2dict(rids.get(item.id)) if rids.get(item.id) else {}
-        if run_info:
-            run_info['out_ip'] = out_ip
-        info['runner'] = run_info
+        rid: DockerRunner = rids.get(item.id)
+        if rid:
+            info['runner'] = {
+                "id": rid.id,
+                "out_ip": out_ip,
+                "port_info": rid.port_info
+
+            }
+        else:
+            info['runner'] = {}
         data.append(info)
     return success({
         "total": page.total,
