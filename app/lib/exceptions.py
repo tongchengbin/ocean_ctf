@@ -6,7 +6,7 @@ class RestExceptions(Exception):
     default_code = 400
     default_status = 400
 
-    def __init__(self,msg=None,code=None,status=None):
+    def __init__(self, msg=None, code=None, status=None):
         self.msg = msg or self.default_msg
         self.code = code or self.default_code
         self.status = status or self.default_status or self.default_code
@@ -37,6 +37,7 @@ class APIForbidden(RestExceptions):
     Raise if the user doesn't have the permission for the requested resource
     but was authenticated.
     """
+    default_status = 200
     default_code = 403
     default_msg = "权限验证失败"
 

@@ -478,7 +478,8 @@ def docker_resource_build(pk):
     """
         资源编译
     """
-    task.delay_docker_resource_build.apply_async(args=(pk,))
+    task.delay_docker_resource_build(pk)
+    # task.delay_docker_resource_build.apply_async(args=(pk,))
     return success()
 
 

@@ -114,13 +114,15 @@ def register_blueprints(flask_app):
     from app.api.sys.views import bp as admin_bp, system_bp
     # 用户平台注册
     from app.api.frontend.views import bp as view_bp
-
+    from app.vuln import admin_views,user_views
     """Register Flask blueprints."""
     flask_app.register_blueprint(view_bp)
     flask_app.register_blueprint(admin_bp)
     flask_app.register_blueprint(system_bp)
     flask_app.register_blueprint(admin_ctf_bp)
     flask_app.register_blueprint(admin_docker_bp)
+    flask_app.register_blueprint(admin_views.bp)
+    flask_app.register_blueprint(user_views.bp)
 
 
 def create_default_data():
@@ -138,3 +140,6 @@ def create_default_data():
     if not db.session.query(Admin).filter(Admin.username == 'admin').first():
         db.session.add(Admin(username='admin', password=generate_password_hash('admin'), role_id=superuser_role_id))
         db.session.commit()
+
+
+__all__ = ['create_app']

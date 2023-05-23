@@ -2,6 +2,7 @@ import json
 import logging
 from io import BytesIO
 
+import docker.errors
 from compose.cli.command import project_from_options
 from docker import APIClient
 from docker.errors import DockerException
@@ -39,14 +40,17 @@ def delay_docker_resource_build(resource_id: int):
     except DockerException as e:
         logger.exception(e)
         return
-    logger.info("============start build {}".format(resource.image))
     # 清空 cache
     key = "DOCKER_RESOURCE_%s" % resource_id
     cache.delete(key)
-    for log_dic in client.pull(resource.image, stream=True, decode=True):
-        # 添加到日志
-        logger.info(log_dic)
-        cache.lpush(key, json.dumps(log_dic))
+    try:
+        for log_dic in client.pull(resource.image, stream=True, decode=True):
+            # 添加到日志
+            logger.info(log_dic)
+            cache.lpush(key, json.dumps(log_dic))
+    except docker.errors.NotFound:
+        logger.warning("镜像不存在:{}".format(resource.image))
+        return
     resource.status = DockerResource.STATUS_BUILD
     resource.save()
     logger.info("编译完成:{}".format(resource.name))

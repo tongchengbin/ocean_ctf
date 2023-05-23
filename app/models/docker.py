@@ -4,6 +4,7 @@ from sqlalchemy import Column, ForeignKey
 
 from app import db
 from app.database import MainBase, relationship
+from app.models.admin import Admin
 from app.models.user import User
 
 
@@ -74,6 +75,8 @@ class DockerResource(MainBase):
     image = Column(db.String(256), unique=True, comment="镜像名称:tag")
     ports = Column(db.String(256), comment="开放端口")
     description = Column(db.Text, comment="描述信息")
+    cve = Column(db.JSON, comment="关联CVE")
+    app = Column(db.String(128), comment="相关组件")
 
     @property
     def docker_type_name(self):
@@ -93,7 +96,9 @@ class DockerRunner(MainBase):
     resource = relationship(DockerResource)
     type = Column(db.Integer, default=1)
     user_id = Column(db.Integer, ForeignKey(User.id, ondelete='CASCADE'), comment="启动用户")
+    admin_id = Column(db.Integer, ForeignKey(Admin.id, ondelete='CASCADE'), comment="启动用户")
     user = relationship(User)
+    admin = relationship(Admin)
     create_time = Column(db.DateTime, nullable=False, default=datetime.utcnow)
     update_time = Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
     port_info = Column(db.JSON, comment="服务端口信息")

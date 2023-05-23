@@ -475,14 +475,6 @@ def system_init():
 
 @system_bp.get('/check')
 def system_check():
-    # 检测是否已经初始化
-    try:
-        has_table = db.engine.dialect.has_table(db.engine.connect(), Admin.__tablename__)
-    except OperationalError as e:
-        logger.exception(e)
-        return fail(msg="系统正在初始化、请稍后!", status=200)
-    if not has_table:
-        db.create_all()
     query = db.session.query(Admin)
     data = {
         "init": False
