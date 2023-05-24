@@ -8,7 +8,7 @@ from app.extensions import db
 from flask import Blueprint, request, jsonify, g
 
 from app.lib.decorators import login_required, user_required
-from app.lib.rest_response import success
+from app.lib.rest_response import success, fail
 from app.lib.tools import model2dict
 from app.models.admin import Config
 from app.models.docker import DockerResource, DockerRunner
@@ -71,7 +71,10 @@ def vuln_detail(pk):
 @bp.post("/vuln/<int:pk>/start")
 @user_required()
 def vuln_start(pk):
-    start_vuln_resource(pk, user_id=g.user.id)
+    try:
+        start_vuln_resource(pk, user_id=g.user.id)
+    except ValueError:
+        return fail(msg="资源启动失败,请联系管理员!")
     return success()
 
 

@@ -22,7 +22,7 @@ def start_vuln_resource(resource_id, user_id=None, admin_id=None) -> DockerRunne
     try:
         image = client.images.get(resource.image)
     except ImageNotFound as e:
-        logger.warning(e)
+        logger.exception(e)
         raise ValueError("当前题目环境缺失、请联系管理员！")
     # 解析镜像端口
     image_config = image.attrs['Config']
