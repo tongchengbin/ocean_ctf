@@ -1,12 +1,15 @@
+import io
 import logging
 
 import docker
+import yaml
 from docker.models.containers import ContainerCollection
 from flask import Blueprint, jsonify, g
 from flask import request
 from sqlalchemy import or_
 
 from app.extensions import db
+from app.lib.rest_response import success, fail
 from app.lib.tools import model2dict
 from app.models.admin import Config
 from app.models.docker import DockerResource, DockerRunner
@@ -138,3 +141,46 @@ def vuln_delete(pk):
     docker_container.remove()
     instance.delete()
     return jsonify({})
+
+
+@bp.post("/vuln/import")
+def vuln_import():
+    file = request.files["file"]
+    filename = file.filename
+    ext = filename.split('.')[-1]
+    if ext != "yaml":
+        return fail(msg="请上传yaml文件格式")
+    try:
+        yaml_data = yaml.safe_load(file)
+    except yaml.YAMLError as e:
+        return fail(msg="Error while parsing YAML file")
+    currentImage = [i[0] for i in db.session.query(DockerResource.image)]
+    bulk_create = []
+    # 获取当前主机镜像
+    client = docker.DockerClient(Config.get_config(Config.KEY_DOCKER_API))
+    docker_images = client.images.list()
+    tags = []
+    for im in docker_images:
+        tags += im.tags
+    for item in yaml_data:
+        image = item.get("image")
+        if not image:
+            continue
+        if image in currentImage:
+            logger.info("Pass Image:{}".format(item['image']))
+            continue
+        if ":" in image:
+            image_diff = image
+        else:
+            image_diff = f"{image}:latest"
+        if image_diff in tags:
+            status = DockerResource.STATUS_BUILD
+        else:
+            status = DockerResource.STATUS_INIT
+        bulk_create.append(
+            DockerResource(resource_type="CTF", name=item['name'], app=item.get("app"), image=item['image'],
+                           cve=item.get("cve", []),status=status,
+                           description=item.get("description"))
+        )
+        db.session.bulk_save_objects(bulk_create)
+    return success()
