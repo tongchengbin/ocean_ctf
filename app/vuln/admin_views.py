@@ -57,6 +57,13 @@ def vuln_detail(pk):
     })
 
 
+@bp.delete("/vuln/<int:pk>")
+def vuln_delete(pk):
+    instance = DockerResource.get_by_id(pk)
+    instance.delete()
+    return success()
+
+
 @bp.put("/vuln/<int:pk>")
 def vuln_update(pk):
     """
@@ -129,7 +136,7 @@ def vuln_runner():
 
 
 @bp.delete("/vuln/runner/<int:pk>")
-def vuln_delete(pk):
+def runner_delete(pk):
     """
         销毁容器
     """
@@ -179,7 +186,7 @@ def vuln_import():
             status = DockerResource.STATUS_INIT
         bulk_create.append(
             DockerResource(resource_type="CTF", name=item['name'], app=item.get("app"), image=item['image'],
-                           cve=item.get("cve", []),status=status,
+                           cve=item.get("cve", []), status=status,
                            description=item.get("description"))
         )
         db.session.bulk_save_objects(bulk_create)
