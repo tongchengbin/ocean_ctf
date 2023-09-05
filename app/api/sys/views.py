@@ -334,7 +334,7 @@ def login_info():
         "username": admin.username,
         "id": admin.id,
     }
-    return jsonify(ret)
+    return success(ret)
 
 
 @bp.route('/login', methods=['post'])
@@ -359,7 +359,7 @@ def login():
             "id": admin.id,
         }
         insert_operator(code=True, content="登录成功", username=admin.username, role_name=admin.role_name)
-        return jsonify(ret)
+        return success(ret)
     else:
         raise exceptions.AuthFailed()
 

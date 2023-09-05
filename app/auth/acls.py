@@ -2,7 +2,7 @@ import logging
 from functools import wraps
 
 from flask import request, g
-from app import db
+from app.extensions import db
 from app.models.user import User
 
 log = logging.getLogger(__name__)

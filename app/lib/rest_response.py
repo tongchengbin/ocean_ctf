@@ -1,3 +1,5 @@
+import typing
+
 from flask import jsonify, make_response
 
 
@@ -5,7 +7,9 @@ class Code:
     AUTH_ERROR = 4003
 
 
-def success(data={}, msg="success"):
+def success(data: typing.Dict = None, msg="success"):
+    if data is None:
+        data = {}
     return jsonify({"data": data, "code": 0, "msg": msg})
 
 

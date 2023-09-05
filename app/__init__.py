@@ -36,11 +36,13 @@ def create_app():
     flask_app.before_request_funcs.setdefault(None, []).append(global_admin_required)
     flask_app.register_error_handler(Exception, exception_handle)
     try:
-        db.create_all()
+        db.engine.connect().close()
     except sqlalchemy.exc.OperationalError as e:
+        db.session.rollback()
         logging.error(e)
         logging.error("数据库未就绪")
         exit(1)
+    db.create_all()
     create_default_data()
     return flask_app
 

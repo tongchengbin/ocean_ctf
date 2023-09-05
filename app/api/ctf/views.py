@@ -223,9 +223,9 @@ def question_list():
     search = request.args.get('search')
     query = db.session.query(Question).filter(Question.deleted.is_(False))
     if subject:
-        query = query.filter_by(Question.type == subject)
+        query = query.filter(Question.type == subject)
     if search:
-        query = query.filter_by(Question.name.contains(search))
+        query = query.filter(Question.name.contains(search))
     page = query.order_by(Question.id.desc()).paginate(page=page, per_page=page_size)
     data = []
     for item in page.items:
