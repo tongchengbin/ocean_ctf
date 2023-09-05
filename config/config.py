@@ -28,9 +28,8 @@ THREADS_PER_PAGE = 2
 SQLALCHEMY_ECHO = False
 DATABASE_CONNECT_OPTIONS = {}
 SQLALCHEMY_TRACK_MODIFICATIONS = False
-SQLALCHEMY_ENGINE_OPTIONS = {'pool_pre_ping': True}
-# 不设置自动提交会导致多进程下数据缓存未更新问题
-SQLALCHEMY_DATABASE_URI = "mysql+mysqldb://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}?autocommit=true".format(
+SQLALCHEMY_POOL_RECYCLE = 3600
+SQLALCHEMY_DATABASE_URI = "mysql+mysqldb://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}".format(
     db_user=DB_USER,
     db_password=DB_PASSWORD,
     db_host=DB_HOST,
@@ -42,52 +41,23 @@ LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
-        'minimalistic': {
-            'format': '%(message)s',
-        },
         'basic': {
             'format': '%(levelname)-4.4s [%(name)s] %(message)s',
-        },
-        'full': {
-            'format':
-                '%(asctime)s - %(levelname)5s %(name)10.10s %(message)s',
-        },
+        }
     },
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
-            'formatter': 'full',
-            'level': logging.DEBUG,
+            'formatter': 'basic',
+            'level': logging.INFO,
             'stream': 'ext://sys.stdout',
         },
-        'console_mini': {
+        'none': {
             'class': 'logging.StreamHandler',
-            'formatter': 'minimalistic',
+            'formatter': 'basic',
             'level': logging.NOTSET,
             'stream': 'ext://sys.stdout',
-        },
-        'app_file': {
-            'class': 'logging.handlers.RotatingFileHandler',
-            'formatter': 'full',
-            'filename': os.path.join(BASE_DIR, 'logs', 'app.log'),
-            'maxBytes': 100000,
-            'backupCount': 1,
-        },
-        'info_file': {
-            'class': 'logging.handlers.RotatingFileHandler',
-            'formatter': 'full',
-            'filename': os.path.join(BASE_DIR, '../info.log'),
-            'maxBytes': 100000,
-            'backupCount': 1,
-        },
-        'error_file': {
-            'class': 'logging.handlers.RotatingFileHandler',
-            'formatter': 'full',
-            'filename': os.path.join(BASE_DIR, '../error.log'),
-            'maxBytes': 100000,
-            'backupCount': 1,
-            'level': logging.WARNING,
-        },
+        }
     },
 
     'loggers': {
@@ -101,7 +71,7 @@ LOGGING = {
             'handlers': ['console']
         },
         'werkzeug': {
-            'handlers': ['console_mini'],
+            'handlers': ['none'],
             'propagate': False,
         }
     }
