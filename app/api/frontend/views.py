@@ -1,8 +1,6 @@
 import random
 import string
-import time
 from datetime import datetime, timedelta
-
 import docker
 from docker.errors import NotFound
 from flask import Blueprint, render_template, request, make_response, g, send_from_directory
@@ -12,18 +10,15 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from app import db
 from app.api.docker.service import start_docker_resource
 from app.api.frontend import services
+from app.lib.api import api_success, api_fail
 from app.lib.decorators import login_required, user_required
-from app.lib.rest_response import fail, success
 from app.lib.tools import get_ip
 from app.lib.utils.authlib import create_token
 from app.models.admin import Notice, Config
 from app.models.ctf import ImageResource, CtfResource, Answer, Question, Attachment
-from app.api.docker import task
 from app.models.docker import DockerRunner
 from app.models.user import User
 import logging
-
-from config import config
 
 bp = Blueprint("view", __name__, url_prefix='/api')
 
@@ -129,9 +124,9 @@ def login():
         token = create_token()
         user.token = token
         db.session.commit()
-        return success({"token": token})
+        return api_success({"token": token})
     else:
-        return fail(msg="用户名不存在或密码错误!")
+        return api_fail(msg="用户名不存在或密码错误!")
 
 
 @bp.get('/info')
@@ -148,7 +143,7 @@ def info():
 
     }
 
-    return success(data)
+    return api_success(data)
 
 
 @bp.route('/register', methods=['get', 'post'])
@@ -160,16 +155,16 @@ def register():
     username = data.get("username")
     password = data.get("password")
     if not all([username, password]):
-        return fail(msg="用户名或密码不允许为空")
+        return api_fail(msg="用户名或密码不允许为空")
     user = db.session.query(User).filter(User.username == username).one_or_none()
     if user:
-        return fail(msg="该用户名已注册")
+        return api_fail(msg="该用户名已注册")
     token = create_token()
     user = User(username=username, password=generate_password_hash(password), active=True, token=token)
     db.session.add(user)
     db.session.commit()
 
-    return success()
+    return api_success()
 
 
 @bp.post('/logout')
@@ -181,7 +176,7 @@ def logout():
     user = g.user
     user.token = None
     db.session.commit()
-    return success()
+    return api_success()
 
 
 @bp.post('/rest_pass')
@@ -197,13 +192,13 @@ def rest_pass():
     password = data.get("password")
     # 校验当前密码
     if not check_password_hash(user.password, old_password):
-        return fail(msg="当前密码不匹配")
+        return api_fail(msg="当前密码不匹配")
     # 校验密码规则
     user.password = generate_password_hash(password)
     # 推出登录
     # user.token = None
     db.session.commit()
-    return success()
+    return api_success()
 
 
 @bp.get('/challenge')
@@ -240,7 +235,7 @@ def challenge_list():
             "solved_cnt": solved_cnt_dict.get(item.id, 0),
             "is_solved": bool(item.id in solved)
         })
-    return success(data=data)
+    return api_success({"data": data})
 
 
 @bp.get('/challenge/<int:question>')
@@ -253,7 +248,7 @@ def challenge_detail(question):
     """
     instance = db.session.query(Question).get(question)
     if not instance:
-        return fail(msg="题目不存在、请刷新页面！")
+        return api_fail(msg="题目不存在、请刷新页面！")
     answer_object = db.session.query(Answer).filter(Answer.user_id == g.user.id, Answer.status == Answer.status_ok,
                                                     Answer.question_id == question).first()
 
@@ -311,7 +306,7 @@ def challenge_detail(question):
                                                   Answer.status == Answer.status_ok).count(),
         "date_created": instance.date_created.strftime("%y-%m-%d")
     }
-    return success(data)
+    return api_success(data)
 
 
 @bp.post('/challenge/<int:question>/start')
@@ -325,16 +320,16 @@ def question_start(question):
     user = g.user
     instance = db.session.query(Question).get(question)
     if not instance.active_flag:
-        return fail(msg="静态题库无需动态生成")
+        return api_fail(msg="静态题库无需动态生成")
     if not instance.resource_id or not instance.active_flag:
-        return fail(msg="服务器没有资源")
+        return api_fail(msg="服务器没有资源")
     flag = generate_flag()
     logger.info(flag)
     try:
         docker_runner = start_docker_resource(instance.resource_id, user.id, flag=flag)
     except ValueError as e:
         logger.exception(e)
-        return fail(msg=str(e))
+        return api_fail(msg=str(e))
     CtfResource.create(
         docker_runner_id=docker_runner.id,
         flag=flag,
@@ -342,7 +337,7 @@ def question_start(question):
         question_id=instance.id,
         destroy_time=datetime.now() + timedelta(seconds=Config.get_config(Config.KEY_CTF_TIMEOUT))
     )
-    return success({})
+    return api_success({})
 
 
 @bp.post('/challenge/<int:question>/delayed')
@@ -357,13 +352,13 @@ def question_delayed(question):
                                                      CtfResource.question_id == question).order_by(
         desc(CtfResource.id)).first()
     if not container:
-        return fail(msg="当前状态无法延长题目时间")
+        return api_fail(msg="当前状态无法延长题目时间")
     # 最多延长三小时
     if (container.destroy_time - timedelta(hours=3)) > datetime.now():
-        return fail(msg="时间已达上限")
+        return api_fail(msg="时间已达上限")
     container.destroy_time = container.destroy_time + timedelta(minutes=10)
     container.save()
-    return success()
+    return api_success()
 
 
 @bp.post('/challenge/<int:question>/destroy')
@@ -376,7 +371,7 @@ def question_destroy(question):
     """
     instance = db.session.query(Question).get(question)
     if not instance.active_flag:
-        return fail("静态题库无需动态生成")
+        return api_fail("静态题库无需动态生成")
     ctf_resources = db.session.query(CtfResource).filter(CtfResource.question_id == instance.id,
                                                          CtfResource.user_id == g.user.id)
     for ctf_resource in ctf_resources:
@@ -391,7 +386,7 @@ def question_destroy(question):
         finally:
             db.session.query(DockerRunner).filter(DockerRunner.id == ctf_resource.docker_runner_id).delete(
                 synchronize_session='fetch')
-    return success()
+    return api_success()
 
 
 @bp.post('/user')
@@ -405,10 +400,10 @@ def user_center():
     user = g.user
     # 检测用户名是否被占用
     if db.session.query(User).filter(User.username == username, User.id != user.id).first():
-        return fail("用户名已被占用")
+        return api_fail("用户名已被占用")
     user.username = username
     db.session.commit()
-    return success()
+    return api_success()
 
 
 @bp.post('challenge/submit')
@@ -423,14 +418,14 @@ def challenge_submit():
     answer = db.session.query(Answer).filter(Answer.question_id == question_id, Answer.status == Answer.status_ok,
                                              Answer.user_id == g.user.id).count()
     if answer:
-        return fail(msg="请勿重复提交")
+        return api_fail(msg="请勿重复提交")
     #  判断是否是别人的答案
     copy_resource = db.session.query(CtfResource).filter(CtfResource.flag == flag,
                                                          CtfResource.user_id != g.user.id).one_or_none()
     if copy_resource:
         # todo 添加作弊记录
         Answer.create(question_id=question_id, user_id=g.user.id, flag=flag, ip=ip, status=Answer.status_cheat)
-        return fail(msg="检测到作弊、本次答题无效!")
+        return api_fail(msg="检测到作弊、本次答题无效!")
     if challenge.active_flag:
         current_ctf_resource = db.session.query(CtfResource).filter(CtfResource.user_id == g.user.id,
                                                                     CtfResource.question_id == question_id).order_by(
@@ -438,16 +433,16 @@ def challenge_submit():
         if current_ctf_resource:
             ok_flag = current_ctf_resource.flag
         else:
-            return fail(msg="当前状态无法作答、请启动环境!")
+            return api_fail(msg="当前状态无法作答、请启动环境!")
     else:
         ok_flag = challenge.flag
     if ok_flag == flag:
         Answer.create(question_id=question_id, user_id=g.user.id, flag=flag, ip=ip, status=Answer.status_ok,
                       score=challenge.score)
-        return success(msg="答案正确、获得{}积分".format(challenge.score))
+        return api_success({"msg": "答案正确、获得{}积分".format(challenge.score)})
     else:
         Answer.create(question_id=question_id, user_id=g.user.id, flag=flag, ip=ip, status=Answer.status_error)
-        return fail(msg="答案错误")
+        return api_fail(msg="答案错误")
 
 
 @bp.get('notice')
@@ -467,7 +462,7 @@ def notice():
             "content": item.content,
             "create_time": item.date_created.strftime("%Y-%m-%d %H:%M")
         })
-    return success(data=notices)
+    return api_success({"data": notices})
 
 
 @bp.get('rank/score')
@@ -477,4 +472,4 @@ def score_rank():
     """
     # 公告
     code, data = services.score_rank(**request.args)
-    return success(data=data)
+    return api_success(data=data)

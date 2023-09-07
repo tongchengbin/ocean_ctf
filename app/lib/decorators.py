@@ -2,8 +2,8 @@ import logging
 from functools import wraps
 from flask import request, g
 
+from app.lib.api import api_fail
 from app.lib.exceptions import APIForbidden
-from app.lib.rest_response import fail, Code
 from app.models.admin import Admin
 from app.extensions import db
 from app.models.user import User
@@ -73,6 +73,6 @@ def check_user_permission(func):
         if hasattr(g, 'user') and getattr(g, 'user'):
             return func(*args, **kwargs)
         else:
-            return fail(code=Code.AUTH_ERROR, msg="身份认证失败")
+            return api_fail(code=403, msg="身份认证失败")
 
     return inner

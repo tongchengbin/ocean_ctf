@@ -1,15 +1,14 @@
-import io
 import logging
 
 import docker
 import yaml
 from docker.models.containers import ContainerCollection
-from flask import Blueprint, jsonify, g
+from flask import Blueprint, g
 from flask import request
 from sqlalchemy import or_
 
 from app.extensions import db
-from app.lib.rest_response import success, fail
+from app.lib.api import api_success, api_fail
 from app.lib.tools import model2dict
 from app.models.admin import Config
 from app.models.docker import DockerResource, DockerRunner
@@ -40,7 +39,7 @@ def vuln_list():
         info["docker_type_name"] = item.docker_type_name
         info["status_name"] = item.status_name
         data.append(info)
-    return jsonify({
+    return api_success({
         "total": page.total,
         "data": data
     })
@@ -52,7 +51,7 @@ def vuln_detail(pk):
         漏洞列表
     """
     item = DockerResource.get_by_id(pk)
-    return jsonify({
+    return api_success({
         "data": model2dict(item)
     })
 
@@ -61,7 +60,7 @@ def vuln_detail(pk):
 def vuln_delete(pk):
     instance = DockerResource.get_by_id(pk)
     instance.delete()
-    return success()
+    return api_success()
 
 
 @bp.put("/vuln/<int:pk>")
@@ -79,7 +78,7 @@ def vuln_update(pk):
     item.app = data.get("app")
     item.save()
 
-    return jsonify({
+    return api_success({
         "data": model2dict(item)
     })
 
@@ -98,7 +97,7 @@ def vuln_create():
     app = data.get("app")
     DockerResource.create(description=description, docker_type=docker_type, image=image, name=name, resource_type="VUL",
                           app=app, cve=cve)
-    return jsonify({})
+    return api_success({})
 
 
 @bp.post("/vuln/<int:pk>/run")
@@ -107,7 +106,7 @@ def vuln_run(pk):
         添加漏洞
     """
     start_vuln_resource(pk, user_id=None, admin_id=g.user.id)
-    return jsonify({})
+    return api_success({})
 
 
 @bp.get("/vuln/runner")
@@ -129,7 +128,7 @@ def vuln_runner():
             info['username'] = item.admin.username
         info['container_id'] = item.container_id[:8]
         data.append(info)
-    return jsonify({
+    return api_success({
         "total": page.total,
         "data": data
     })
@@ -147,7 +146,7 @@ def runner_delete(pk):
     docker_container.stop()
     docker_container.remove()
     instance.delete()
-    return jsonify({})
+    return api_success({})
 
 
 @bp.post("/vuln/import")
@@ -156,11 +155,11 @@ def vuln_import():
     filename = file.filename
     ext = filename.split('.')[-1]
     if ext != "yaml":
-        return fail(msg="请上传yaml文件格式")
+        return api_fail(msg="请上传yaml文件格式")
     try:
         yaml_data = yaml.safe_load(file)
     except yaml.YAMLError as e:
-        return fail(msg="Error while parsing YAML file")
+        return api_fail(msg="Error while parsing YAML file")
     currentImage = [i[0] for i in db.session.query(DockerResource.image)]
     bulk_create = []
     # 获取当前主机镜像
@@ -190,4 +189,4 @@ def vuln_import():
                            description=item.get("description"))
         )
         db.session.bulk_save_objects(bulk_create)
-    return success()
+    return api_success()

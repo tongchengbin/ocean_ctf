@@ -4,15 +4,15 @@ import uuid
 import docker
 from docker import errors as docker_error
 from docker.errors import DockerException
-from flask import Blueprint, make_response, jsonify, request
+from flask import Blueprint, request
 from flask import current_app
 from sqlalchemy.exc import IntegrityError
 
 from app.api.ctf.form import QuestionForm
 from app.api.docker.service import destroy_docker_runner
+from app.lib.api import api_fail, api_success
 from config import config
 from app import db
-from app.lib.rest_response import success, fail
 from app.models.ctf import QType, ImageResource, CtfResource, Answer, Attachment
 from app.models.ctf import Question
 from app.models.docker import Host
@@ -31,7 +31,7 @@ def question_type():
     :return:
     """
     data = [i.value for i in QType]
-    return success(data)
+    return api_success({"data": data})
 
 
 @bp.route('/resource', methods=['get'])
@@ -69,7 +69,7 @@ def resource_list():
                 "name": question.name
             }
         })
-    return jsonify({
+    return api_success({
         "total": page.total,
         "data": data
     })
@@ -110,7 +110,7 @@ def question_update(pk):
         if not active_flag:
             instance.flag = flag
     db.session.commit()
-    return jsonify({})
+    return api_success()
 
 
 @bp.route('/containers/<int:container_resource>/refresh', methods=['post'])
@@ -122,17 +122,16 @@ def ctf_containers_refresh(container_resource):
     """
     container = db.session.query(CtfResource).get(container_resource)
     question = container.question
-    user_obj = container.user
     try:
         client = docker.DockerClient(question.host.docker_api)
         docker_container = client.containers.get(container.container_id)
     except docker_error.DockerException:
         container.container_status = "Outline".lower()
         db.session.commit()
-        return make_response(jsonify({"msg": "容器不在线"}))
+        return api_fail({"msg": "容器不在线"})
     container.container_status = docker_container.attrs["State"]["Status"].lower()
     db.session.commit()
-    return jsonify({})
+    return api_success()
 
 
 @bp.route('/resource/<int:pk>/remove', methods=['post'])
@@ -151,7 +150,7 @@ def resource_remove(pk):
         docker_runner.delete()
     except IntegrityError:
         db.session.rollback()
-    return jsonify({"msg": "删除成功"})
+    return api_success({"msg": "删除成功"})
 
 
 @bp.route('/answers', methods=['get'])
@@ -196,7 +195,7 @@ def answers_list():
             "username": user.username,
             "ip": answer.ip
         })
-    return jsonify({
+    return api_success({
         "total": page.total,
         "data": data
     })
@@ -207,7 +206,7 @@ def answer_status_list():
     """
         回答题目的类别
     """
-    return jsonify({"data": list(Answer.status_choices)})
+    return api_success({"data": list(Answer.status_choices)})
 
 
 @bp.route('/question', methods=['get'])
@@ -250,7 +249,7 @@ def question_list():
             "score": item.score,
             "desc": item.desc
         })
-    return jsonify({
+    return api_success({
         "total": page.total,
         "results": data
     })
@@ -270,7 +269,7 @@ def question_create(body: QuestionForm):
                     score=body.score,
                     resource_id=body.resource_id,
                     attachment=",".join([str(i) for i in attachment]))
-    return jsonify({})
+    return api_success({})
 
 
 @bp.delete('/question/<int:pk>')
@@ -294,7 +293,7 @@ def question_delete(pk):
             db.session.commit()
     # 删除镜像
     instance.delete()
-    return jsonify({})
+    return api_success({})
 
 
 @bp.get('/images')
@@ -325,7 +324,7 @@ def images_list():
         _item["ip"] = item.host.ip
         _item["host_name"] = item.host.name
         data.append(_item)
-    return success(data=data)
+    return api_success(data={"data": data})
 
 
 @bp.delete('/images/<int:pk>')
@@ -334,11 +333,11 @@ def images_delete(pk):
         删除镜像 目前仅仅删除数据库数据 判断是否有容器在运行 否则不允许删除
     """
     if db.session.query(CtfResource).filter(CtfResource.image_resource_id == pk).count():
-        return fail(msg="无法删除当前镜像、因为相关容器正在运行中!", status=400)
+        return api_fail(msg="无法删除当前镜像、因为相关容器正在运行中!", code=400)
     instance = db.session.query(ImageResource).get(pk)
     db.session.delete(instance)
     db.session.commit()
-    return success()
+    return api_success()
 
 
 @bp.post('/images')
@@ -356,8 +355,7 @@ def images_create():
     )
     db.session.add(instance)
     db.session.commit()
-    # scheduler.add_job(f"build_question_tar_{instance.id}", build_question_tar, args=(instance.id,))
-    return success()
+    return api_success()
 
 
 @bp.put('/images/<int:pk>')
@@ -378,8 +376,7 @@ def image_update(pk):
     instance.file_id = _data["file_id"]
     instance.status = ImageResource.STATUS_BUILDING
     db.session.commit()
-    # scheduler.add_job("test", build_question_tar, args=(instance.id,))
-    return success()
+    return api_success()
 
 
 @bp.post('/upload_docker_tar')
@@ -388,20 +385,20 @@ def upload_docker_tar():
     pk = request.form.get("host")
     host_ = db.session.query(Host).get(pk)
     if not host_:
-        return fail("请选择宿主机", status=400)
+        return api_fail(msg="请选择宿主机", code=400)
     docker_api = host_.docker_api
     # 测试连通性
     try:
         docker.DockerClient(docker_api, timeout=1)
     except DockerException:
-        return fail(msg="Docker主机不在线", status=400)
+        return api_fail(msg="Docker主机不在线", code=400)
     file = request.files["file"]
     filename = file.name
     base_dir = current_app.config.get("BASE_DIR")
     save_file_path = os.path.join(base_dir, 'upload', filename)
     file.save(save_file_path)
     build_question_tar.apply_async((save_file_path, docker_api))
-    return success()
+    return api_success()
 
 
 @bp.post('/upload')
@@ -414,7 +411,7 @@ def ctf_upload_attachment():
     ext = filename.split('.')[-1]
     upload_dir = config.UPLOAD_DIR
     if ".." in filename:
-        return jsonify({"error": "文件名非法!"})
+        return api_fail(msg="文件名非法!")
     # 生成随机文件名
     uuid_filename = str(uuid.uuid4()) + "." + ext
     file_path = os.path.join(upload_dir, uuid_filename)
@@ -423,4 +420,4 @@ def ctf_upload_attachment():
     at = Attachment(filename=filename, file_path=uuid_filename)
     db.session.add(at)
     db.session.commit()
-    return jsonify({"filename": filename, "uuid": at.id})
+    return api_success({"filename": filename, "uuid": at.id})

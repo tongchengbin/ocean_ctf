@@ -69,3 +69,4 @@
 #     # 注册静态文件
 #     manager_folder = "install/manager/dist"
 #     return send_from_directory(manager_folder, filename, cache_timeout=500)
+

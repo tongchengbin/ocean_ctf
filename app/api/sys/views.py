@@ -3,17 +3,15 @@ import os
 import uuid
 from datetime import datetime
 from operator import or_
-
 from flask import Blueprint, make_response, jsonify, request, g, current_app
 from sqlalchemy import func, desc
-from sqlalchemy.exc import ProgrammingError, OperationalError
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from app.extensions import cache
 from app import db
 from app.api.sys.service import insert_operator
 from app.lib import exceptions
-from app.lib.rest_response import success, fail
+from app.lib.api import api_fail, api_success
 from app.lib.utils.authlib import create_token
 from app.models.admin import (Admin, TaskList, Operator, Config)
 from app.models.admin import RequestState, Role, Notice
@@ -51,7 +49,7 @@ def task_log(task):
     lines = cache.lrange("task_%s" % task, index, -1)
     task = db.session.query(TaskList).get(task)
     data = [i.decode() for i in lines]
-    return jsonify({
+    return api_success({
         "data": data,
         "end": False if task.status in (1, 3) else True
     })
@@ -73,7 +71,7 @@ def upload_file():
     uuid_filename = str(uuid.uuid4()) + "." + ext
     file_path = os.path.join(upload_dir, uuid_filename)
     file.save(file_path)
-    return jsonify({"name": filename, "filename": filename + "|" + uuid_filename})
+    return api_success({"name": filename, "filename": filename + "|" + uuid_filename})
 
 
 @bp.route('/admin', methods=['get'])
@@ -95,7 +93,7 @@ def admin_list():
             "role": item.role_id,
             "role_name": item.role.name
         })
-    return jsonify({
+    return api_success({
         "total": page.total,
         "data": data
     })
@@ -116,7 +114,7 @@ def admin_update(pk):
     if password:
         admin.password = generate_password_hash(password)
     db.session.commit()
-    return jsonify({})
+    return api_success({})
 
 
 @bp.route('/admin', methods=['post'])
@@ -131,7 +129,7 @@ def admin_create():
     admin = Admin(username=username, password=safe_password, role_id=role)
     db.session.add(admin)
     db.session.commit()
-    return jsonify({})
+    return api_success({})
 
 
 @bp.route('/admin', methods=['delete'])
@@ -139,7 +137,7 @@ def admin_delete(pk):
     admin = db.session.query(Admin).get(pk)
     db.session.delete(admin)
     db.session.commit()
-    return jsonify({})
+    return api_success({})
 
 
 @bp.route('/user', methods=['get'])
@@ -163,7 +161,7 @@ def user_list():
             "date_modified": item.date_modified.strftime("%Y-%m-%d %H:%M:%S") if item.date_modified else None,
             "active": item.active
         })
-    return jsonify({
+    return api_success({
         "total": page.total,
         "data": data
     })
@@ -182,7 +180,7 @@ def user_create():
     safe_password = generate_password_hash(password)
     db.session.add(User(username=username, password=safe_password))
     db.session.commit()
-    return jsonify({})
+    return api_success({})
 
 
 @bp.route('/user/<int:pk>', methods=['put'])
@@ -193,7 +191,7 @@ def user_update(pk):
     if password:
         user.password = generate_password_hash(password)
     db.session.commit()
-    return jsonify({})
+    return api_success({})
 
 
 @bp.route('/user/<int:pk>', methods=['delete'])
@@ -205,7 +203,7 @@ def user_delete(pk):
     user = db.session.query(User).get(pk)
     db.session.delete(user)
     db.session.commit()
-    return jsonify({})
+    return api_success({})
 
 
 @bp.route('/index/state', methods=['get'])
@@ -239,7 +237,7 @@ def index_state():
     req_data["x_data"].append(datetime.today().strftime("%m-%d"))
     req_data["lines"][0]["data"].append(ip_count)
     req_data["lines"][1]["data"].append(req_count)
-    return jsonify({
+    return api_success({
         "data": {
             "req_data": req_data,
             "today_create_cnt": today_create_cnt,
@@ -276,7 +274,7 @@ def notice_list():
             "is_top": item.is_top,
             "active": item.active
         })
-    return jsonify({
+    return api_success({
         "total": page.total,
         "data": data
     })
@@ -291,7 +289,7 @@ def notice_create():
     instance = Notice(content=content, active=active, is_top=is_top)
     db.session.add(instance)
     db.session.commit()
-    return jsonify({})
+    return api_success({})
 
 
 @bp.route('/notice/<int:pk>', methods=['put'])
@@ -311,7 +309,7 @@ def notice_update(pk):
     if content is not None:
         instance.content = content
     db.session.commit()
-    return jsonify({})
+    return api_success({})
 
 
 @bp.route('/notice/<int:pk>', methods=['delete'])
@@ -322,7 +320,7 @@ def notice_delete(pk):
     instance = db.session.query(Notice).get(pk)
     db.session.delete(instance)
     db.session.commit()
-    return jsonify({})
+    return api_success({})
 
 
 @bp.route('/userinfo', methods=['get'])
@@ -334,7 +332,7 @@ def login_info():
         "username": admin.username,
         "id": admin.id,
     }
-    return success(ret)
+    return api_success(ret)
 
 
 @bp.route('/login', methods=['post'])
@@ -345,7 +343,8 @@ def login():
     admin = db.session.query(Admin).filter(
         Admin.username == username).one_or_none()
     if admin is None:
-        raise exceptions.AuthFailed()
+        insert_operator(code=False, content="登录失败", username=username, role_name=None)
+        return api_fail(code=403, msg="用户名或密码错误")
     if check_password_hash(admin.password, password):
         token = create_token()
         admin.token = token
@@ -359,9 +358,10 @@ def login():
             "id": admin.id,
         }
         insert_operator(code=True, content="登录成功", username=admin.username, role_name=admin.role_name)
-        return success(ret)
+        return api_success({"data": ret})
     else:
-        raise exceptions.AuthFailed()
+        insert_operator(code=False, content="登录失败", username=username, role_name=None)
+        return api_fail(code=403, msg="用户名或密码错误")
 
 
 @bp.route('/role', methods=['get'])
@@ -376,7 +376,7 @@ def role_list():
         _item["id"] = item.id
         _item["name"] = item.name
         data.append(_item)
-    return jsonify({"data": data, "total": page_query.total})
+    return api_success({"data": data, "total": page_query.total})
 
 
 @bp.route('/role', methods=['post'])
@@ -388,7 +388,7 @@ def role_create():
     instance = Role(name=name)
     db.session.add(instance)
     db.session.commit()
-    return jsonify({})
+    return api_success({})
 
 
 @bp.route('/role', methods=['put'])
@@ -400,12 +400,12 @@ def role_update():
     if not instance:
         raise exceptions.InstanceNotFount("资源不存在")
     if instance.name == name:
-        return jsonify({})
+        return api_success({})
     if db.session.query(Role).filter(Role.name == name).count():
         raise exceptions.ConstraintFailure("角色已存在")
     instance.name = name
     db.session.commit()
-    return jsonify({})
+    return api_success({})
 
 
 @bp.route('/role/<int:pk>', methods=['delete'])
@@ -415,7 +415,7 @@ def role_delete(pk):
         raise exceptions.InstanceNotFount("资源不存在")
     db.session.delete(instance)
     db.session.commit()
-    return jsonify({})
+    return api_success({})
 
 
 @bp.route('/logout', methods=['post'])
@@ -428,63 +428,7 @@ def logout():
     current_user.token = None
     db.session.commit()
     insert_operator(code=True, content="登出成功", username=current_user.username, role_name=current_user.role_name)
-    return jsonify({})
-
-
-@bp.route('/logs', methods=['get'])
-def logs():
-    """
-            日志查询接口  api worker beat
-    """
-    file_name = request.args.get('filename')
-    # fix sec
-    filename = os.path.basename(file_name)
-    lines = int(request.args.get('lines', 100))
-    filepath = os.path.join(current_app.config.root_path, 'logs', "%s.log" % filename)
-    if not filename or not os.path.exists(filepath.strip()):
-        return make_response(jsonify({"msg": "日志不存在"}), 400)
-    data = []
-    with open(filepath, 'r', encoding='utf-8') as f:
-        while True:
-            line = f.readline()
-            if not line:
-                break
-            data.append(line)
-    return jsonify({"data": data[-lines:]})
-
-
-
-@system_bp.post('/init')
-def system_init():
-    # 检测是否已经初始化
-    query = db.session.query(Admin)
-    if query.first():
-        return fail(msg="系统已初始化完成!", status=400)
-    data = request.get_json()
-    username = data.get("username")
-    password = data.get("password")
-    db.session.add(Admin(username=username, password=generate_password_hash(password)))
-    # 判断是否有角色信息
-    for role in ('超级管理员', '运维管理员', '审计员', '访客'):
-        if not db.session.query(Role).filter(Role.name == role).first():
-            db.session.add(Role(name=role))
-    db.session.commit()
-    logger.info(request.get_json())
-    return success({"token": 1})
-
-
-@system_bp.get('/check')
-def system_check():
-    query = db.session.query(Admin)
-    data = {
-        "init": False
-    }
-    try:
-        if query.first():
-            data["init"] = True
-    except ProgrammingError:
-        return fail(msg="系统未初始化完成、请稍后!", status=200)
-    return success(data)
+    return api_success({})
 
 
 @system_bp.post('/config')
@@ -495,9 +439,8 @@ def set_config():
             continue
         # 校验数据
         val_type = Config.CONFIG_MAP[k][0]
-        print(v, val_type)
         if not isinstance(v, val_type):
-            return fail(msg="数据格式错误", status=400)
+            return api_fail(msg="数据格式错误")
         old = db.session.query(Config).filter(Config.key == k).first()
         if old:
             old.val = v
@@ -505,7 +448,7 @@ def set_config():
         else:
             db.session.add(Config(key=k, val=v, type=val_type.__name__))
     db.session.commit()
-    return success()
+    return api_success()
 
 
 @system_bp.get('/config')
@@ -524,8 +467,7 @@ def get_config():
     for k, v in Config.CONFIG_MAP.items():
         if k not in data:
             data[k] = v[1]
-    return success(data)
-
+    return api_success({"data": data})
 
 
 @bp.route('/operator', methods=['get'])
@@ -537,7 +479,10 @@ def operator_list():
     page = int(request.args.get('page', 1))
     page_size = int(request.args.get("page_size", 10))
     search = request.args.get("search")
+    code = request.args.get("code")
     query = db.session.query(Operator)
+    if code:
+        query = query.filter(Operator.code == code)
     if search:
         query = query.filter(or_(Operator.username.contains(search),
                                  Operator.content.contains(search)))
@@ -554,4 +499,4 @@ def operator_list():
         _item["create_time"] = item.create_time_format
         _item["code"] = item.code
         data.append(_item)
-    return jsonify({"data": data, "total": page_query.total})
+    return api_success({"data": data, "total": page_query.total})

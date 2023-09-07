@@ -5,10 +5,10 @@ from sqlalchemy import or_
 
 from app.extensions import db
 
-from flask import Blueprint, request, jsonify, g
+from flask import Blueprint, request, g
 
-from app.lib.decorators import login_required, user_required
-from app.lib.rest_response import success, fail
+from app.lib.api import api_fail, api_success
+from app.lib.decorators import user_required
 from app.lib.tools import model2dict
 from app.models.admin import Config
 from app.models.docker import DockerResource, DockerRunner
@@ -56,7 +56,7 @@ def vuln_list():
         else:
             info['runner'] = {}
         data.append(info)
-    return success({
+    return api_success({
         "total": page.total,
         "data": data
     })
@@ -65,7 +65,7 @@ def vuln_list():
 @bp.get("/vuln/<int:pk>")
 def vuln_detail(pk):
     instance = DockerResource.get_by_id(pk)
-    return success(model2dict(instance))
+    return api_success(model2dict(instance))
 
 
 @bp.post("/vuln/<int:pk>/start")
@@ -74,8 +74,8 @@ def vuln_start(pk):
     try:
         start_vuln_resource(pk, user_id=g.user.id)
     except ValueError:
-        return fail(msg="资源启动失败,请联系管理员!")
-    return success()
+        return api_fail(msg="资源启动失败,请联系管理员!")
+    return api_success()
 
 
 @bp.post("/vuln/<int:pk>/stop")
@@ -85,10 +85,10 @@ def vuln_stop(pk):
     instance: DockerRunner = db.session.query(DockerRunner).filter(DockerRunner.user_id == g.user.id,
                                                                    DockerRunner.resource_id == pk).first()
     if not instance:
-        return success()
+        return api_success()
     client = docker.DockerClient(docker_api)
     docker_container = client.containers.get(instance.container_id)
     docker_container.stop()
     docker_container.remove()
     instance.delete()
-    return success()
+    return api_success()
