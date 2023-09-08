@@ -3,7 +3,7 @@ from __future__ import absolute_import
 import logging
 from datetime import datetime, timedelta
 
-from app import db, cache
+from app.extensions import db, cache
 from app.models.admin import RequestState
 from app.lib.const import ConstCacheKey
 
