@@ -7,7 +7,7 @@ from compose.cli.command import project_from_options
 from docker import APIClient
 from docker.errors import DockerException
 
-from app.api.docker.service import user_compose_down
+from app.docker.service import user_compose_down
 from app.models.admin import Config, TaskList
 from app.models.docker import ComposeDB, DockerResource
 from app.extensions import cache, celery

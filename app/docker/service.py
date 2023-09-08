@@ -173,10 +173,3 @@ def destroy_docker_runner(docker_runner_id):
 
     docker_runner.delete()
     return True
-
-# if __name__ == "__main__":
-# from app import create_app, db
-#
-# create_app().app_context().push()
-# user_compose_up(6, 1)
-# start_docker_resource(1, 1)

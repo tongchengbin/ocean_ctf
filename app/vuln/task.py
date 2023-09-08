@@ -3,8 +3,8 @@ import logging
 import docker
 from docker.errors import ImageNotFound
 
-from app import db
-from app.api.docker.service import get_free_port
+from app.extensions import db
+from app.docker.service import get_free_port
 from app.models.admin import Config
 from app.models.docker import DockerRunner, DockerResource
 
@@ -62,7 +62,6 @@ def start_vuln_resource(resource_id, user_id=None, admin_id=None) -> DockerRunne
         docker_runner.save()
     else:
         docker_runner = DockerRunner.create(name=docker_container.name, resource_id=resource_id,
-                                            admin_id=admin_id,user_id=user_id, port_info=port_dict,
+                                            admin_id=admin_id, user_id=user_id, port_info=port_dict,
                                             container_id=docker_container.id)
     return docker_runner
-

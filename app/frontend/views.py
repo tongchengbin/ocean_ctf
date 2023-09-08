@@ -7,9 +7,9 @@ from flask import Blueprint, render_template, request, make_response, g, send_fr
 from sqlalchemy import func, desc
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from app import db
-from app.api.docker.service import start_docker_resource
-from app.api.frontend import services
+from app.extensions import db
+from app.docker.service import start_docker_resource
+from app.frontend import services
 from app.lib.api import api_success, api_fail
 from app.lib.decorators import user_required
 from app.lib.tools import get_ip

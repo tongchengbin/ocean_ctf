@@ -1,7 +1,6 @@
 from sqlalchemy import func, desc
 
-from app import db
-from app.api.docker.service import user_compose_down
+from app.extensions import db
 from app.models.ctf import Question, Answer, CtfResource
 from app.models.user import User
 

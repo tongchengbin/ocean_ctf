@@ -3,7 +3,7 @@
 """
 import logging
 from datetime import datetime
-from flask import request, g, make_response, jsonify
+from flask import request, g
 
 from app.lib.api import api_fail
 from app.models.admin import Admin

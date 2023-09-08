@@ -8,11 +8,11 @@ from flask import Blueprint, request
 from flask import current_app
 from sqlalchemy.exc import IntegrityError
 
-from app.api.ctf.form import QuestionForm
-from app.api.docker.service import destroy_docker_runner
+from app.ctf.form import QuestionForm
+from app.docker.service import destroy_docker_runner
 from app.lib.api import api_fail, api_success
 from config import config
-from app import db
+from app.extensions import db
 from app.models.ctf import QType, ImageResource, CtfResource, Answer, Attachment
 from app.models.ctf import Question
 from app.models.docker import Host

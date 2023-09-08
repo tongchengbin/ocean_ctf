@@ -8,15 +8,15 @@ from flask import Blueprint, request, g
 from flask_pydantic import validate
 from sqlalchemy import or_
 from sqlalchemy.exc import IntegrityError
-from app import db
+from app.extensions import db
 from app.lib.exceptions import make_error_response
 from app.models.admin import TaskList, Config
 from app.models.docker import (Host, ComposeDB, ComposeRunner, DockerResource, )
 from .form import PageForm, ComposeDBForm, DockerResourceForm
 import logging
-from app.api.docker import task
+from app.docker import task
 from app.lib.api import api_success, api_fail
-from ...lib.tools import model2dict
+from app.lib.tools import model2dict
 from app.extensions import cache
 
 logger = logging.getLogger('app')

@@ -112,11 +112,11 @@ def register_blueprints(flask_app):
         这里如果在开头引用回出现循环引用的问题
             app_factory 引入了bp  bp中引入了task  task 引入了app_factory中的celery 导致无法启动celery
     """
-    from app.api.ctf.views import bp as admin_ctf_bp
-    from app.api.docker.views import bp as admin_docker_bp
+    from app.ctf.views import bp as admin_ctf_bp
+    from app.docker.views import bp as admin_docker_bp
     from app.sys.views import bp as admin_bp, system_bp
     # 用户平台注册
-    from app.api.frontend.views import bp as view_bp
+    from app.frontend.views import bp as view_bp
     from app.vuln import admin_views,user_views
     """Register Flask blueprints."""
     flask_app.register_blueprint(view_bp)
