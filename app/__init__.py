@@ -94,6 +94,7 @@ def register_extensions(scope_app):
             if request.path.startswith(path):
                 request._authorized = True
                 return
+        print(">>>")
 
     scope_app.before_request(always_authorize)
 
@@ -113,7 +114,7 @@ def register_blueprints(flask_app):
     """
     from app.api.ctf.views import bp as admin_ctf_bp
     from app.api.docker.views import bp as admin_docker_bp
-    from app.api.sys.views import bp as admin_bp, system_bp
+    from app.sys.views import bp as admin_bp, system_bp
     # 用户平台注册
     from app.api.frontend.views import bp as view_bp
     from app.vuln import admin_views,user_views

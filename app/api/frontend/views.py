@@ -11,7 +11,7 @@ from app import db
 from app.api.docker.service import start_docker_resource
 from app.api.frontend import services
 from app.lib.api import api_success, api_fail
-from app.lib.decorators import login_required, user_required
+from app.lib.decorators import user_required
 from app.lib.tools import get_ip
 from app.lib.utils.authlib import create_token
 from app.models.admin import Notice, Config
@@ -45,7 +45,6 @@ def generate_flag():
 
 
 @bp.get('/')
-@login_required()
 def index():
     """
         :return :首页 后端渲染

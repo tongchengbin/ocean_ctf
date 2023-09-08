@@ -9,7 +9,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from app.extensions import cache
 from app import db
-from app.api.sys.service import insert_operator
+from app.sys.service import insert_operator
 from app.lib import exceptions
 from app.lib.api import api_fail, api_success
 from app.lib.utils.authlib import create_token
@@ -124,7 +124,7 @@ def admin_create():
     password = data.get('password')
     role = data.get('role')
     if db.session.query(Admin).filter(Admin.username == username).count():
-        return make_response(jsonify({"msg": "管理员已存在"}), 400)
+        return api_fail(msg="管理员已存在")
     safe_password = generate_password_hash(password)
     admin = Admin(username=username, password=safe_password, role_id=role)
     db.session.add(admin)
@@ -132,7 +132,7 @@ def admin_create():
     return api_success({})
 
 
-@bp.route('/admin', methods=['delete'])
+@bp.delete('/admin/<int:pk>')
 def admin_delete(pk):
     admin = db.session.query(Admin).get(pk)
     db.session.delete(admin)
