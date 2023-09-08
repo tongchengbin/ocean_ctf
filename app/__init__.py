@@ -114,14 +114,13 @@ def register_blueprints(flask_app):
     """
     from app.ctf.views import bp as admin_ctf_bp
     from app.docker.views import bp as admin_docker_bp
-    from app.sys.views import bp as admin_bp, system_bp
+    from app.sys.views import bp as admin_bp
     # 用户平台注册
     from app.frontend.views import bp as view_bp
     from app.vuln import admin_views,user_views
     """Register Flask blueprints."""
     flask_app.register_blueprint(view_bp)
     flask_app.register_blueprint(admin_bp)
-    flask_app.register_blueprint(system_bp)
     flask_app.register_blueprint(admin_ctf_bp)
     flask_app.register_blueprint(admin_docker_bp)
     flask_app.register_blueprint(admin_views.bp)

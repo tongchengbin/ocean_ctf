@@ -19,8 +19,6 @@ from app.models.ctf import CtfResource, Question
 from app.models.user import User
 
 bp = Blueprint("admin", __name__, url_prefix="/api/admin")
-
-system_bp = Blueprint("system", __name__, url_prefix="/api/system")
 logger = logging.getLogger('app')
 
 
@@ -323,7 +321,7 @@ def notice_delete(pk):
     return api_success({})
 
 
-@bp.route('/userinfo', methods=['get'])
+@bp.get('/userinfo')
 def login_info():
     admin = g.user
     ret = {
@@ -335,7 +333,7 @@ def login_info():
     return api_success(ret)
 
 
-@bp.route('/login', methods=['post'])
+@bp.post('/login')
 def login():
     data = request.get_json()
     username = data.get("username")
@@ -364,7 +362,7 @@ def login():
         return api_fail(code=403, msg="用户名或密码错误")
 
 
-@bp.route('/role', methods=['get'])
+@bp.get('/role')
 def role_list():
     page = int(request.args.get('page', 1))
     page_size = int(request.args.get("page_size", 10))
@@ -379,7 +377,7 @@ def role_list():
     return api_success({"data": data, "total": page_query.total})
 
 
-@bp.route('/role', methods=['post'])
+@bp.post('/role')
 def role_create():
     data = request.get_json()
     name = data.get("name")
@@ -391,7 +389,7 @@ def role_create():
     return api_success({})
 
 
-@bp.route('/role', methods=['put'])
+@bp.put('/role')
 def role_update():
     data = request.get_json()
     pk = data.get("id")
@@ -408,7 +406,7 @@ def role_update():
     return api_success({})
 
 
-@bp.route('/role/<int:pk>', methods=['delete'])
+@bp.delete('/role/<int:pk>')
 def role_delete(pk):
     instance = db.session.query(Role).filter(Role.id == pk).first()
     if not instance:
@@ -418,7 +416,7 @@ def role_delete(pk):
     return api_success({})
 
 
-@bp.route('/logout', methods=['post'])
+@bp.post('/logout')
 def logout():
     """
                     登出
@@ -431,7 +429,7 @@ def logout():
     return api_success({})
 
 
-@system_bp.post('/config')
+@bp.post('/config')
 def set_config():
     data = request.get_json()
     for k, v in data.items():
@@ -451,7 +449,7 @@ def set_config():
     return api_success()
 
 
-@system_bp.get('/config')
+@bp.get('/config')
 def get_config():
     config_list = db.session.query(Config).all()
     data = {}
@@ -470,7 +468,7 @@ def get_config():
     return api_success({"data": data})
 
 
-@bp.route('/operator', methods=['get'])
+@bp.get('/operator')
 def operator_list():
     """
         审计日志
