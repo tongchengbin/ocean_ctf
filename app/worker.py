@@ -3,7 +3,7 @@ from app.extensions import celery
 
 
 app = create_app()
-celery.autodiscover_tasks(['app.tasks.ctf'], related_name='task')
+celery.autodiscover_tasks(['app.ctf', "app.sys"], related_name='tasks')
 
 app.app_context().push()
 __all__ = ['celery']

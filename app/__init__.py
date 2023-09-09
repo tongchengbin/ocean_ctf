@@ -83,7 +83,6 @@ def exception_handle(e):
 
 def register_extensions(scope_app):
     """异常捕获"""
-
     db.init_app(scope_app)
     cache.init_app(scope_app)
     scope_app.app_context().push()
@@ -94,7 +93,6 @@ def register_extensions(scope_app):
             if request.path.startswith(path):
                 request._authorized = True
                 return
-        print(">>>")
 
     scope_app.before_request(always_authorize)
 
@@ -117,7 +115,7 @@ def register_blueprints(flask_app):
     from app.sys.views import bp as admin_bp
     # 用户平台注册
     from app.frontend.views import bp as view_bp
-    from app.vuln import admin_views,user_views
+    from app.vuln import admin_views, user_views
     """Register Flask blueprints."""
     flask_app.register_blueprint(view_bp)
     flask_app.register_blueprint(admin_bp)
