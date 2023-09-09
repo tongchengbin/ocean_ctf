@@ -1,6 +1,7 @@
 import os
 import logging.config
 from dotenv import load_dotenv
+from celery.schedules import crontab
 
 BASE_DIR = os.path.dirname(os.path.abspath(os.path.dirname(__file__)))
 
@@ -28,14 +29,15 @@ THREADS_PER_PAGE = 2
 SQLALCHEMY_ECHO = False
 DATABASE_CONNECT_OPTIONS = {}
 SQLALCHEMY_TRACK_MODIFICATIONS = False
-SQLALCHEMY_POOL_RECYCLE = 3600
 SQLALCHEMY_DATABASE_URI = "mysql+mysqldb://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}".format(
     db_user=DB_USER,
     db_password=DB_PASSWORD,
     db_host=DB_HOST,
     db_port=DB_PORT,
     db_name=DB_NAME)
-# 日志配置
+SQLALCHEMY_ENGINE_OPTIONS = {
+    'pool_recycle': 3600
+}
 
 LOGGING = {
     'version': 1,
@@ -90,3 +92,15 @@ API_INIT = False
 
 # celery
 broker_url = REDIS_URL
+
+beat_schedule = {
+    "day_upload_req": {
+        "task": "app.sys.tasks.day_upload_req",
+        "schedule": crontab(hour=2, minute=4),
+    },
+    # "crontab_monitoring_docker_api": {
+    #     "task": "app.tasks.ctf.crontab_monitoring_docker_api",
+    #     "schedule": crontab(minute="*/1")
+    # }
+
+}
