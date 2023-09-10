@@ -1,6 +1,8 @@
 import logging
 from functools import wraps
 from flask import request, g
+
+from app.lib.api import api_fail
 from app.lib.exceptions import APIForbidden
 from app.extensions import db
 from app.models.user import User
@@ -20,7 +22,7 @@ def user_required(required=True):
             authorization = request.headers.get("Authorization")
             if not authorization:
                 if required:
-                    raise APIForbidden(status=200)
+                    return api_fail(msg="权限验证失败", code=401)
                 else:
                     g.user = None
                     return fn(*args, **kwargs)

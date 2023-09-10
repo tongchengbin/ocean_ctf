@@ -305,7 +305,7 @@ def challenge_detail(question):
                                                   Answer.status == Answer.status_ok).count(),
         "date_created": instance.date_created.strftime("%y-%m-%d")
     }
-    return api_success(data)
+    return api_success({"data": data})
 
 
 @bp.post('/challenge/<int:question>/start')

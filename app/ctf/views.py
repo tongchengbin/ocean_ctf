@@ -91,6 +91,7 @@ def question_update(pk):
     score = data.get("score")
     flag = data.get("flag")
     desc = data.get("desc")
+    resource_id = data.get("resource_id")
     if active_flag is not None:
         instance.active_flag = active_flag
     if name is not None:
@@ -105,6 +106,10 @@ def question_update(pk):
     active = data.get("active")
     if active is not None:
         instance.active = active
+    if active_flag:
+        if not resource_id:
+            return api_fail(msg="清选择环境资源")
+        instance.resource_id = data.get("resource_id")
     instance.attachment = ",".join([str(i) for i in attachment])
     if active_flag is not None:
         if not active_flag:
