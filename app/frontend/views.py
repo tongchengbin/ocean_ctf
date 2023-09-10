@@ -254,9 +254,9 @@ def challenge_detail(question):
     # 获取前三名
     ans = db.session.query(User.username).select_from(Answer).filter(Answer.question_id == question,
                                                                      Answer.status == Answer.status_ok,
-                                                                     Answer.rank <= 3).join(User,
+                                                                     ).join(User,
                                                                                             User.id == Answer.user_id)
-    ans = [i[0] for i in ans]
+    ans = [i[0] for i in ans][:3]
     ans = list(ans) + [None] * (3 - len(list(ans)))
     first_blood, second_blood, third_blood = ans
     resource = db.session.query(CtfResource).filter(CtfResource.user_id == g.user.id,
@@ -414,7 +414,7 @@ def challenge_submit():
     ip = get_ip()
     data = request.get_json()
     question_id = data.get("id")
-    flag = data.get("flag")
+    flag = data.get("flag", "").strip()
     # 判断是否有提交记录
     challenge = Question.get_by_id(question_id)
     answer = db.session.query(Answer).filter(Answer.question_id == question_id, Answer.status == Answer.status_ok,
@@ -433,15 +433,16 @@ def challenge_submit():
                                                                     CtfResource.question_id == question_id).order_by(
             CtfResource.date_modified.desc()).first()
         if current_ctf_resource:
-            ok_flag = current_ctf_resource.flag
+            ok_flag = current_ctf_resource.flag.strip()
         else:
             return api_fail(msg="当前状态无法作答、请启动环境!")
     else:
-        ok_flag = challenge.flag
+        ok_flag = challenge.flag.strip()
+    print("ok", ok_flag)
     if ok_flag == flag:
         Answer.create(question_id=question_id, user_id=g.user.id, flag=flag, ip=ip, status=Answer.status_ok,
                       score=challenge.score)
-        return api_success({"msg": "答案正确、获得{}积分".format(challenge.score)})
+        return api_success(msg="答案正确、获得{}积分".format(challenge.score))
     else:
         Answer.create(question_id=question_id, user_id=g.user.id, flag=flag, ip=ip, status=Answer.status_error)
         return api_fail(msg="答案错误")

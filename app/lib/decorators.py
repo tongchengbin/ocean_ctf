@@ -3,7 +3,6 @@ from functools import wraps
 from flask import request, g
 
 from app.lib.api import api_fail
-from app.lib.exceptions import APIForbidden
 from app.extensions import db
 from app.models.user import User
 

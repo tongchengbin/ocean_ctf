@@ -26,7 +26,7 @@ def vuln_list():
     page = int(request.args.get('page', 1))
     page_size = int(request.args.get("page_size", 10))
     search = request.args.get('search')
-    db_query = db.session.query(DockerResource)
+    db_query = db.session.query(DockerResource).filter(DockerResource.resource_type=='VUL')
     if search:
         db_query = db_query.filter(or_(DockerResource.name.contains(search) |
                                        DockerResource.app.contains(search) |

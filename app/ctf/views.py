@@ -133,7 +133,7 @@ def ctf_containers_refresh(container_resource):
     except docker_error.DockerException:
         container.container_status = "Outline".lower()
         db.session.commit()
-        return api_fail({"msg": "容器不在线"})
+        return api_fail(msg="容器不在线")
     container.container_status = docker_container.attrs["State"]["Status"].lower()
     db.session.commit()
     return api_success()
@@ -155,7 +155,7 @@ def resource_remove(pk):
         docker_runner.delete()
     except IntegrityError:
         db.session.rollback()
-    return api_success({"msg": "删除成功"})
+    return api_success(msg= "删除成功")
 
 
 @bp.route('/answers', methods=['get'])
@@ -286,9 +286,7 @@ def question_delete(pk):
     # 使用逻辑删除
     instance: Question = db.session.query(Question).get(pk)
     if instance.active_flag:
-        containers = db.session.query(CtfResource).join(ImageResource,
-                                                        ImageResource.id == CtfResource.image_resource_id)
-        # kill
+        containers = db.session.query(CtfResource).filter(CtfResource.question_id == instance.id)
         for container in containers:
             db.session.delete(container)
             client = docker.DockerClient(container.image.host.docker_api)

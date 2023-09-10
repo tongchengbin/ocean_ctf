@@ -9,7 +9,6 @@ from flask_pydantic import validate
 from sqlalchemy import or_
 from sqlalchemy.exc import IntegrityError
 from app.extensions import db
-from app.lib.exceptions import make_error_response
 from app.models.admin import TaskList, Config
 from app.models.docker import (Host, ComposeDB, ComposeRunner, DockerResource, )
 from .form import PageForm, ComposeDBForm, DockerResourceForm
@@ -90,17 +89,16 @@ def image_delete():
     try:
         client = docker.DockerClient(docker_api)
         res = client.images.remove(tag)
-        print(res)
     except docker_error.DockerException as e:
         error_str = str(e)
         logger.info("ERROR %s" % error_str)
         if "is using its referenced image" in error_str:
-            return make_error_response("当前镜像被占用，请先删除对应容器！")
+            return api_fail(msg="当前镜像被占用，请先删除对应容器！")
         if "is being used by running container" in error_str:
-            return make_error_response("当前有对应容器正在运行，请停止对应容器！")
+            return api_fail(msg="当前有对应容器正在运行，请停止对应容器！")
         if "image is referenced in multiple repositories" in error_str:
-            return make_error_response("镜像被多个仓库依赖！")
-        return make_error_response(f"删除失败({error_str})", 400)
+            return api_fail(msg="镜像被多个仓库依赖！")
+        return api_fail(msg=f"删除失败({error_str})")
     return api_success({"status": 0})
 
 
@@ -135,7 +133,7 @@ def container_stop():
         container = client.containers.get(container_id)
         container.stop()
     except docker_error.DockerException:
-        return make_error_response(f'关闭容器失败:{container_id}')
+        return api_fail(msg=f'关闭容器失败:{container_id}')
     return api_success({"status": 'ok'})
 
 
@@ -153,7 +151,7 @@ def container_start():
         container = client.containers.get(container_id)
         res = container.start()
     except docker_error.DockerException:
-        return make_error_response('关闭容器失败:{container_id}')
+        return api_fail(msg='关闭容器失败:{container_id}')
     return api_success({"status": 'ok'})
 
 
@@ -172,7 +170,7 @@ def container_action():
         action_fun = getattr(container, action)
         action_fun()
     except docker_error.DockerException as e:
-        return make_error_response('关闭容器失败:{container_id}')
+        return api_fail(msg='关闭容器失败:{container_id}')
     return api_success({"status": 'ok'})
 
 
@@ -212,7 +210,7 @@ def image_create():
     db.session.commit()
     tag = request.args.get('tag')
     if len(tag.split(":")) != 2:
-        return make_error_response("images name 格式错误请指定tag")
+        return api_fail(msg="images name 格式错误请指定tag")
     args = (task_obj.id, build_type, tag, g.user.id)
     if build_type == 'tar':
         file = request.files.get('files')
@@ -300,6 +298,9 @@ def compose_runner_list(query: PageForm):
 @validate()
 def docker_resource_list(query: PageForm):
     db_query = db.session.query(DockerResource).filter()
+    resource_type = request.args.get("type")
+    if resource_type:
+        db_query = db_query.filter(DockerResource.resource_type == resource_type)
     page = db_query.paginate(page=query.page, per_page=query.page_size)
     data = []
     for item in page.items:
@@ -317,6 +318,22 @@ def docker_resource_list(query: PageForm):
 @validate()
 def docker_resource_create(body: DockerResourceForm):
     DockerResource.create(**body.dict())
+    return api_success()
+
+
+@bp.put("/resource/<int:pk>")
+@validate()
+def docker_resource_update(pk: int, body: DockerResourceForm):
+    instance = DockerResource.get_by_id(pk)
+    # 判断是否修改了镜像
+    if instance.image != body.image or instance.docker_type != body.docker_type:
+        instance.status = DockerResource.STATUS_INIT
+    instance.name = body.name
+    instance.resource_type = body.resource_type
+    instance.image = body.image
+    instance.docker_type = body.docker_type
+    instance.description = body.description
+    instance.save()
     return api_success()
 
 

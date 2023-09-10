@@ -69,16 +69,16 @@ def register_custom_helpers(scope_app):
 
 def exception_handle(e):
     if isinstance(e, redis.exceptions.ConnectionError):
-        return make_response(jsonify({"msg": "缓存服务不可用"}), 503)
+        return make_response(jsonify({"message": "缓存服务不可用"}), 503)
     if isinstance(e, RestExceptions):
-        return make_response(jsonify({"msg": e.msg, "code": e.code}), e.status)
+        return make_response(jsonify({"message": e.msg, "code": e.code}), e.status)
     if isinstance(e, HTTPException):
-        return make_response(jsonify({"msg": e.name, "code": e.code}), e.code)
+        return make_response(jsonify({"message": e.name, "code": e.code}), e.code)
 
     exc_info = (type(e), e, e.__traceback__)
     logger = logging.getLogger('app')
     logger.error('Exception occurred', exc_info=exc_info)
-    return make_response(jsonify({"msg": type(e).__name__, "code": 500}), 500)
+    return make_response(jsonify({"message": type(e).__name__, "code": 500}), 500)
 
 
 def register_extensions(scope_app):
@@ -123,6 +123,12 @@ def register_blueprints(flask_app):
     flask_app.register_blueprint(admin_docker_bp)
     flask_app.register_blueprint(admin_views.bp)
     flask_app.register_blueprint(user_views.bp)
+
+    @flask_app.after_request
+    def after_request(response):
+        if db.session.dirty:
+            print("\n\n>>>>>>>>>>>>>>>>>>>>>>>\n", db.session.dirty)
+        return response
 
 
 def create_default_data():

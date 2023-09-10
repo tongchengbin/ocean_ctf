@@ -28,14 +28,14 @@ def admin_rest_pass():
     old_pass = data.get("old_pass")
     new_pass = data.get("pass")
     if not all([old_pass, new_pass]):
-        return make_response(jsonify({"msg": "参数错误"}), 400)
+        return api_fail(msg="参数错误")
     user = g.user
     if check_password_hash(user.password, old_pass):
         user.password = generate_password_hash(new_pass)
         db.session.commit()
-        return jsonify({})
+        return api_success()
     else:
-        return make_response(jsonify({"msg": "旧密码错误"}), 400)
+        return api_fail(msg="旧密码错误")
 
 
 @bp.route('/task/<int:task>/log', methods=['get'])
@@ -174,7 +174,7 @@ def user_create():
     username = data.get('username')
     password = data.get("password")
     if db.session.query(User).filter(User.username == username).one_or_none():
-        return make_response(jsonify({"msg": "用户名已存在"}), 400)
+        return api_fail(msg="用户名已存在")
     safe_password = generate_password_hash(password)
     db.session.add(User(username=username, password=safe_password))
     db.session.commit()
@@ -382,7 +382,7 @@ def role_create():
     data = request.get_json()
     name = data.get("name")
     if db.session.query(Role).filter(Role.name == name).count():
-        raise exceptions.ConstraintFailure("角色已存在")
+        return api_fail(msg="角色已存在")
     instance = Role(name=name)
     db.session.add(instance)
     db.session.commit()
@@ -396,11 +396,11 @@ def role_update():
     name = data.get("name").strip()
     instance = db.session.query(Role).filter(Role.id == pk).first()
     if not instance:
-        raise exceptions.InstanceNotFount("资源不存在")
+        return api_fail(msg="资源不存在")
     if instance.name == name:
         return api_success({})
     if db.session.query(Role).filter(Role.name == name).count():
-        raise exceptions.ConstraintFailure("角色已存在")
+        return api_fail(msg="角色已存在")
     instance.name = name
     db.session.commit()
     return api_success({})
@@ -410,7 +410,7 @@ def role_update():
 def role_delete(pk):
     instance = db.session.query(Role).filter(Role.id == pk).first()
     if not instance:
-        raise exceptions.InstanceNotFount("资源不存在")
+        return api_fail(msg="资源不存在")
     db.session.delete(instance)
     db.session.commit()
     return api_success({})

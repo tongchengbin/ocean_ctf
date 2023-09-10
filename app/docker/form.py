@@ -18,4 +18,4 @@ class DockerResourceForm(BaseModel):
     docker_type: int
     image: str
     name: str
-    description: str
+    description: Optional[str]

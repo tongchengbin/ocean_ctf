@@ -1,7 +1,10 @@
 import logging
 
 import docker
-from sqlalchemy import or_
+import sqlalchemy
+from docker.errors import NotFound
+from sqlalchemy import or_, func
+from sqlalchemy.exc import IntegrityError
 
 from app.extensions import db
 
@@ -28,7 +31,8 @@ def vuln_list():
     page_size = int(request.args.get("page_size", 10))
     search = request.args.get('search')
     out_ip = Config.get_config(Config.KEY_IP)
-    db_query = db.session.query(DockerResource).filter(DockerResource.status == DockerResource.STATUS_BUILD)
+    db_query = db.session.query(DockerResource).filter(DockerResource.status == DockerResource.STATUS_BUILD,
+                                                       DockerResource.resource_type == "VUL")
     if search:
         db_query = db_query.filter(or_(DockerResource.name.contains(search) |
                                        DockerResource.app.contains(search) |
@@ -62,10 +66,21 @@ def vuln_list():
     })
 
 
+@bp.get("/vuln/apps")
+def vuln_apps():
+    query = db.session.query(DockerResource.app, func.count(DockerResource.id)).filter(
+        DockerResource.resource_type == "VUL").group_by(
+        DockerResource.app)
+    data = []
+    for (app, cnt) in query.all():
+        data.append({"app": app, "cnt": cnt})
+    return api_success({"data": data})
+
+
 @bp.get("/vuln/<int:pk>")
 def vuln_detail(pk):
     instance = DockerResource.get_by_id(pk)
-    return api_success(model2dict(instance))
+    return api_success({"data": model2dict(instance)})
 
 
 @bp.post("/vuln/<int:pk>/start")
@@ -73,6 +88,8 @@ def vuln_detail(pk):
 def vuln_start(pk):
     try:
         start_vuln_resource(pk, user_id=g.user.id)
+    except IntegrityError:
+        return api_fail(msg="请勿重复创建环境")
     except ValueError:
         return api_fail(msg="资源启动失败,请联系管理员!")
     return api_success()
@@ -87,8 +104,11 @@ def vuln_stop(pk):
     if not instance:
         return api_success()
     client = docker.DockerClient(docker_api)
-    docker_container = client.containers.get(instance.container_id)
-    docker_container.stop()
-    docker_container.remove()
+    try:
+        docker_container = client.containers.get(instance.container_id)
+        docker_container.stop()
+        docker_container.remove()
+    except NotFound:
+        pass
     instance.delete()
     return api_success()
