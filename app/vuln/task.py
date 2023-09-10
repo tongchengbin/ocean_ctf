@@ -55,13 +55,18 @@ def start_vuln_resource(resource_id, user_id=None, admin_id=None) -> DockerRunne
         logger.exception(e)
         raise ValueError("题目启动失败")
     # 查看是否有历史记录
-    docker_runner = db.session.query(DockerRunner).filter(DockerRunner.name == docker_container.name).first()
-    if docker_runner:
-        docker_runner.container_id = docker_container.id
-        docker_runner.port_info = port_dict
-        docker_runner.save()
-    else:
-        docker_runner = DockerRunner.create(name=docker_container.name, resource_id=resource_id,
-                                            admin_id=admin_id, user_id=user_id, port_info=port_dict,
-                                            container_id=docker_container.id)
-    return docker_runner
+    try:
+        docker_runner = db.session.query(DockerRunner).filter(DockerRunner.name == docker_container.name).first()
+        if docker_runner:
+            docker_runner.container_id = docker_container.id
+            docker_runner.port_info = port_dict
+            docker_runner.save()
+        else:
+            docker_runner = DockerRunner.create(name=docker_container.name, resource_id=resource_id,
+                                                admin_id=admin_id, user_id=user_id, port_info=port_dict,
+                                                container_id=docker_container.id)
+    except Exception as e:
+        logger.exception(e)
+        db.session.rollback()
+
+    return

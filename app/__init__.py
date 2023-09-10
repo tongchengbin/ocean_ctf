@@ -124,11 +124,14 @@ def register_blueprints(flask_app):
     flask_app.register_blueprint(admin_views.bp)
     flask_app.register_blueprint(user_views.bp)
 
-    @flask_app.after_request
-    def after_request(response):
-        if db.session.dirty:
-            print("\n\n>>>>>>>>>>>>>>>>>>>>>>>\n", db.session.dirty)
-        return response
+    def remove_db_session(_) -> None:
+        # 需要手动删除session 不然多线程会遇到读取旧数据的问题
+        try:
+            db.session.remove()
+        except AttributeError:
+            pass
+
+    flask_app.teardown_request_funcs.setdefault(None, []).append(remove_db_session)
 
 
 def create_default_data():

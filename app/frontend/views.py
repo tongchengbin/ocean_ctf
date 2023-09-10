@@ -16,7 +16,6 @@ from app.lib.tools import get_ip
 from app.lib.utils.authlib import create_token
 from app.models.admin import Notice, Config
 from app.models.ctf import ImageResource, CtfResource, Answer, Question, Attachment
-from app.models.docker import DockerRunner
 from app.models.user import User
 import logging
 
