@@ -371,20 +371,23 @@ def question_destroy(question):
     instance = db.session.query(Question).get(question)
     if not instance.active_flag:
         return api_fail("静态题库无需动态生成")
-    ctf_resources = db.session.query(CtfResource).filter(CtfResource.question_id == instance.id,
-                                                         CtfResource.user_id == g.user.id)
-    for ctf_resource in ctf_resources:
-        client = docker.DockerClient(Config.get_config(Config.KEY_DOCKER_API))
-        # 默认一个docker run 只能绑定一个用户吧 所以直接删除docker run  采用数据库的连表删除自动删除其他索引
-        try:
-            container = client.containers.get(ctf_resource.docker_runner.container_id)
-            container.stop()
-            container.remove()
-        except NotFound:
-            continue
-        finally:
-            db.session.query(DockerRunner).filter(DockerRunner.id == ctf_resource.docker_runner_id).delete(
-                synchronize_session='fetch')
+    ctf_resource = db.session.query(CtfResource).filter(CtfResource.question_id == instance.id,
+                                                        CtfResource.user_id == g.user.id).first()
+    if not ctf_resource:
+        return api_fail(msg="环境已销毁")
+
+    client = docker.DockerClient(Config.get_config(Config.KEY_DOCKER_API))
+    # 默认一个docker run 只能绑定一个用户吧 所以直接删除docker run  采用数据库的连表删除自动删除其他索引
+    try:
+        container = client.containers.get(ctf_resource.docker_runner.container_id)
+        container.stop()
+        container.remove()
+    except NotFound:
+        logger.warning("环境异常:{}".format(ctf_resource.docker_runner.container_id))
+    docker_run = ctf_resource.docker_runner
+    db.session.delete(ctf_resource)
+    db.session.delete(docker_run)
+    db.session.commit()
     return api_success()
 
 
