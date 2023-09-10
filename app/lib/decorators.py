@@ -31,7 +31,7 @@ def user_required(required=True):
                 g.user = admin
                 return fn(*args, **kwargs)
             else:
-                raise APIForbidden(status=200)
+                return api_fail(msg="权限验证失败", code=401)
 
         return inner
 
