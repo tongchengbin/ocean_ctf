@@ -26,12 +26,15 @@
 
 线上地址 http://101.43.27.219/
 
+`
 测试用户: test/test
+`
 
 管理后台 http://101.43.27.219/manager
 
+`
 访客管理账号 guest/guest
-
+`
 
 ## 📖 安装
 
@@ -46,9 +49,15 @@ git clone https://github.com/tongchengbin/ocean_ctf.git /opt/ocean_ctf
 cd /opt/ocean_ctf
 docker-compose up -d
 ```
-* 初始化系统
 
-访问 /manager 设置管理员账号和初始化
+* 初始化系统
+访问 /manager
+
+`
+默认账号
+admin/admin
+`
+
 
 
 ## 使用
@@ -91,9 +100,15 @@ Copyright (c) 2022-present tongcb
 
 ## 截图
 
-- 初始化界面
-  ![](./doc/image/init.png)
 
+- 管理员登录
+  ![](./doc/image/admin_login.png)
+
+- Home
+  ![](./doc/image/dashboard.png)
+
+- Docker
+  ![](./doc/image/docker.png)
 
 - 资源中心
   ![](./doc/image/resource.png)
@@ -107,33 +122,24 @@ Copyright (c) 2022-present tongcb
   ![](./doc/image/编译进度.png)
 
 - 镜像列表
-
   ![](./doc/image/8.png)
 
-- 添加动态题库
+- 题目列表
+  ![](./doc/image/question.png)
+- 赛事环境
+  ![](./doc/image/4.png)
+- 答题记录
+  ![](./doc/image/5.png)
 
-  ![](./doc/image/添加动态题库.png)
+- 用户首页
+  ![](./doc/image/用户首页.png)
 
-- 首页
-
-  ![](./doc/image/首页.png)
 
 - 启动容器
-
   ![](./doc/image/启动容器.png)
 
 - 靶场
+  ![]()![动态靶场](./doc/image/动态靶场.png)
 
-  ![]()![动态靶场](./doc/image/动态靶场.png) 
-  
-- 管理后台
-
-  ![](./doc/image/1.png)
-
-  ![]()![2](./doc/image/2.png)
-
-  ![](./doc/image/3.png)
-
-  ![](./doc/image/4.png)
-
-  ![](./doc/image/5.png)
+- 漏洞复现
+    ![](./doc/image/vul.png)
