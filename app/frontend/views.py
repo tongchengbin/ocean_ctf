@@ -3,7 +3,7 @@ import string
 from datetime import datetime, timedelta
 import docker
 from docker.errors import NotFound
-from flask import Blueprint, render_template, request, make_response, g, send_from_directory
+from flask import Blueprint, request, g, send_from_directory
 from sqlalchemy import func, desc
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -15,7 +15,7 @@ from app.lib.decorators import user_required
 from app.lib.tools import get_ip
 from app.lib.utils.authlib import create_token
 from app.models.admin import Notice, Config
-from app.models.ctf import ImageResource, CtfResource, Answer, Question, Attachment
+from app.models.ctf import CtfResource, Answer, Question, Attachment
 from app.models.user import User
 import logging
 
@@ -41,72 +41,6 @@ def generate_flag():
     """
     rd_str = ''.join(random.sample(string.ascii_letters + string.digits, 32))
     return "flag{ocean%s}" % rd_str
-
-
-@bp.get('/')
-def index():
-    """
-        :return :首页 后端渲染
-    """
-    subject = request.args.get('subject')
-    subjects = ("Web", "Crypto", "Pwn", "Iot", "Misc")
-    query = db.session.query(Question)
-    if subject:
-        query = query.filter(Question.type == subject.lower())
-    solved_qid = []
-    if g.user:
-        # 我已解决的题目
-        solved_question = db.session.query(Answer.question_id).filter(Answer.user_id == g.user.id,
-                                                                      Answer.status == 1).all()
-        solved_qid = [i[0] for i in solved_question]
-    data = []
-    links = {}
-    if g.user:
-        # 获取镜像资源
-        containers = db.session.query(CtfResource, ImageResource.question_id) \
-            .join(ImageResource, ImageResource.id == CtfResource.image_resource_id
-                  ) \
-            .join(User, User.id == CtfResource.user_id).order_by(desc(CtfResource.id)).all()
-        # 获取用户容器
-        for c in containers:
-            container, question_id = c
-            links[question_id] = ["%s:%s" % (container.addr, container.container_port)]
-    # 统计每个题目解决人数
-
-    solved_query = db.session.query(Answer.question_id, func.count(Answer.id)).filter(Answer.status == 1).group_by(
-        Answer.question_id)
-    solved_state = {}
-    for qid, cnt in solved_query:
-        solved_state[qid] = cnt
-    for item in query:
-        data.append({
-            "active_flag": item.active_flag,
-            "id": item.id,
-            "links": links.get(item.id, []),
-            "type": item.type,
-            "desc": item.desc,
-            "name": item.name,
-            "score": item.score,
-            "solved": solved_state.get(item.id, 0),
-            "date_created": item.date_created.strftime("%y-%m-%d"),
-            "has_solved": True if item.id in solved_qid else False
-        })
-    # 公告
-    notices = []
-    notice_query = db.session.query(Notice).all()
-    for item in notice_query:
-        notices.append({
-            "id": item.id,
-            "content": item.content,
-            "date_create": item.date_created.strftime("%Y-%m-%d %H:%M")
-        })
-    response = make_response(render_template('index.html', user=g.user, challenges=data,
-                                             subjects=subjects,
-                                             subject=subject,
-                                             notices=notices))
-    if not g.user:
-        response.delete_cookie('token')
-    return response
 
 
 @bp.post('/login')
@@ -254,7 +188,7 @@ def challenge_detail(question):
     ans = db.session.query(User.username).select_from(Answer).filter(Answer.question_id == question,
                                                                      Answer.status == Answer.status_ok,
                                                                      ).join(User,
-                                                                                            User.id == Answer.user_id)
+                                                                            User.id == Answer.user_id)
     ans = [i[0] for i in ans][:3]
     ans = list(ans) + [None] * (3 - len(list(ans)))
     first_blood, second_blood, third_blood = ans
