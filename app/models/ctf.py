@@ -17,6 +17,7 @@ class QType(Enum):
     reverse = "Reverse"
     pwn = "Pwn"
     crypto = "Crypto"
+    iot = "Iot"
 
 
 class ImageResource(MainBase):
