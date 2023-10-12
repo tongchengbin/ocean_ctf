@@ -71,7 +71,7 @@ def score_rank(username=None, page=1, page_size=20):
                                                                                              Question.id == Answer.question_id).filter(
         Answer.status == Answer.status_ok)
     arg_query = base_arg_query.group_by(Answer.user_id).subquery("slr")
-    sub_query = db.session.query(arg_query.c.user_id, arg_query.c.sum_score, arg_query.c.cnt,
+    sub_query = db.session.query(arg_query.c.user_id, arg_query.c.sum_score.label("sum_score"), arg_query.c.cnt,
                                  arg_query.c.last_time, arg_query.c.strong).select_entity_from(
         arg_query).add_columns(
         db.func.rank().over(order_by=desc(arg_query.c.sum_score)).label(
@@ -83,7 +83,7 @@ def score_rank(username=None, page=1, page_size=20):
         User, User.id == sub_query.c.user_id)
     if username:
         query = query.filter(User.username.ilike("%{}%".format(username)))
-    page = query.paginate(page=page, per_page=page_size)
+    page = query.order_by((desc(sub_query.c.sum_score)),).paginate(page=page, per_page=page_size)
     data = []
     for item in page.items:
         types = item.strong.split(",")
