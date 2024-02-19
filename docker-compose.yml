@@ -1,7 +1,17 @@
 version: "3"
+networks:
+  ctf:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.32.0.0/16
 services:
   db:
     image: mysql:8.0
+    networks:
+      ctf:
+        ipv4_address: 172.32.0.6
     command: --default-authentication-plugin=mysql_native_password
     container_name: db
     restart: unless-stopped
@@ -17,6 +27,9 @@ services:
         max-size: "100m"
   redis:
     image: redis:latest
+    networks:
+      ctf:
+        ipv4_address: 172.32.0.2
     container_name: redis
     logging:
       driver: "json-file"
@@ -32,6 +45,9 @@ services:
       context: .
       dockerfile: ./install/docker/ocean_web.Dockerfile
     image: ocean_web:v1
+    networks:
+      ctf:
+        ipv4_address: 172.32.0.3
     container_name: web
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
@@ -50,6 +66,9 @@ services:
       context: .
       dockerfile: ./install/docker/ocean_web.Dockerfile
     image: ocean_web:v1
+    networks:
+      ctf:
+        ipv4_address: 172.32.0.4
     container_name: worker
     depends_on:
       - db
@@ -68,6 +87,9 @@ services:
       context: .
       dockerfile: ./install/docker/ocean_web.Dockerfile
     image: ocean_web:v1
+    networks:
+      ctf:
+        ipv4_address: 172.32.0.5
     container_name: beat
     depends_on:
       - db

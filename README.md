@@ -24,13 +24,13 @@
 
 ## 🚀 预览
 
-线上地址 http://101.43.27.219/
+线上地址 http://ctf.lostpeach.cn/
 
 `
 测试用户: test/test
 `
 
-管理后台 http://101.43.27.219/manager
+管理后台 http://ctf.lostpeach.cn/manager
 
 `
 访客管理账号 guest/guest
