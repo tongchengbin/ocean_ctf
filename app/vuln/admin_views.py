@@ -2,6 +2,7 @@ import logging
 
 import docker
 import yaml
+from docker.errors import NotFound
 from docker.models.containers import ContainerCollection
 from flask import Blueprint, g
 from flask import request
@@ -26,7 +27,7 @@ def vuln_list():
     page = int(request.args.get('page', 1))
     page_size = int(request.args.get("page_size", 10))
     search = request.args.get('search')
-    db_query = db.session.query(DockerResource).filter(DockerResource.resource_type=='VUL')
+    db_query = db.session.query(DockerResource).filter(DockerResource.resource_type == 'VUL')
     if search:
         db_query = db_query.filter(or_(DockerResource.name.contains(search) |
                                        DockerResource.app.contains(search) |
@@ -142,9 +143,12 @@ def runner_delete(pk):
     docker_api = Config.get_config(Config.KEY_DOCKER_API)
     instance: DockerRunner = db.session.query(DockerRunner).get(pk)
     client = docker.DockerClient(docker_api)
-    docker_container: docker.models.containers.Container = client.containers.get(instance.container_id)
-    docker_container.stop()
-    docker_container.remove()
+    try:
+        docker_container: docker.models.containers.Container = client.containers.get(instance.container_id)
+        docker_container.stop()
+        docker_container.remove()
+    except NotFound as e:
+        logger.error(e)
     instance.delete()
     return api_success({})
 
