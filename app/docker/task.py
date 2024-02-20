@@ -64,7 +64,6 @@ def task_add_log(task: int, line: dict):
     if isinstance(line, bytes):
         line = json.loads(line)
     task_key = "task_%s" % task
-    # cache.rpush(task_key, line)
     if "progress" in line:
         cache.rpush(task_key, "%s:%s" % (line["status"], line["progress"]))
     elif "error" in line:
@@ -84,13 +83,13 @@ def build_delay(task_id: int, build_type, tag, admin, pt=None, dockerfile=None):
     """
     task = TaskList.get_by_id(task_id)
     if not task:
+        logger.error("任务ID不粗在:{}".format(task_id))
         return
     try:
         client = APIClient(Config.get_config(Config.KEY_DOCKER_API))
     except DockerException as e:
         logger.exception(e)
         return
-
     if build_type == 'tar':
         f = open(pt, 'rb')
         for line in client.build(fileobj=f, rm=True, tag=tag, custom_context=True):
@@ -105,11 +104,14 @@ def build_delay(task_id: int, build_type, tag, admin, pt=None, dockerfile=None):
         try:
             f = BytesIO(dockerfile.encode('utf-8'))
             for line in client.build(fileobj=f, rm=True, tag=tag):
+                logger.info(line)
                 task_add_log(task.id, line)
             task.status = task.STATUS_DONE
         except DockerException as e:
             task.status = task.STATUS_ERROR
             task.remark = str(e)
+            logger.exception(e)
+            task_add_log(task_id,{"error":str(e)})
     task.save()
 
 

@@ -1,22 +1,25 @@
 import json
+import logging
 import os
-import yaml
+
 import docker
 import requests
+import yaml
 from docker import errors as docker_error
 from flask import Blueprint, request, g
 from flask_pydantic import validate
 from sqlalchemy import or_
 from sqlalchemy.exc import IntegrityError
+
+from app.docker import task
+from app.extensions import cache
 from app.extensions import db
+from app.lib.api import api_success, api_fail
+from app.lib.tools import model2dict
 from app.models.admin import TaskList, Config
 from app.models.docker import (Host, ComposeDB, ComposeRunner, DockerResource, )
 from .form import PageForm, ComposeDBForm, DockerResourceForm
-import logging
-from app.docker import task
-from app.lib.api import api_success, api_fail
-from app.lib.tools import model2dict
-from app.extensions import cache
+from ..lib.validator import contains_special_characters
 
 logger = logging.getLogger('app')
 bp = Blueprint("admin_docker", __name__, url_prefix="/api/admin/docker")
@@ -205,12 +208,19 @@ def image_create():
         编译是一个比较耗时的任务 这里回采取延迟执行方式
     """
     build_type = request.args.get('build_type')
-    task_obj = TaskList(admin_id=g.user.id, target_id=None, title="build image for %s" % build_type)
-    db.session.add(task_obj)
-    db.session.commit()
+
     tag = request.args.get('tag')
     if len(tag.split(":")) != 2:
         return api_fail(msg="images name 格式错误请指定tag")
+    name, version = tag.split(":")
+    # check name and version 是否包含特殊字符
+    if not name or not version:
+        return api_fail(msg="images name 格式错误请指定tag")
+    if not contains_special_characters(name) or not contains_special_characters(version):
+        return api_fail(msg="镜像名称和版本不支持特殊字符")
+    task_obj = TaskList(admin_id=g.user.id, target_id=None, title="build image for %s" % build_type)
+    db.session.add(task_obj)
+    db.session.commit()
     args = (task_obj.id, build_type, tag, g.user.id)
     if build_type == 'tar':
         file = request.files.get('files')
