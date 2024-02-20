@@ -27,11 +27,9 @@ logger = logging.getLogger(__name__)
 @bp.get('/upload/<path:filename>')
 def send_upload_file(filename):
     name = request.args.get("filename")
-    cache_timeout = None
     manager_folder = 'upload'
-    return send_from_directory(manager_folder, filename, cache_timeout=cache_timeout,
-                               attachment_filename=name or filename,
-                               as_attachment=True)
+    return send_from_directory(manager_folder, filename,
+                               as_attachment=True, download_name=name)
 
 
 def generate_flag():
