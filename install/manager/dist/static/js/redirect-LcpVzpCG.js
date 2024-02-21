@@ -1,1 +1,0 @@
-import{e as c,l as s,c as p,x as u,o as _}from"./index-QZ57AMr5.js";const f=c({name:"Redirect",__name:"redirect",setup(i){const{currentRoute:r,replace:t}=u(),{params:a,query:n}=s(r),{path:e}=a,o=Array.isArray(e)?e.join("/"):e;return t({path:"/"+o,query:n}),(m,l)=>(_(),p("div"))}});export{f as default};
