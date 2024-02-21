@@ -10,6 +10,6 @@ from app.extensions import db
 class User(MainBase):
     __tablename__ = 'user'
     username = Column(db.String(256), unique=True, nullable=False, comment='用户名')
-    password = Column(db.String(128), nullable=False, comment='密码')
+    password = Column(db.String(512), nullable=False, comment='密码')
     active = Column(db.Boolean(),default=True, comment="是否启用")
     token = Column(db.String(64), comment="token", nullable=True)
