@@ -41,7 +41,7 @@ def delay_docker_resource_build(resource_id: int):
         logger.exception(e)
         return
     # 清空 cache
-    key = "DOCKER_RESOURCE_%s" % resource_id
+    key = "DOCKER_BUILD_%s" % resource_id
     cache.delete(key)
     try:
         for log_dic in client.pull(resource.image, stream=True, decode=True):

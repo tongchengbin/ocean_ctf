@@ -1,14 +1,16 @@
+import logging
 import random
 import string
 from datetime import datetime, timedelta
+
 import docker
 from docker.errors import NotFound
 from flask import Blueprint, request, g, send_from_directory
 from sqlalchemy import func, desc
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from app.extensions import db
 from app.docker.service import start_docker_resource
+from app.extensions import db
 from app.frontend import services
 from app.lib.api import api_success, api_fail
 from app.lib.decorators import user_required
@@ -17,7 +19,6 @@ from app.lib.utils.authlib import create_token
 from app.models.admin import Notice, Config
 from app.models.ctf import CtfResource, Answer, Question, Attachment
 from app.models.user import User
-import logging
 
 bp = Blueprint("view", __name__, url_prefix='/api')
 
@@ -73,7 +74,7 @@ def info():
 
     }
 
-    return api_success(data)
+    return api_success({"data": data})
 
 
 @bp.route('/register', methods=['get', 'post'])

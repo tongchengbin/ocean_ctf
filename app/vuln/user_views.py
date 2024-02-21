@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 bp = Blueprint("user_vuln", __name__, url_prefix="/api/")
 
 
-@bp.get("/vuln")
+@bp.get("/vulnerability")
 @user_required(required=False)
 def vuln_list():
     """
@@ -66,7 +66,7 @@ def vuln_list():
     })
 
 
-@bp.get("/vuln/apps")
+@bp.get("/vulnerability/apps")
 def vuln_apps():
     query = db.session.query(DockerResource.app, func.count(DockerResource.id)).filter(
         DockerResource.resource_type == "VUL").group_by(
@@ -77,13 +77,13 @@ def vuln_apps():
     return api_success({"data": data})
 
 
-@bp.get("/vuln/<int:pk>")
+@bp.get("/vulnerability/<int:pk>")
 def vuln_detail(pk):
     instance = DockerResource.get_by_id(pk)
     return api_success({"data": model2dict(instance)})
 
 
-@bp.post("/vuln/<int:pk>/start")
+@bp.post("/vulnerability/<int:pk>/start")
 @user_required()
 def vuln_start(pk):
     try:
@@ -95,7 +95,7 @@ def vuln_start(pk):
     return api_success()
 
 
-@bp.post("/vuln/<int:pk>/stop")
+@bp.post("/vulnerability/<int:pk>/stop")
 @user_required()
 def vuln_stop(pk):
     docker_api = Config.get_config(Config.KEY_DOCKER_API)

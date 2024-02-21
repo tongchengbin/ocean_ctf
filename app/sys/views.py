@@ -72,7 +72,7 @@ def upload_file():
     return api_success({"name": filename, "filename": filename + "|" + uuid_filename})
 
 
-@bp.route('/admin', methods=['get'])
+@bp.get('/admin')
 def admin_list():
     """
                     管理员列表
@@ -80,7 +80,10 @@ def admin_list():
                 """
     page = int(request.args.get('page', 1))
     page_size = int(request.args.get("page_size", 10))
+    search = request.args.get("search")
     query = db.session.query(Admin).filter(Admin.username != 'superuser')
+    if search:
+        query = query.filter(Admin.username.contains(search))
     page = query.paginate(page=page, per_page=page_size)
     data = []
     for item in page.items:

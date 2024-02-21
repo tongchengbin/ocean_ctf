@@ -352,8 +352,7 @@ def docker_resource_build(pk):
     """
         资源编译
     """
-    task.delay_docker_resource_build(pk)
-    # task.delay_docker_resource_build.apply_async(args=(pk,))
+    task.delay_docker_resource_build.apply_async(args=(pk,))
     return api_success()
 
 
@@ -410,7 +409,8 @@ def docker_resource_sync():
 def resource_delete(pk):
     try:
         DockerResource.get_by_id(pk).delete()
-    except IntegrityError:
+    except IntegrityError as e:
+        logger.exception(e)
         db.session.rollback()
         return api_fail(msg="资源占用中、当前状态无法删除,请检查引用对象!", code=400)
     return api_success({})
