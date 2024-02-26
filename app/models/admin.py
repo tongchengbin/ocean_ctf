@@ -16,7 +16,7 @@ class Role(MainBase):
 class Admin(MainBase):
     __tablename__ = 's_admin'
     username = Column(db.String(256), unique=True, nullable=False, comment='用户名')
-    password = Column(db.String(128), nullable=False, comment='密码')
+    password = Column(db.String(512), nullable=False, comment='密码')
     role_id = Column(db.Integer, ForeignKey('s_role.id'))
     role = relationship('Role')
     active = Column(db.Boolean(), comment="是否启用")
