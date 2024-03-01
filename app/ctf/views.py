@@ -173,9 +173,9 @@ def answers_list():
     query = db.session.query(Answer, Question, User) \
         .join(Question, Question.id == Answer.question_id) \
         .join(User, User.id == Answer.user_id)
-    if _type is not None:
+    if _type:
         query = query.filter(Question.type == _type)
-    if status is not None:
+    if status:
         query = query.filter(Answer.status == status)
     if username:
         query = query.filter(User.username.contains(username))
