@@ -112,7 +112,9 @@ def start_docker_resource(resource_id, user_id, flag=None) -> DockerRunner:
         logger.warning(e)
         raise ValueError("当前题目环境缺失、请联系管理员！")
     # 解析镜像端口
-    image_config = image.attrs["ContainerConfig"]
+    print(image)
+    logger.info("{}".format(image.attrs))
+    image_config = image.attrs["Config"]
     port_range = Config.get_config(Config.KEY_PORT_RANGE)
     try:
         start_port, end_port = port_range.split("-")
@@ -121,7 +123,7 @@ def start_docker_resource(resource_id, user_id, flag=None) -> DockerRunner:
     except (AssertionError, ValueError, IndexError):
         raise ValueError("服务器缺少资源、请联系管理员")
     if "ExposedPorts" in image_config:
-        port_dict = image.attrs["ContainerConfig"]["ExposedPorts"]
+        port_dict = image_config["ExposedPorts"]
         for docker_port, host_port in port_dict.items():
             port_dict[docker_port] = get_free_port(start_port, end_port)
     else:

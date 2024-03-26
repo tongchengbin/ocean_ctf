@@ -96,7 +96,12 @@ broker_url = REDIS_URL
 beat_schedule = {
     "day_upload_req": {
         "task": "app.sys.tasks.day_upload_req",
-        "schedule": crontab(hour=2, minute=4),
+        "schedule": crontab(hour="2", minute="4"),
+    },
+    "beat_destroy_container": {
+        "task": "app.ctf.tasks.beat_destroy_container",
+        "schedule": crontab(minute="*"),
+
     },
     # "crontab_monitoring_docker_api": {
     #     "task": "app.tasks.ctf.crontab_monitoring_docker_api",
