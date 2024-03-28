@@ -90,7 +90,14 @@ admin/admin
 ## 开发
 
   后台管理源码：https://github.com/tongchengbin/ocean_manager
+
+## 社群
+  QQ群: 836641851
   
+  <img src="./doc/image/qq.jpg" alt="QQ Image" width="200" height="300">
+
+  
+
 ## License
 
 [MIT](https://github.com/tongchengbin/ocean_ctf/blob/master/LICENSE)
