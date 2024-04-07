@@ -19,7 +19,7 @@ from app.lib.tools import model2dict
 from app.models.admin import TaskList, Config
 from app.models.docker import (Host, ComposeDB, ComposeRunner, DockerResource, )
 from .form import PageForm, ComposeDBForm, DockerResourceForm
-from ..lib.validator import contains_special_characters
+from ..lib.validator import check_image_name
 
 logger = logging.getLogger('app')
 bp = Blueprint("admin_docker", __name__, url_prefix="/api/admin/docker")
@@ -216,8 +216,8 @@ def image_create():
     # check name and version 是否包含特殊字符
     if not name or not version:
         return api_fail(msg="images name 格式错误请指定tag")
-    if not contains_special_characters(name) or not contains_special_characters(version):
-        return api_fail(msg="镜像名称和版本不支持特殊字符")
+    if not check_image_name(tag):
+        return api_fail(msg="镜像名称不合法")
     task_obj = TaskList(admin_id=g.user.id, target_id=None, title="build image for %s" % build_type)
     db.session.add(task_obj)
     db.session.commit()

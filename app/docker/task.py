@@ -8,9 +8,9 @@ from docker import APIClient
 from docker.errors import DockerException
 
 from app.docker.service import user_compose_down
+from app.extensions import cache, celery
 from app.models.admin import Config, TaskList
 from app.models.docker import ComposeDB, DockerResource
-from app.extensions import cache, celery
 
 logger = logging.getLogger(__name__)
 
@@ -90,28 +90,28 @@ def build_delay(task_id: int, build_type, tag, admin, pt=None, dockerfile=None):
     except DockerException as e:
         logger.exception(e)
         return
-    if build_type == 'tar':
-        f = open(pt, 'rb')
-        for line in client.build(fileobj=f, rm=True, tag=tag, custom_context=True):
-            logger.info(line)
-            task_add_log(task.id, line)
-        task.status = task.STATUS_DONE
-    elif build_type == 'pull':
-        for line in client.pull(tag, stream=True, decode=True):
-            task_add_log(task.id, line)
-        task.status = task.STATUS_DONE
-    else:
-        try:
+    try:
+        if build_type == 'tar':
+            f = open(pt, 'rb')
+            for line in client.build(fileobj=f, rm=True, tag=tag, custom_context=True):
+                logger.info(line)
+                task_add_log(task.id, line)
+            task.status = task.STATUS_DONE
+        elif build_type == 'pull':
+            for line in client.pull(tag, stream=True, decode=True):
+                task_add_log(task.id, line)
+            task.status = task.STATUS_DONE
+        else:
             f = BytesIO(dockerfile.encode('utf-8'))
             for line in client.build(fileobj=f, rm=True, tag=tag):
                 logger.info(line)
                 task_add_log(task.id, line)
             task.status = task.STATUS_DONE
-        except DockerException as e:
-            task.status = task.STATUS_ERROR
-            task.remark = str(e)
-            logger.exception(e)
-            task_add_log(task_id,{"error":str(e)})
+    except DockerException as e:
+        task.status = task.STATUS_ERROR
+        task.remark = str(e)
+        logger.error(e)
+        task_add_log(task_id, {"error": str(e)})
     task.save()
 
 

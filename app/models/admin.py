@@ -44,7 +44,7 @@ class TaskList(MainBase):
     status = Column(db.Integer, default=STATUS_WAIT, comment="任务状况")
     title = Column(db.String(64), comment="任务标题")
     target_id = Column(db.String(32), comment="操作对象ID 可以是主机 容器 镜像 题库等")
-    remark = Column(db.String(256), comment="备注 报错错误信息记录")
+    remark = Column(db.Text, comment="备注 报错错误信息记录")
 
     @property
     def status_name(self):
