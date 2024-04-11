@@ -48,7 +48,8 @@ def delay_docker_resource_build(resource_id: int):
             # 添加到日志
             logger.info(log_dic)
             cache.lpush(key, json.dumps(log_dic))
-    except docker.errors.ImageNotFound:
+    except docker.errors.ImageNotFound as e:
+        logger.exception(e)
         logger.warning("镜像不存在:{}".format(resource.image))
         return
     resource.status = DockerResource.STATUS_BUILD

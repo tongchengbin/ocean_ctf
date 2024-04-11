@@ -59,8 +59,10 @@ class DockerResource(MainBase):
     """
 
     DOCKER_TYPE_REMOTE_IMAGE = 1  # 远程docker 仓库 PULL 方式
+    DOCKER_TYPE_LOCAL_IMAGE = 2
     DOCKER_TYPE_MAP = {
-        DOCKER_TYPE_REMOTE_IMAGE: "远程镜像加载"
+        DOCKER_TYPE_REMOTE_IMAGE: "远程镜像加载",
+        DOCKER_TYPE_LOCAL_IMAGE: "本地镜像加载"
     }
     STATUS_INIT = 0
     STATUS_BUILD = 1

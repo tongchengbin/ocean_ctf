@@ -5,7 +5,8 @@ import os
 import docker
 import requests
 import yaml
-from docker import errors as docker_error
+from docker import errors as docker_error, APIClient
+from docker.errors import DockerException
 from flask import Blueprint, request, g
 from flask_pydantic import validate
 from sqlalchemy import or_
@@ -352,7 +353,21 @@ def docker_resource_build(pk):
     """
         资源编译
     """
-    task.delay_docker_resource_build.apply_async(args=(pk,))
+    resource = DockerResource.get_by_id(pk)
+    if resource.docker_type == DockerResource.DOCKER_TYPE_LOCAL_IMAGE:
+        try:
+            client = APIClient(Config.get_config(Config.KEY_DOCKER_API))
+        except DockerException as e:
+            logger.exception(e)
+            return api_fail(msg="Docker初始化失败")
+        img = client.images(resource.image)
+        if img:
+            resource.status = DockerResource.STATUS_BUILD
+            resource.save()
+        else:
+            return api_fail(msg="本地镜像不存在")
+    else:
+        task.delay_docker_resource_build.apply_async(args=(pk,))
     return api_success()
 
 

@@ -4,7 +4,7 @@ python-dotenv==0.21.0
 mysqlclient==2.1.1
 redis==4.3.4
 uwsgi==2.0.20
-docker==6.0.0
+docker==7.0.0
 pydantic~=1.10.2
 flask-pydantic
 SQLAlchemy~=1.4.42
