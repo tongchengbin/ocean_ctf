@@ -112,7 +112,6 @@ def start_docker_resource(resource_id, user_id, flag=None) -> DockerRunner:
         logger.warning(e)
         raise ValueError("当前题目环境缺失、请联系管理员！")
     # 解析镜像端口
-    print(image)
     logger.info("{}".format(image.attrs))
     image_config = image.attrs["Config"]
     port_range = Config.get_config(Config.KEY_PORT_RANGE)
@@ -143,9 +142,9 @@ def start_docker_resource(resource_id, user_id, flag=None) -> DockerRunner:
     except docker.errors.APIError as e:
         logger.exception(e)
         raise ValueError("题目启动失败")
-    logger.info(flag)
+
     if flag:
-        command = "sh -c \"sh start.sh \\\"{0}\\\" || echo \\\"{0}\\\" >/flag\"".format(flag)
+        command = "sh -c \"sh /start.sh \\\"{0}\\\" || echo \\\"{0}\\\" >/flag\"".format(flag)
         logger.info("run {}".format(command))
         output = docker_container.exec_run(cmd=command, detach=True)
         logger.info(output)

@@ -40,7 +40,7 @@ class ImageResource(MainBase):
     build_result = Column(db.String(4096), comment="镜像状态说明")
 
 
-class Question(LogicBase):
+class Question(MainBase):
     __tablename__ = 'ctf_question'
     name = Column(db.String(256), nullable=False, comment='题目名称')
     type = Column(db.String(16), comment="分类")

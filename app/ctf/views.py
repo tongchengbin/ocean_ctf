@@ -225,7 +225,7 @@ def question_list():
     page_size = int(request.args.get("page_size", 10))
     subject = request.args.get("subject")
     search = request.args.get('search')
-    query = db.session.query(Question).filter(Question.deleted.is_(False))
+    query = db.session.query(Question).filter()
     if subject:
         query = query.filter(Question.type == subject)
     if search:

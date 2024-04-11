@@ -21,6 +21,7 @@ from app.models.admin import TaskList, Config
 from app.models.docker import (Host, ComposeDB, ComposeRunner, DockerResource, )
 from .form import PageForm, ComposeDBForm, DockerResourceForm
 from ..lib.validator import check_image_name
+from ..models.ctf import Question
 
 logger = logging.getLogger('app')
 bp = Blueprint("admin_docker", __name__, url_prefix="/api/admin/docker")
@@ -86,7 +87,7 @@ def docker_images():
     return api_success({"data": images_list})
 
 
-@bp.delete('/images')
+@bp.post('/delete_images')
 def image_delete():
     tag = request.get_json().get('id')
     docker_api = Config.get_config(Config.KEY_DOCKER_API)
@@ -422,6 +423,7 @@ def docker_resource_sync():
 
 @bp.delete("/resource/<int:pk>")
 def resource_delete(pk):
+    logger.info(db.session.query(Question).filter(Question.resource_id == pk).all())
     try:
         DockerResource.get_by_id(pk).delete()
     except IntegrityError as e:
