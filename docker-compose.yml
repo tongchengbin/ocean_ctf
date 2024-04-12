@@ -44,7 +44,7 @@ services:
     build:
       context: .
       dockerfile: ./install/docker/ocean_web.Dockerfile
-    image: ocean_web:v1.1
+    image: ocean_web:v1.2
     networks:
       ctf:
         ipv4_address: 172.32.0.3
@@ -52,6 +52,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /opt/ocean_ctf:/opt/ocean_ctf
+      - /opt/vulnerability:/opt/vulnerability
     depends_on:
       - db
       - redis
@@ -65,7 +66,7 @@ services:
     build:
       context: .
       dockerfile: ./install/docker/ocean_web.Dockerfile
-    image: ocean_web:v1.1
+    image: ocean_web:v1.2
     networks:
       ctf:
         ipv4_address: 172.32.0.4
@@ -76,6 +77,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /opt/ocean_ctf:/opt/ocean_ctf
+      - /opt/vulnerability:/opt/vulnerability
     restart: unless-stopped
     working_dir: /opt/ocean_ctf
     command: celery -A app.worker:celery worker -l debug
@@ -86,7 +88,7 @@ services:
     build:
       context: .
       dockerfile: ./install/docker/ocean_web.Dockerfile
-    image: ocean_web:v1.1
+    image: ocean_web:v1.2
     networks:
       ctf:
         ipv4_address: 172.32.0.5
@@ -97,6 +99,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /opt/ocean_ctf:/opt/ocean_ctf
+      - /opt/vulnerability:/opt/vulnerability
     restart: unless-stopped
     working_dir: /opt/ocean_ctf
     command: celery -A app.worker:celery beat -l debug

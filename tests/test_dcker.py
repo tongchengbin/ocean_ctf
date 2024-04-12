@@ -10,3 +10,4 @@ class TestValidator(unittest.TestCase):
     def test_docker_image(self):
         client = APIClient("unix:///var/run/docker.sock")
         client.pull("xxx:v1")
+

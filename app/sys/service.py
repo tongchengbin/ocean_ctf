@@ -1,7 +1,12 @@
 from flask import g, request
 
-from app import db
-from app.models.admin import Operator, Config
+from app.extensions import db
+from app.models.admin import Operator, Config, AdminMessage
+
+
+def create_admin_message(admin_id, content):
+    db.session.add(AdminMessage(admin_id=admin_id, content=content))
+    db.session.commit()
 
 
 def insert_operator(code, content, username=None, role_name=None):

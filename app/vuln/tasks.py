@@ -1,12 +1,17 @@
 import logging
+import os
 
 import docker
+import yaml
 from docker.errors import ImageNotFound
 
-from app.extensions import db
+from app.extensions import db, celery
 from app.docker.service import get_free_port
-from app.models.admin import Config
+from app.models.admin import Config, AdminMessage
 from app.models.docker import DockerRunner, DockerResource
+import git
+
+from app.sys import service
 
 logger = logging.getLogger(__name__)
 
@@ -69,4 +74,55 @@ def start_vuln_resource(resource_id, user_id=None, admin_id=None) -> DockerRunne
         logger.exception(e)
         db.session.rollback()
 
-    return
+
+def find_directories_with_filename(directory, filename='Dockerfile'):
+    directories_with_dockerfile = []
+    for root, dirs, files in os.walk(directory):
+        if filename in files:
+            directories_with_dockerfile.append(root)
+    return directories_with_dockerfile
+
+
+@celery.task()
+def sync_remote_vulnerability_repo(repo, admin_id=None):
+    repo_name = repo.split("/")[-1].split(".")[0]
+    username = repo.split("/")[-2]
+    local_repo = f"/opt/vulnerability/{username}/{repo_name}"
+    # 判断本地目录是否存在
+    try:
+        if os.path.exists(local_repo):
+            logger.info(f"Pull To {local_repo}")
+            git.Repo(local_repo).git.pull()
+        else:
+            logger.info(f"Clone {repo} to {local_repo}")
+            git.Repo.clone_from(repo, local_repo)
+    except git.exc.GitCommandError as e:
+        service.create_admin_message(f"同步远程漏洞仓库失败\n{e}", admin_id)
+        logger.error(e)
+        return
+    # scan directory
+    client = docker.DockerClient(Config.get_config(Config.KEY_DOCKER_API))
+    vulnerabilities = find_directories_with_filename(local_repo, filename='metadata.yml')
+    for directory in vulnerabilities:
+        with open(os.path.join(directory, 'metadata.yml')) as f:
+            yaml_data = yaml.safe_load(f)
+        image = yaml_data['image']
+        # build
+        if db.session.query(DockerResource).filter(DockerResource.image == image).first():
+            logger.info(f"Image:{image} Is Already")
+            continue
+        docker_file = os.path.join(directory, 'Dockerfile')
+        obj = DockerResource(name=yaml_data['name'], resource_type="VUL", image=image,
+                             description=yaml_data['description'],
+                             cve=yaml_data.get("cve", []), app=yaml_data.get("app"))
+        if os.path.exists(docker_file):
+            # build
+            obj.status = DockerResource.STATUS_BUILD
+            obj.docker_type = DockerResource.DOCKER_TYPE_LOCAL_IMAGE
+            client.images.build(path=directory, tag=image)
+        else:
+            obj.docker_type = DockerResource.DOCKER_TYPE_REMOTE_IMAGE
+        db.session.add(obj)
+        db.session.commit()
+        service.create_admin_message(f"同步远程漏洞仓库完成", admin_id)
+        logger.info('Add Image:{}'.format(image))

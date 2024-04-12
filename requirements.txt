@@ -14,3 +14,4 @@ docker-compose==1.29.2
 flask-redis
 PyYAML~=5.4.1
 celery~=5.2.7
+GitPython

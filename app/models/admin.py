@@ -88,11 +88,15 @@ class Config(MainBase):
     KEY_DOCKER_API = "docker_api"
     KEY_PORT_RANGE = "port_range"
     KEY_CTF_TIMEOUT = "ctf_timeout"
+    KEY_VULNERABILITY_TIMEOUT = "vulnerability_timeout"
+    KEY_REMOTE_VULNERABILITY_REPOSITORY = "remote_vulnerability_repository"
     CONFIG_MAP = {
         KEY_IP: (str, "127.0.0.1"),
         KEY_DOCKER_API: (str, "unix:///var/run/docker.sock"),
         KEY_PORT_RANGE: (str, "40000-50000"),
-        KEY_CTF_TIMEOUT: (int, 180)
+        KEY_CTF_TIMEOUT: (int, 180),
+        KEY_VULNERABILITY_TIMEOUT: (int, 1800),
+        KEY_REMOTE_VULNERABILITY_REPOSITORY: (str, "https://github.com/tongchengbin/vuldb.git")
     }
 
     key = Column(db.String(255), comment="键")
@@ -111,3 +115,16 @@ class Config(MainBase):
             return val_type(config_val)
         else:
             return val_default
+
+
+class AdminMessage(MainBase):
+    """
+        管理员消息
+    """
+    mtype = Column(db.Integer, comment="消息类型")
+    admin_id = Column(db.Integer, ForeignKey('admin.id'), comment="关联管理员")
+    content = Column(db.String(1024))
+    read = Column(db.Boolean(), default=False, comment="是否已读")
+    level = Column(db.Integer, comment="重要级别")
+
+

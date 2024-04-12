@@ -15,7 +15,7 @@ from app.lib.decorators import user_required
 from app.lib.tools import model2dict
 from app.models.admin import Config
 from app.models.docker import DockerResource, DockerRunner
-from app.vuln.task import start_vuln_resource
+from app.vuln.tasks import start_vuln_resource
 
 logger = logging.getLogger(__name__)
 bp = Blueprint("user_vuln", __name__, url_prefix="/api/")

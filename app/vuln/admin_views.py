@@ -13,13 +13,14 @@ from app.lib.api import api_success, api_fail
 from app.lib.tools import model2dict
 from app.models.admin import Config
 from app.models.docker import DockerResource, DockerRunner
-from app.vuln.task import start_vuln_resource
+from app.vuln import tasks
+from app.vuln.tasks import start_vuln_resource
 
 logger = logging.getLogger(__name__)
 bp = Blueprint("admin_vuln", __name__, url_prefix="/api/admin")
 
 
-@bp.get("/vuln")
+@bp.get("/vulnerability")
 def vuln_list():
     """
         漏洞列表
@@ -46,7 +47,7 @@ def vuln_list():
     })
 
 
-@bp.get("/vuln/<int:pk>")
+@bp.get("/vulnerability/<int:pk>")
 def vuln_detail(pk):
     """
         漏洞列表
@@ -57,14 +58,14 @@ def vuln_detail(pk):
     })
 
 
-@bp.delete("/vuln/<int:pk>")
+@bp.delete("/vulnerability/<int:pk>")
 def vuln_delete(pk):
     instance = DockerResource.get_by_id(pk)
     instance.delete()
     return api_success()
 
 
-@bp.put("/vuln/<int:pk>")
+@bp.put("/vulnerability/<int:pk>")
 def vuln_update(pk):
     """
         漏洞列表
@@ -84,7 +85,7 @@ def vuln_update(pk):
     })
 
 
-@bp.post("/vuln")
+@bp.post("/vulnerability")
 def vuln_create():
     """
         添加漏洞
@@ -101,7 +102,7 @@ def vuln_create():
     return api_success({})
 
 
-@bp.post("/vuln/<int:pk>/run")
+@bp.post("/vulnerability/<int:pk>/run")
 def vuln_run(pk):
     """
         添加漏洞
@@ -110,7 +111,7 @@ def vuln_run(pk):
     return api_success({})
 
 
-@bp.get("/vuln/runner")
+@bp.get("/vulnerability/runner")
 def vuln_runner():
     """
         添加漏洞
@@ -135,25 +136,26 @@ def vuln_runner():
     })
 
 
-@bp.delete("/vuln/runner/<int:pk>")
-def runner_delete(pk):
+@bp.delete("/vulnerability/<int:pk>")
+def resource_delete(pk):
     """
         销毁容器
     """
+    instance: DockerRunner = db.session.query(DockerResource).get(pk)
     docker_api = Config.get_config(Config.KEY_DOCKER_API)
-    instance: DockerRunner = db.session.query(DockerRunner).get(pk)
+
     client = docker.DockerClient(docker_api)
     try:
-        docker_container: docker.models.containers.Container = client.containers.get(instance.container_id)
-        docker_container.stop()
-        docker_container.remove()
+        image = client.images.get(instance.image)
+        image.remove(force=True)
     except NotFound as e:
         logger.error(e)
-    instance.delete()
+    db.session.delete(instance)
+    db.session.commit()
     return api_success({})
 
 
-@bp.post("/vuln/import")
+@bp.post("/vulnerability/import")
 def vuln_import():
     file = request.files["file"]
     filename = file.filename
@@ -194,3 +196,15 @@ def vuln_import():
         )
         db.session.bulk_save_objects(bulk_create)
     return api_success()
+
+
+@bp.post("vulnerability/sync_vulnerability")
+def sync_vulnerability():
+    """
+        同步远程漏洞
+    """
+    remote_repo = Config.get_config(Config.KEY_REMOTE_VULNERABILITY_REPOSITORY)
+    if not remote_repo:
+        return api_fail(msg="未配置远程漏洞仓库")
+    tasks.sync_remote_vulnerability_repo.apply_async(args=(remote_repo,), kwargs={"admin_id": g.user.id})
+    return api_success(msg="任务已提交")
