@@ -99,7 +99,7 @@ services:
       - /opt/ocean_ctf:/opt/ocean_ctf
     restart: unless-stopped
     working_dir: /opt/ocean_ctf
-    command: celery -A app.worker:celery beat
+    command: celery -A app.worker:celery beat -l debug
     environment:
       TZ: ${TZ}
 

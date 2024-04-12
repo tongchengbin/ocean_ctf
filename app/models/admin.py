@@ -108,8 +108,6 @@ class Config(MainBase):
         config_item = db.session.query(Config).filter(Config.key == key).first()
         if config_item:
             config_val = config_item.val
-            if val_type == "int":
-                return int(config_val)
-            return config_item.val
+            return val_type(config_val)
         else:
             return val_default

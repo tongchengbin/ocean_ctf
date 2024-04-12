@@ -163,7 +163,7 @@ def start_docker_resource(resource_id, user_id, flag=None) -> DockerRunner:
 
 
 def destroy_docker_runner(docker_runner_id):
-    docker_runner = DockerRunner.get_by_id(docker_runner_id)
+    docker_runner = db.session.query(DockerRunner).get(docker_runner_id)
     client = docker.DockerClient(Config.get_config(Config.KEY_DOCKER_API))
     try:
         docker_container = client.containers.get(docker_runner.container_id)
@@ -171,6 +171,6 @@ def destroy_docker_runner(docker_runner_id):
         docker_container.remove()
     except NotFound:
         logger.warning("容器未找到：{}".format(docker_runner.name))
-
-    docker_runner.delete()
+    db.session.delete(docker_runner)
+    db.session.commit()
     return True

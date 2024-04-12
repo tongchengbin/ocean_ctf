@@ -11,7 +11,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from app.docker.service import start_docker_resource
 from app.extensions import db
-from app.frontend import services
+from app.frontend import services, tasks
 from app.lib.api import api_success, api_fail
 from app.lib.decorators import user_required
 from app.lib.tools import get_ip
@@ -261,13 +261,19 @@ def question_start(question):
     except ValueError as e:
         logger.exception(e)
         return api_fail(msg=str(e))
-    CtfResource.create(
+    sec = Config.get_config(Config.KEY_CTF_TIMEOUT)
+    obj = CtfResource(
         docker_runner_id=docker_runner.id,
         flag=flag,
         user_id=user.id,
         question_id=instance.id,
-        destroy_time=datetime.now() + timedelta(seconds=Config.get_config(Config.KEY_CTF_TIMEOUT))
+        destroy_time=datetime.now() + timedelta(seconds=sec)
     )
+    db.session.add(obj)
+    db.session.flush()
+    db.session.commit()
+    # 延迟清除
+    tasks.ctf_finish_container.apply_async(args=(obj.id,), countdown=sec+1)
     return api_success({})
 
 

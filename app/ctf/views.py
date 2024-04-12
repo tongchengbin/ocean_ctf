@@ -6,8 +6,6 @@ from docker import errors as docker_error
 from docker.errors import DockerException
 from flask import Blueprint, request
 from flask import current_app
-from sqlalchemy.exc import IntegrityError
-
 from app.ctf.form import QuestionForm
 from app.docker.service import destroy_docker_runner
 from app.lib.api import api_fail, api_success
@@ -17,7 +15,7 @@ from app.models.ctf import QType, ImageResource, CtfResource, Answer, Attachment
 from app.models.ctf import Question
 from app.models.docker import Host
 from app.models.user import User
-from app.tasks.ctf import build_question_tar
+from app.ctf.tasks import build_question_tar
 from flask_pydantic import validate
 
 logger = logging.getLogger('app')
@@ -148,14 +146,8 @@ def resource_remove(pk):
     """
     ctf_resource = db.session.query(CtfResource).get(pk)
     destroy_docker_runner(ctf_resource.docker_runner_id)
-    # 删除自己记录
-    docker_runner = ctf_resource.docker_runner
-    ctf_resource.delete()
-    try:
-        docker_runner.delete()
-    except IntegrityError:
-        db.session.rollback()
-    return api_success(msg= "删除成功")
+    # docker runner 删除会自动删除外键关联的CTF 环境
+    return api_success(msg="删除成功")
 
 
 @bp.route('/answers', methods=['get'])
