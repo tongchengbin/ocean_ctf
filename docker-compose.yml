@@ -44,7 +44,7 @@ services:
     build:
       context: .
       dockerfile: ./install/docker/ocean_web.Dockerfile
-    image: ocean_web:v1.2
+    image: ocean_web:v1.3
     networks:
       ctf:
         ipv4_address: 172.32.0.3
@@ -66,7 +66,7 @@ services:
     build:
       context: .
       dockerfile: ./install/docker/ocean_web.Dockerfile
-    image: ocean_web:v1.2
+    image: ocean_web:v1.3
     networks:
       ctf:
         ipv4_address: 172.32.0.4
@@ -88,7 +88,7 @@ services:
     build:
       context: .
       dockerfile: ./install/docker/ocean_web.Dockerfile
-    image: ocean_web:v1.2
+    image: ocean_web:v1.3
     networks:
       ctf:
         ipv4_address: 172.32.0.5

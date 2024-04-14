@@ -122,7 +122,7 @@ class AdminMessage(MainBase):
         管理员消息
     """
     mtype = Column(db.Integer, comment="消息类型")
-    admin_id = Column(db.Integer, ForeignKey('admin.id'), comment="关联管理员")
+    admin_id = Column(db.Integer, ForeignKey('s_admin.id'), comment="关联管理员")
     content = Column(db.String(1024))
     read = Column(db.Boolean(), default=False, comment="是否已读")
     level = Column(db.Integer, comment="重要级别")
