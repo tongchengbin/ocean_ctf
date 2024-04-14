@@ -2,7 +2,7 @@ import unittest
 from docker import APIClient
 
 from app import create_app
-from app.vuln import tasks
+from app.vulnerability import tasks
 
 
 class TestValidator(unittest.TestCase):

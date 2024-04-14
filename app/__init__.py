@@ -115,7 +115,7 @@ def register_blueprints(flask_app):
     from app.sys.views import bp as admin_bp
     # 用户平台注册
     from app.frontend.views import bp as view_bp
-    from app.vuln import admin_views, user_views
+    from app.vulnerability import admin_views, user_views
     """Register Flask blueprints."""
     flask_app.register_blueprint(view_bp)
     flask_app.register_blueprint(admin_bp)

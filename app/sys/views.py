@@ -441,6 +441,7 @@ def set_config():
         # 校验数据
         val_type = Config.CONFIG_MAP[k][0]
         if not isinstance(v, val_type):
+            print(v, val_type)
             return api_fail(msg="数据格式错误")
         old = db.session.query(Config).filter(Config.key == k).first()
         if old:
@@ -461,10 +462,7 @@ def get_config():
             val_type = Config.CONFIG_MAP[ite.key][0]
         except KeyError:
             continue
-        if val_type == "int":
-            data[ite.key] = int(ite.val)
-        else:
-            data[ite.key] = ite.val
+        data[ite.key] = val_type(ite.val)
     for k, v in Config.CONFIG_MAP.items():
         if k not in data:
             data[k] = v[1]
