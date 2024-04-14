@@ -32,7 +32,6 @@ def beat_destroy_container():
             logger.warning("环境异常:{}".format(ctf_resource.docker_runner.container_id))
         docker_run = ctf_resource.docker_runner
         name = docker_run.name
-        db.session.delete(ctf_resource)
         db.session.delete(docker_run)
         db.session.commit()
         logger.info("destroy container:{}".format(name))

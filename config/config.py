@@ -26,7 +26,7 @@ CSRF_ENABLED = True
 CSRF_SESSION_KEY = os.getenv("CSRF_SESSION_KEY", "")
 
 THREADS_PER_PAGE = 2
-SQLALCHEMY_ECHO = False
+SQLALCHEMY_ECHO = True
 SQLALCHEMY_POOL_RECYCLE = 5
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 SQLALCHEMY_DATABASE_URI = "mysql+mysqldb://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}".format(
@@ -100,7 +100,7 @@ beat_schedule = {
     },
     "beat_destroy_container": {
         "task": "app.ctf.tasks.beat_destroy_container",
-        "schedule": crontab(minute="*"),
+        "schedule": crontab(minute="*/10"),
 
     },
     # "crontab_monitoring_docker_api": {

@@ -80,7 +80,7 @@ services:
       - /opt/vulnerability:/opt/vulnerability
     restart: unless-stopped
     working_dir: /opt/ocean_ctf
-    command: celery -A app.worker:celery worker -l debug
+    command: celery -A app.worker:celery worker -l info
     environment:
       TZ: ${TZ}
 
@@ -102,7 +102,7 @@ services:
       - /opt/vulnerability:/opt/vulnerability
     restart: unless-stopped
     working_dir: /opt/ocean_ctf
-    command: celery -A app.worker:celery beat -l debug
+    command: celery -A app.worker:celery beat -l info
     environment:
       TZ: ${TZ}
 

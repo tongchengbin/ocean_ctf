@@ -18,7 +18,7 @@ def ctf_finish_container(container_id):
     logger.info("Start CTF Container finish:%s" % container_id)
     resource = db.session.query(CtfResource).get(container_id)
     if not resource:
-        logger.info("container not found")
+        logger.info("container not found:{}".format(container_id))
         return
     if resource.destroy_time > datetime.now():
         logger.info(f"{datetime.now()} -> {resource.destroy_time}")
