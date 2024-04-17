@@ -12,7 +12,7 @@ from flask_pydantic import validate
 from sqlalchemy import or_
 from sqlalchemy.exc import IntegrityError
 
-from app.docker import task
+from app.docker import tasks
 from app.extensions import cache
 from app.extensions import db
 from app.lib.api import api_success, api_fail
@@ -233,7 +233,7 @@ def image_create():
         kwargs = {"dockerfile": request.get_json().get("dockerfile")}
     else:
         kwargs = {}
-    task.build_delay.apply_async(args=args, kwargs=kwargs)
+    tasks.build_delay.apply_async(args=args, kwargs=kwargs)
     return api_success({"status": 'ok', 'data': {"task": task_obj.id}})
 
 
@@ -368,7 +368,7 @@ def docker_resource_build(pk):
         else:
             return api_fail(msg="本地镜像不存在")
     else:
-        task.delay_docker_resource_build.apply_async(args=(pk,))
+        tasks.delay_docker_resource_build.apply_async(args=(pk,))
     return api_success()
 
 
