@@ -13,7 +13,7 @@ from app.sys.service import insert_operator
 from app.lib import exceptions
 from app.lib.api import api_fail, api_success
 from app.lib.utils.authlib import create_token
-from app.models.admin import (Admin, TaskList, Operator, Config)
+from app.models.admin import (Admin, TaskList, Operator, Config, AdminMessage)
 from app.models.admin import RequestState, Role, Notice
 from app.models.ctf import CtfResource, Question
 from app.models.user import User
@@ -499,3 +499,25 @@ def operator_list():
         _item["code"] = item.code
         data.append(_item)
     return api_success({"data": data, "total": page_query.total})
+
+
+@bp.get('/message')
+def message_notice():
+    """
+        获取管理员消息 通知  代办
+    """
+    page = 1
+    page_size = 100
+    query = db.session.query(AdminMessage).filter(AdminMessage.admin_id == g.user.id).order_by(
+        AdminMessage.id.desc())
+    page_query = query.paginate(page=page, per_page=page_size)
+    messages = []
+    for item in page_query.items:
+        messages.append({
+            "avatar": "https://gw.alipayobjects.com/zos/rmsportal/kISTdvpyTAhtGxpovNWd.png",
+            "title": item.content,
+            "datetime": item.date_created.strftime("%Y-%m-%d %H:%M"),
+            "description": "",
+            "type": 2
+        })
+    return api_success({"data": [{"key": 2, "name": "通知", "list": messages}]})

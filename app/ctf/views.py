@@ -4,11 +4,14 @@ import uuid
 import docker
 from docker import errors as docker_error
 from docker.errors import DockerException
-from flask import Blueprint, request
+from flask import Blueprint, request, g
 from flask import current_app
+
+from app.ctf import tasks
 from app.ctf.form import QuestionForm
 from app.docker.service import destroy_docker_runner
 from app.lib.api import api_fail, api_success
+from app.models.admin import Config
 from config import config
 from app.extensions import db
 from app.models.ctf import QType, ImageResource, CtfResource, Answer, Attachment
@@ -416,3 +419,12 @@ def ctf_upload_attachment():
     db.session.add(at)
     db.session.commit()
     return api_success({"filename": filename, "uuid": at.id})
+
+
+@bp.post('/sync_repo')
+def ctf_sync_repo():
+    remote_repo = Config.get_config(Config.KEY_REMOTE_VULNERABILITY_REPOSITORY)
+    if not remote_repo:
+        return api_fail(msg="未配置远程漏洞仓库")
+    tasks.sync_ctf_question_repo.apply_async(args=(remote_repo,), kwargs={"admin_id": g.user.id})
+    return api_success(msg="任务已提交")

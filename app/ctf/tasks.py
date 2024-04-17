@@ -4,14 +4,20 @@ from datetime import datetime
 from urllib.parse import urlparse
 
 import docker
+import git
 import requests
+import yaml
 from docker.errors import NotFound
+from sqlalchemy import or_
 
 from app.celeryapp import ContextTask
 from app.extensions import celery, db, cache
 from app.lib.const import ConstCacheKey
+from app.lib.tools import find_directories_with_filename
 from app.models.admin import Config
 from app.models.ctf import CtfResource, ImageResource
+from app.models.docker import DockerResource
+from app.sys import service
 from config import config
 
 logger = logging.getLogger()
@@ -36,6 +42,7 @@ def beat_destroy_container():
         db.session.delete(docker_run)
         db.session.commit()
         logger.info("destroy container:{}".format(name))
+
 
 @celery.task(base=ContextTask)
 def build_question_tar(image_id):
@@ -74,3 +81,51 @@ def build_question_tar(image_id):
         image.file = None
     db.session.commit()
     logger.info(f"build finish{image.id}")
+
+
+@celery.task(base=ContextTask)
+def sync_ctf_question_repo(repo, admin_id=None):
+    repo_name = repo.split("/")[-1].split(".")[0]
+    username = repo.split("/")[-2]
+    local_repo = f"/opt/vulnerability/{username}/{repo_name}"
+    # 判断本地目录是否存在
+    try:
+        if os.path.exists(local_repo):
+            logger.info(f"Pull To {local_repo}")
+            git.Repo(local_repo).git.pull()
+        else:
+            logger.info(f"Clone {repo} to {local_repo}")
+            git.Repo.clone_from(repo, local_repo)
+    except git.exc.GitCommandError as e:
+        service.create_admin_message(admin_id, f"同步远程CTF仓库失败\n{e}")
+        logger.error(e)
+        return
+    # scan directory
+    client = docker.DockerClient(Config.get_config(Config.KEY_DOCKER_API))
+    vulnerabilities = find_directories_with_filename(local_repo, filename='metadata.yml')
+    for directory in vulnerabilities:
+        with open(os.path.join(directory, 'metadata.yml')) as f:
+            yaml_data = yaml.safe_load(f)
+        image = yaml_data['image']
+        name = yaml_data["name"]
+        # build
+        if db.session.query(DockerResource).filter(
+                or_(DockerResource.image == image, DockerResource.name == name)).first():
+            logger.info(f"Image:{image} Is Already")
+            continue
+        docker_file = os.path.join(directory, 'Dockerfile')
+        obj = DockerResource(name=name, resource_type="VUL", image=image,
+                             description=yaml_data['description'],
+                             cve=yaml_data.get("cve", []), app=yaml_data.get("app"))
+        if os.path.exists(docker_file):
+            # build
+            obj.status = DockerResource.STATUS_BUILD
+            obj.docker_type = DockerResource.DOCKER_TYPE_LOCAL_IMAGE
+            client.images.build(path=directory, tag=image)
+        else:
+            obj.docker_type = DockerResource.DOCKER_TYPE_REMOTE_IMAGE
+            obj.status = DockerResource.STATUS_INIT
+        db.session.add(obj)
+        db.session.commit()
+        logger.info('Add Image:{}'.format(image))
+    service.create_admin_message(admin_id, f"同步远程CTF仓库完成")
