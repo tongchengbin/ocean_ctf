@@ -1,4 +1,6 @@
 import logging
+
+from app.celeryapp import ContextTask
 from app.extensions import db, celery
 from app.models.admin import Config
 from app.models.ctf import CtfResource
@@ -9,7 +11,7 @@ from docker.errors import DockerException
 logger = logging.getLogger('app')
 
 
-@celery.task()
+@celery.task(base=ContextTask)
 def ctf_finish_container(container_id):
     """
         启动题目后自动销毁

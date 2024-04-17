@@ -7,6 +7,7 @@ from compose.cli.command import project_from_options
 from docker import APIClient
 from docker.errors import DockerException
 
+from app.celeryapp import ContextTask
 from app.docker.service import user_compose_down
 from app.extensions import cache, celery
 from app.models.admin import Config, TaskList
@@ -24,12 +25,12 @@ def compose_build(compose_id):
     instance.save()
 
 
-@celery.task
+@celery.task(base=ContextTask)
 def delay_compose_down(*args):
     user_compose_down(*args)
 
 
-@celery.task
+@celery.task(base=ContextTask)
 def delay_docker_resource_build(resource_id: int):
     """
         资源编译  编译之后的状态可以直接运行
@@ -77,7 +78,7 @@ def task_add_log(task: int, line: dict):
         cache.rpush(task_key, json.dumps(line))
 
 
-@celery.task
+@celery.task(base=ContextTask)
 def build_delay(task_id: int, build_type, tag, admin, pt=None, dockerfile=None):
     """
         编译镜像
@@ -114,18 +115,3 @@ def build_delay(task_id: int, build_type, tag, admin, pt=None, dockerfile=None):
         logger.error(e)
         task_add_log(task_id, {"error": str(e)})
     task.save()
-
-
-if __name__ == '__main__':
-    build_delay(139, 14, 'pull', 'nginx:lastest', 1)
-
-if __name__ == "__main__":
-    from app import create_app
-
-    create_app()
-    # delay_docker_resource_build(1)
-    start = 0
-    data = []
-    for log in cache.lrange("DOCKER_RESOURCE_1", start, -1):
-        data.append(json.loads(log))
-    print(data)

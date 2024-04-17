@@ -3,6 +3,7 @@ from __future__ import absolute_import
 import logging
 from datetime import datetime, timedelta
 
+from app.celeryapp import ContextTask
 from app.extensions import db, cache
 from app.models.admin import RequestState
 from app.lib.const import ConstCacheKey
@@ -11,7 +12,7 @@ from app.extensions import celery
 logger = logging.getLogger('app')
 
 
-@celery.task
+@celery.task(base=ContextTask)
 def day_upload_req():
     """
 

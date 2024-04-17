@@ -7,6 +7,7 @@ import docker
 import requests
 from docker.errors import NotFound
 
+from app.celeryapp import ContextTask
 from app.extensions import celery, db, cache
 from app.lib.const import ConstCacheKey
 from app.models.admin import Config
@@ -16,7 +17,7 @@ from config import config
 logger = logging.getLogger()
 
 
-@celery.task()
+@celery.task(base=ContextTask)
 def beat_destroy_container():
     """
         清楚过期容器  容错
@@ -36,7 +37,7 @@ def beat_destroy_container():
         db.session.commit()
         logger.info("destroy container:{}".format(name))
 
-
+@celery.task(base=ContextTask)
 def build_question_tar(image_id):
     """
         编译上传的tar包为image
