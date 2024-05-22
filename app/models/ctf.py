@@ -46,7 +46,7 @@ class Question(MainBase):
     type = Column(db.String(16), comment="分类")
     active = Column(db.Boolean(), default=True, comment="是否启用")
     score = Column(db.Integer, default=10, comment="积分")
-    desc = Column(db.String(128), default="", comment="描述")
+    desc = Column(db.String(1024), default="", comment="描述")
     flag = Column(db.String(64), comment="Flag", nullable=True)
     active_flag = Column(db.Boolean(), default=False, comment="是否时动态Flag")
     attachment = Column(db.String(64), comment="附件")

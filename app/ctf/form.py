@@ -5,7 +5,7 @@ from pydantic import BaseModel
 
 class QuestionForm(BaseModel):
     name: str
-    active: bool
+    active: Optional[bool]
     active_flag: Optional[bool]
     flag: Optional[str]
     desc: str
