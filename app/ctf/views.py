@@ -423,7 +423,7 @@ def ctf_upload_attachment():
 
 @bp.post('/sync_repo')
 def ctf_sync_repo():
-    remote_repo = Config.get_config(Config.KEY_REMOTE_VULNERABILITY_REPOSITORY)
+    remote_repo = Config.get_config(Config.KEY_CTF_REPOSITORY)
     if not remote_repo:
         return api_fail(msg="未配置远程漏洞仓库")
     tasks.sync_ctf_question_repo.apply_async(args=(remote_repo,), kwargs={"admin_id": g.user.id})

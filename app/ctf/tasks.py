@@ -121,6 +121,7 @@ def sync_ctf_question_repo(repo, admin_id=None):
             # build
             obj.status = DockerResource.STATUS_BUILD
             obj.docker_type = DockerResource.DOCKER_TYPE_LOCAL_IMAGE
+            logger.info(f"build:{directory} {image}")
             client.images.build(path=directory, tag=image)
         else:
             obj.docker_type = DockerResource.DOCKER_TYPE_REMOTE_IMAGE
