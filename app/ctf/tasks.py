@@ -110,6 +110,7 @@ def sync_ctf_question_repo(repo, admin_id=None):
         name = yaml_data["name"]
         # build
         if db.session.query(DockerResource).filter(
+                DockerResource.resource_type == "CTF",
                 or_(DockerResource.image == image, DockerResource.name == name)).first():
             logger.info(f"Image:{image} Is Already")
             continue

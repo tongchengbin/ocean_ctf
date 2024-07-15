@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import Column, ForeignKey
+from sqlalchemy import Column, ForeignKey, UniqueConstraint
 
 from app import db
 from app.database import MainBase, relationship
@@ -73,12 +73,17 @@ class DockerResource(MainBase):
     status = Column(db.Integer, default=STATUS_INIT, comment="资源状态")
     resource_type = Column(db.String(12), comment="资源类型(CTF|VUL)")
     docker_type = Column(db.Integer, default=DOCKER_TYPE_REMOTE_IMAGE, comment="资源类型")
-    name = Column(db.String(256), unique=True, comment="资源名称")
-    image = Column(db.String(256), unique=True, comment="镜像名称:tag")
+    name = Column(db.String(256), comment="资源名称")
+    image = Column(db.String(256), comment="镜像名称:tag")
     ports = Column(db.String(256), comment="开放端口")
     description = Column(db.Text, comment="描述信息")
     cve = Column(db.JSON, comment="关联CVE")
     app = Column(db.String(128), comment="相关组件")
+
+    __table__args = (
+        UniqueConstraint('name', 'docker_type', name='idx_name_docker_type'),
+        UniqueConstraint('image', 'docker_type', name='idx_image_docker_type'),
+    )
 
     @property
     def docker_type_name(self):
