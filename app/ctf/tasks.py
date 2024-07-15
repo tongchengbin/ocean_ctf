@@ -114,7 +114,7 @@ def sync_ctf_question_repo(repo, admin_id=None):
             logger.info(f"Image:{image} Is Already")
             continue
         docker_file = os.path.join(directory, 'Dockerfile')
-        obj = DockerResource(name=name, resource_type="VUL", image=image,
+        obj = DockerResource(name=name, resource_type="CTF", image=image,
                              description=yaml_data['description'],
                              cve=yaml_data.get("cve", []), app=yaml_data.get("app"))
         if os.path.exists(docker_file):
