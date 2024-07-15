@@ -5,8 +5,9 @@ from enum import Enum
 
 from sqlalchemy import Column, ForeignKey
 from sqlalchemy.orm import relationship
+
+from app.database import MainBase
 from app.extensions import db
-from app.database import MainBase, LogicBase
 from app.models.docker import Host, DockerResource, DockerRunner
 from app.models.user import User
 

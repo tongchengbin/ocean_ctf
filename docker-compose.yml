@@ -8,16 +8,15 @@ networks:
         - subnet: 172.32.0.0/16
 services:
   db:
-    image: mysql:8.0
+    image: postgres:13
     networks:
       ctf:
         ipv4_address: 172.32.0.6
-    command: --default-authentication-plugin=mysql_native_password
     container_name: db
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
-      MYSQL_DATABASE: ocean
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ocean
       LANG: C.UTF-8
       TZ: ${TZ}
     privileged: true
@@ -44,7 +43,7 @@ services:
     build:
       context: .
       dockerfile: ./install/docker/ocean_web.Dockerfile
-    image: ocean_web:v1.3
+    image: ocean_web:v1.5
     networks:
       ctf:
         ipv4_address: 172.32.0.3
@@ -66,7 +65,7 @@ services:
     build:
       context: .
       dockerfile: ./install/docker/ocean_web.Dockerfile
-    image: ocean_web:v1.3
+    image: ocean_web:v1.5
     networks:
       ctf:
         ipv4_address: 172.32.0.4
@@ -88,7 +87,7 @@ services:
     build:
       context: .
       dockerfile: ./install/docker/ocean_web.Dockerfile
-    image: ocean_web:v1.3
+    image: ocean_web:v1.5
     networks:
       ctf:
         ipv4_address: 172.32.0.5

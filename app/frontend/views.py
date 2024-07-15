@@ -151,7 +151,7 @@ def challenge_list():
         Answer.status == Answer.status_ok).group_by(Answer.question_id).all()
     solved_cnt_dict = {i[0]: i[1] for i in solved_query}
     subjects = request.args.get("subject")
-    query = db.session.query(Question).filter(Question.active == 1)
+    query = db.session.query(Question).filter(Question.active.is_(True))
     if subjects:
         query = query.filter(Question.type == subjects)
     data = []
@@ -273,7 +273,7 @@ def question_start(question):
     db.session.flush()
     db.session.commit()
     # 延迟清除
-    tasks.ctf_finish_container.apply_async(args=(obj.id,), countdown=sec+1)
+    tasks.ctf_finish_container.apply_async(args=(obj.id,), countdown=sec + 1)
     return api_success({})
 
 
