@@ -1,8 +1,12 @@
+import logging
+
 from sqlalchemy import func, desc
 
 from app.extensions import db
 from app.models.ctf import Question, Answer, CtfResource
 from app.models.user import User
+
+logger = logging.getLogger(__name__)
 
 
 def submit(question, flag, user, ip=None):
@@ -67,9 +71,10 @@ def score_rank(username=None, page=1, page_size=20):
     base_arg_query = db.session.query(Answer.user_id, func.sum(Answer.score).label("sum_score"),
                                       func.count(Answer.id).label("cnt"),
                                       func.max(Answer.date_created).label("last_time"),
-                                      func.group_concat(Question.type).label("strong")).join(Question,
-                                                                                             Question.id == Answer.question_id).filter(
+                                      func.string_agg(Question.type, ",").label("strong")).join(Question,
+                                                                                                Question.id == Answer.question_id).filter(
         Answer.status == Answer.status_ok)
+    logger.info(base_arg_query)
     arg_query = base_arg_query.group_by(Answer.user_id).subquery("slr")
     sub_query = db.session.query(arg_query.c.user_id, arg_query.c.sum_score.label("sum_score"), arg_query.c.cnt,
                                  arg_query.c.last_time, arg_query.c.strong).select_entity_from(
@@ -83,7 +88,7 @@ def score_rank(username=None, page=1, page_size=20):
         User, User.id == sub_query.c.user_id)
     if username:
         query = query.filter(User.username.ilike("%{}%".format(username)))
-    page = query.order_by((desc(sub_query.c.sum_score)),).paginate(page=page, per_page=page_size)
+    page = query.order_by((desc(sub_query.c.sum_score)), ).paginate(page=page, per_page=page_size)
     data = []
     for item in page.items:
         types = item.strong.split(",")

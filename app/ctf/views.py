@@ -1,31 +1,32 @@
 import logging
 import os
 import uuid
+
 import docker
 from docker import errors as docker_error
 from docker.errors import DockerException
 from flask import Blueprint, request, g
 from flask import current_app
+from flask_pydantic import validate
 
 from app.ctf import tasks
 from app.ctf.form import QuestionForm
+from app.ctf.tasks import build_question_tar
 from app.docker.service import destroy_docker_runner
+from app.extensions import db
 from app.lib.api import api_fail, api_success
 from app.models.admin import Config
-from config import config
-from app.extensions import db
 from app.models.ctf import QType, ImageResource, CtfResource, Answer, Attachment
 from app.models.ctf import Question
 from app.models.docker import Host
 from app.models.user import User
-from app.ctf.tasks import build_question_tar
-from flask_pydantic import validate
+from config import config
 
 logger = logging.getLogger('app')
 bp = Blueprint("admin_ctf", __name__, url_prefix="/api/admin/ctf")
 
 
-@bp.route('/question/type', methods=['get'])
+@bp.get('/question/type')
 def question_type():
     """
         题库列表
@@ -35,7 +36,7 @@ def question_type():
     return api_success({"data": data})
 
 
-@bp.route('/resource', methods=['get'])
+@bp.get('/resource')
 def resource_list():
     """
     :return : 已生成题目容器
@@ -74,6 +75,19 @@ def resource_list():
         "total": page.total,
         "data": data
     })
+
+
+@bp.post('/question/<int:pk>/set_active')
+def question_set_active(pk):
+    """
+        设置题目是否可用
+    :param pk:
+    :return:
+    """
+    instance = db.session.query(Question).get(pk)
+    instance.active = not instance.active
+    db.session.commit()
+    return api_success()
 
 
 @bp.put('/question/<int:pk>')
@@ -140,7 +154,7 @@ def ctf_containers_refresh(container_resource):
     return api_success()
 
 
-@bp.route('/resource/<int:pk>/remove', methods=['post'])
+@bp.post('/resource/<int:pk>/remove')
 def resource_remove(pk):
     """
         删除题目容器 如果容器不在线需要自己手动删除
@@ -227,13 +241,13 @@ def question_list():
         query = query.filter(Question.name.contains(search))
     page = query.order_by(Question.id.desc()).paginate(page=page, per_page=page_size)
     data = []
+    attachment_info = []
     for item in page.items:
         if item.attachment:
             attachment = item.attachment.split(",")
-            attachment_query = db.session.query(Attachment).filter(Attachment.id.in_(attachment))
-            attachment_info = [{"filename": i.filename, "uuid": i.id} for i in attachment_query]
-        else:
-            attachment_info = []
+            if attachment:
+                attachment_query = db.session.query(Attachment).filter(Attachment.id.in_(attachment))
+                attachment_info = [{"filename": i.filename, "uuid": i.id} for i in attachment_query]
         data.append({
             "resource_id": item.resource_id,
             "resource_name": item.resource.name if item.resource_id else None,

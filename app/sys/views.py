@@ -92,7 +92,7 @@ def admin_list():
             "login_time": item.login_time.strftime("%Y-%m-%d %H:%M:%S") if item.login_time else None,
             "username": item.username,
             "role": item.role_id,
-            "role_name": item.role.name
+            "role_name": item.role.name if item.role else None,
         })
     return api_success({
         "total": page.total,

@@ -394,7 +394,7 @@ def notice():
     # 公告
     notices = []
     query = db.session.query(Notice)
-    query = query.filter(Notice.active == 1)
+    query = query.filter(Notice.active == True)
     notice_query = query.order_by(desc(Notice.is_top), desc(Notice.id)).all()
     for item in notice_query:
         notices.append({
