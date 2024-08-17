@@ -8,3 +8,4 @@ celerybeat-schedule
 *.db
 *.pyc
 venv
+.env
