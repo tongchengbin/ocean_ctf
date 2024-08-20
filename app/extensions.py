@@ -1,10 +1,9 @@
-from flask_sqlalchemy import SQLAlchemy
-from flask_redis import FlaskRedis
 from celery import Celery
+from flask_redis import FlaskRedis
 
-from app.models.base import Base
+# noinspection PyUnresolvedReferences
+from app.models import db
 from config import config
-db = SQLAlchemy(model_class=Base)
 
 cache = FlaskRedis()
 

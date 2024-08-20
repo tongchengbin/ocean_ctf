@@ -1,8 +1,10 @@
-from sqlalchemy import Column, ForeignKey
-from sqlalchemy.orm import relationship
+import datetime
 
-from app.database import MainBase
-from app.extensions import db
+from sqlalchemy import Column, ForeignKey
+from sqlalchemy.orm import relationship, Mapped, mapped_column
+
+from . import MainBase
+from . import db
 
 
 class Role(MainBase):
@@ -10,19 +12,19 @@ class Role(MainBase):
     """
         角色  后面会关联权限
     """
-    name = Column(db.String(256), nullable=False, unique=True)
+    name: Mapped[str] = mapped_column(db.String(256), nullable=False, unique=True)
 
 
 class Admin(MainBase):
     __tablename__ = 's_admin'
-    username = Column(db.String(256), unique=True, nullable=False, comment='用户名')
-    password = Column(db.String(512), nullable=False, comment='密码')
-    role_id = Column(db.Integer, ForeignKey('s_role.id'))
-    role = relationship('Role')
-    active = Column(db.Boolean(), comment="是否启用")
-    login_time = Column(db.DateTime, default=None)
-    token = Column(db.String(64), comment="token", nullable=True, unique=True)
-    task_list = relationship('TaskList', backref='admin')
+    username: Mapped[str] = Column(db.String(256), unique=True, nullable=False, comment='用户名')
+    password: Mapped[str] = Column(db.String(512), nullable=False, comment='密码')
+    role_id: Mapped[int] = Column(db.Integer, ForeignKey('s_role.id'))
+    role: Mapped['Role'] = relationship('Role')
+    active: Mapped[bool] = Column(db.Boolean(), comment="是否启用")
+    login_time: Mapped[datetime.datetime] = Column(db.DateTime, default=None)
+    token: Mapped[str] = Column(db.String(64), comment="token", nullable=True, unique=True)
+    task_list: Mapped['TaskList'] = relationship('TaskList', backref='admin')
 
     @property
     def role_name(self):
@@ -30,6 +32,7 @@ class Admin(MainBase):
 
 
 class TaskList(MainBase):
+    __tablename__ = 'task_list'
     STATUS_WAIT = 1  # 排队
     STATUS_CANCEL = 2  # 取消
     STATUS_RUN = 3  # 执行中
@@ -52,6 +55,7 @@ class TaskList(MainBase):
 
 
 class TaskLog(MainBase):
+    __tablename__ = 'task_log'
     task_id = Column(db.Integer, ForeignKey('task_list.id'))
     content = Column(db.String(1024), comment="内容")
 
@@ -60,6 +64,7 @@ class RequestState(MainBase):
     """
         每日请求统计
     """
+    __tablename__ = 'request_state'
     ip_count = Column(db.Integer)
     req_count = Column(db.Integer)
     day = Column(db.Date, comment="日期")
@@ -76,6 +81,7 @@ class Operator(MainBase):
     """
         行为审计日志
     """
+    __tablename__ = 'operator'
     username = Column(db.String(255), comment="操作人用户名")
     code = Column(db.Boolean, default=True, comment="操作结果")
     ip = Column(db.String(15), comment="操作IP")
@@ -101,6 +107,7 @@ class Config(MainBase):
         KEY_CTF_REPOSITORY: (str, "https://github.com/tongchengbin/ctfdb.git")
     }
 
+    __tablename__ = 'config'
     key = Column(db.String(255), comment="键")
     val = Column(db.String(255), comment="值")
     type = Column(db.String(32), comment="数据类型")
@@ -123,6 +130,7 @@ class AdminMessage(MainBase):
     """
         管理员消息
     """
+    __tablename__ = 'admin_message'
     mtype = Column(db.Integer, comment="消息类型")
     admin_id = Column(db.Integer, ForeignKey('s_admin.id'), comment="关联管理员")
     content = Column(db.String(1024))

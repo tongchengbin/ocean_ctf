@@ -6,7 +6,7 @@ from enum import Enum
 from sqlalchemy import Column, ForeignKey
 from sqlalchemy.orm import relationship
 
-from app.database import MainBase
+from app.models import MainBase
 from app.extensions import db
 from app.models.docker import Host, DockerResource, DockerRunner
 from app.models.user import User
@@ -69,6 +69,7 @@ class CtfResource(MainBase):
     """
         实际的容器资源 不一定是实际的主机容器  主要是用来记录用户对容器的使用 同时绑定Flag
     """
+
     docker_runner_id = Column(db.Integer, ForeignKey(DockerRunner.id, ondelete='cascade'), comment="compose ID")
     docker_runner = relationship(DockerRunner)
     flag = Column(db.String(64), nullable=True, comment="环境flag")

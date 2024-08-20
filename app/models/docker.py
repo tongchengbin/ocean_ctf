@@ -1,11 +1,12 @@
 from datetime import datetime
 
-from sqlalchemy import Column, ForeignKey, UniqueConstraint
+from sqlalchemy import Column, ForeignKey, UniqueConstraint, JSON, String, Integer
+from sqlalchemy.orm import Mapped, mapped_column
 
-from app import db
-from app.database import MainBase, relationship
+from app.models import MainBase, relationship
 from app.models.admin import Admin
 from app.models.user import User
+from . import db
 
 
 class Host(MainBase):
@@ -49,7 +50,7 @@ class ComposeRunner(MainBase):
     create_time = Column(db.DateTime, nullable=False, default=datetime.utcnow)
     update_time = Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
     port_info = Column(db.JSON, comment="服务端口信息")
-    project_dir = Column(db.db.String(256), comment="项目目录")
+    project_dir = Column(db.String(256), comment="项目目录")
     flag = Column(db.String(64), comment="flag")
 
 
@@ -58,6 +59,7 @@ class DockerResource(MainBase):
         docker 镜像资源 包括远程镜像 tar包 和 docker file
     """
 
+    __tablename__ = "docker_resource"
     DOCKER_TYPE_REMOTE_IMAGE = 1  # 远程docker 仓库 PULL 方式
     DOCKER_TYPE_LOCAL_IMAGE = 2
     DOCKER_TYPE_MAP = {
@@ -70,15 +72,16 @@ class DockerResource(MainBase):
         STATUS_INIT: "初始化",
         STATUS_BUILD: "已就绪"
     }
-    status = Column(db.Integer, default=STATUS_INIT, comment="资源状态")
-    resource_type = Column(db.String(12), comment="资源类型(CTF|VUL)")
-    docker_type = Column(db.Integer, default=DOCKER_TYPE_REMOTE_IMAGE, comment="资源类型")
-    name = Column(db.String(256), comment="资源名称")
-    image = Column(db.String(256), comment="镜像名称:tag")
-    ports = Column(db.String(256), comment="开放端口")
-    description = Column(db.Text, comment="描述信息")
-    cve = Column(db.JSON, comment="关联CVE")
-    app = Column(db.String(128), comment="相关组件")
+    status: Mapped[int] = mapped_column(Integer, default=STATUS_INIT, comment="资源状态")
+    resource_type: Mapped[str] = mapped_column(String(12), comment="资源类型(CTF|VUL)")
+    docker_type: Mapped[int] = mapped_column(Integer, default=DOCKER_TYPE_REMOTE_IMAGE, comment="资源类型")
+    name: Mapped[str] = mapped_column(String(256), comment="资源名称")
+    image: Mapped[str] = mapped_column(String(256), comment="镜像名称:tag")
+    dockerfile: Mapped[str] = mapped_column(db.Text, comment="Dockerfile")
+    ports: Mapped[str] = mapped_column(String(256), comment="开放端口")
+    description: Mapped[str] = mapped_column(db.Text, comment="描述信息")
+    cve: Mapped[str] = mapped_column(JSON, comment="关联CVE")
+    app: Mapped[str] = mapped_column(String(128), comment="相关组件")
 
     __table__args = (
         UniqueConstraint('name', 'docker_type', name='idx_name_docker_type'),

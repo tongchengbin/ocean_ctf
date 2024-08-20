@@ -3,7 +3,7 @@
 """
 
 from sqlalchemy import Column
-from app.database import MainBase
+from app.models import MainBase
 from app.extensions import db
 
 

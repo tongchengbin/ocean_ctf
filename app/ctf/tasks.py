@@ -8,7 +8,6 @@ import git
 import requests
 import yaml
 from docker.errors import NotFound
-from sqlalchemy import or_
 
 from app.celeryapp import ContextTask
 from app.extensions import celery, db, cache
@@ -100,7 +99,6 @@ def sync_ctf_question_repo(repo, admin_id=None):
         service.create_admin_message(admin_id, f"同步远程CTF仓库失败\n{e}")
         logger.error(e)
         return
-    # scan directory
     client = docker.DockerClient(Config.get_config(Config.KEY_DOCKER_API))
     vulnerabilities = find_directories_with_filename(local_repo, filename='metadata.yml')
     for directory in vulnerabilities:
@@ -108,28 +106,28 @@ def sync_ctf_question_repo(repo, admin_id=None):
             yaml_data = yaml.safe_load(f)
         image = yaml_data['image']
         name = yaml_data["name"]
-        # build
-        if db.session.query(DockerResource).filter(
-                DockerResource.resource_type == "CTF",
-                or_(DockerResource.image == image, DockerResource.name == name)).first():
-            logger.info(f"Image:{image} Is Already")
-            continue
         docker_file = os.path.join(directory, 'Dockerfile')
-        obj = DockerResource(name=name, resource_type="CTF", image=image,
-                             description=yaml_data['description'],
-                             cve=yaml_data.get("cve", []), app=yaml_data.get("app"))
+        # 判断镜像是否已经存在
+        obj = db.session.query(DockerResource).filter(DockerResource.image == image).first()
+        if not obj:
+            obj = DockerResource(name=name, resource_type="CTF", image=image,
+                                 description=yaml_data['description'],
+                                 cve=yaml_data.get("cve", []), app=yaml_data.get("app"))
         if os.path.exists(docker_file):
-            # build
-            obj.status = DockerResource.STATUS_BUILD
+            # 本地编译
+            obj.dockerfile = docker_file
             obj.docker_type = DockerResource.DOCKER_TYPE_LOCAL_IMAGE
-            logger.info(f"build:{directory} {image}")
-            try:
-                client.images.build(path=directory, tag=image)
-            except docker.errors.DockerException as e:
-                logger.exception(e)
-                continue
         else:
+            # 远程镜像
             obj.docker_type = DockerResource.DOCKER_TYPE_REMOTE_IMAGE
+        #  判断镜像是否存在
+        try:
+            client.images.get(image)
+            obj.status = DockerResource.STATUS_BUILD
+        except docker.errors.ImageNotFound:
+            obj.status = DockerResource.STATUS_INIT
+        except docker.errors.DockerException as e:
+            logger.exception(e)
             obj.status = DockerResource.STATUS_INIT
         db.session.add(obj)
         db.session.commit()

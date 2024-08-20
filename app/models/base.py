@@ -12,4 +12,4 @@ class Base(DeclarativeBase):
     pass
 
 
-
+db = SQLAlchemyBase(model_class=Base)
