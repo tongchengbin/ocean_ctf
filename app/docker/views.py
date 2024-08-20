@@ -361,7 +361,17 @@ def docker_resource_build(pk):
         except DockerException as e:
             logger.exception(e)
             return api_fail(msg="Docker初始化失败")
-        img = client.images(resource.image)
+        # 判断是否有docker file
+        if resource.dockerfile:
+            try:
+                directory = os.path.dirname(resource.dockerfile)
+                client.build(path=directory, tag=resource.image)
+            except docker_error.DockerException as e:
+                logger.exception(e)
+                return api_fail(msg="Docker构建失败")
+            img = client.images(resource.image)
+        else:
+            img = client.images(resource.image)
         if img:
             resource.status = DockerResource.STATUS_BUILD
             resource.save()

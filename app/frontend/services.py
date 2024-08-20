@@ -71,19 +71,19 @@ def score_rank(username=None, page=1, page_size=20):
     base_arg_query = db.session.query(Answer.user_id, func.sum(Answer.score).label("sum_score"),
                                       func.count(Answer.id).label("cnt"),
                                       func.max(Answer.date_created).label("last_time"),
-                                      func.string_agg(Question.type, ",").label("strong")).join(Question,
+                                      func.aggregate_strings(Question.type, ",").label("strong")).join(Question,
                                                                                                 Question.id == Answer.question_id).filter(
         Answer.status == Answer.status_ok)
     logger.info(base_arg_query)
     arg_query = base_arg_query.group_by(Answer.user_id).subquery("slr")
     sub_query = db.session.query(arg_query.c.user_id, arg_query.c.sum_score.label("sum_score"), arg_query.c.cnt,
-                                 arg_query.c.last_time, arg_query.c.strong).select_entity_from(
+                                 arg_query.c.last_time, arg_query.c.strong).select_from(
         arg_query).add_columns(
         db.func.rank().over(order_by=desc(arg_query.c.sum_score)).label(
             "rank")).subquery("rl")
     query = db.session.query(User, sub_query.c.user_id, sub_query.c.sum_score,
                              sub_query.c.cnt, sub_query.c.rank, sub_query.c.last_time,
-                             sub_query.c.strong).select_entity_from(
+                             sub_query.c.strong).select_from(
         sub_query).filter().join(
         User, User.id == sub_query.c.user_id)
     if username:

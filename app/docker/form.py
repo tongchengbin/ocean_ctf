@@ -4,8 +4,8 @@ from pydantic import BaseModel
 
 
 class PageForm(BaseModel):
-    page = 1
-    page_size = 10
+    page: int = 1
+    page_size: int = 10
 
 
 class ComposeDBForm(BaseModel):
