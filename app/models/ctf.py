@@ -100,7 +100,7 @@ class Answer(Model):
     status: Mapped[int] = mapped_column(default=1, comment="状态")
     user_id: Mapped[int] = mapped_column(ForeignKey('user.id', ondelete='CASCADE'), comment="关联用户")
     question_id: Mapped[int] = mapped_column(ForeignKey('ctf_question.id'), comment="对应题目")
-    rank: Mapped[int] = mapped_column(Integer, comment="解题名次")
+    rank: Mapped[int] = mapped_column(Integer, comment="解题名次", default=0)
     flag: Mapped[str] = mapped_column(String(64), comment="提交内容")
     score: Mapped[int] = mapped_column(Integer(), default=0, comment="分数")
     ip: Mapped[str] = mapped_column(String(64), comment="提交答案IP")

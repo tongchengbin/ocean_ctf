@@ -105,8 +105,10 @@ class DockerRunner(Model):
     resource_id: Mapped[int] = mapped_column(Integer, ForeignKey("docker_resource.id"), comment="漏洞环境")
     resource: Mapped[DockerResource] = relationship(DockerResource)
     type: Mapped[int] = mapped_column(Integer, default=1)
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id", ondelete='CASCADE'), comment="启动用户")
-    admin_id: Mapped[int] = mapped_column(Integer, ForeignKey("s_admin.id", ondelete='CASCADE'), comment="启动用户")
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id", ondelete='CASCADE'), comment="启动用户",
+                                         nullable=True)
+    admin_id: Mapped[int] = mapped_column(Integer, ForeignKey("s_admin.id", ondelete='CASCADE'), comment="启动用户",
+                                          nullable=True)
     user: Mapped[User] = relationship(User)
     admin: Mapped[Admin] = relationship(Admin)
     create_time: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.now)
