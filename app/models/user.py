@@ -3,11 +3,11 @@
 """
 
 from sqlalchemy import Column
-from app.models import MainBase
+from app.models import Model
 from app.extensions import db
 
 
-class User(MainBase):
+class User(Model):
     __tablename__ = 'user'
     username = Column(db.String(256), unique=True, nullable=False, comment='用户名')
     password = Column(db.String(512), nullable=False, comment='密码')

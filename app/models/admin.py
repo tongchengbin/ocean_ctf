@@ -3,19 +3,20 @@ import datetime
 from sqlalchemy import Column, ForeignKey
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 
-from . import MainBase
+from . import Model
 from . import db
 
 
-class Role(MainBase):
+class Role(Model):
     __tablename__ = 's_role'
     """
         角色  后面会关联权限
     """
+    id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(db.String(256), nullable=False, unique=True)
 
 
-class Admin(MainBase):
+class Admin(Model):
     __tablename__ = 's_admin'
     username: Mapped[str] = Column(db.String(256), unique=True, nullable=False, comment='用户名')
     password: Mapped[str] = Column(db.String(512), nullable=False, comment='密码')
@@ -31,7 +32,7 @@ class Admin(MainBase):
         return self.role.name if self.role else ''
 
 
-class TaskList(MainBase):
+class TaskList(Model):
     __tablename__ = 'task_list'
     STATUS_WAIT = 1  # 排队
     STATUS_CANCEL = 2  # 取消
@@ -54,13 +55,13 @@ class TaskList(MainBase):
         return dict(self.STATUS_CHOICES)[self.status]
 
 
-class TaskLog(MainBase):
+class TaskLog(Model):
     __tablename__ = 'task_log'
     task_id = Column(db.Integer, ForeignKey('task_list.id'))
     content = Column(db.String(1024), comment="内容")
 
 
-class RequestState(MainBase):
+class RequestState(Model):
     """
         每日请求统计
     """
@@ -70,14 +71,14 @@ class RequestState(MainBase):
     day = Column(db.Date, comment="日期")
 
 
-class Notice(MainBase):
+class Notice(Model):
     __tablename__ = 'notice'
     active = Column(db.Boolean(), default=True)
     is_top = Column(db.Boolean(), default=False)
     content = Column(db.String(1024), comment="内容")
 
 
-class Operator(MainBase):
+class Operator(Model):
     """
         行为审计日志
     """
@@ -89,7 +90,7 @@ class Operator(MainBase):
     role = Column(db.String(10), comment="操作人角色")
 
 
-class Config(MainBase):
+class Config(Model):
     KEY_IP = "ip"
     KEY_DOCKER_API = "docker_api"
     KEY_PORT_RANGE = "port_range"
@@ -126,7 +127,7 @@ class Config(MainBase):
             return val_default
 
 
-class AdminMessage(MainBase):
+class AdminMessage(Model):
     """
         管理员消息
     """

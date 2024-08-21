@@ -1,19 +1,30 @@
 # -*- coding: utf-8 -*-
+import logging
 from datetime import datetime
 from typing import Optional, Type, TypeVar
 
+from flask_sqlalchemy import SQLAlchemy as SQLAlchemyBase  # type: ignore
 from sqlalchemy import DateTime
+from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.models.base import DEFAULT_DATETIME_FORMAT, db, Base
-
 T = TypeVar("T", bound="PkModel")
-# Alias common SQLAlchemy names
+
+log = logging.getLogger(__name__)
+
+DEFAULT_DATETIME_FORMAT = "%Y-%m-%d %H:%M"
+
+
+class Base(DeclarativeBase):
+    pass
+
+
+db = SQLAlchemyBase(model_class=Base)
 Column = db.Column
 relationship = db.relationship
 
 
-class CRUDMixin(Base):
+class CRUDMixin(db.Model):
     """Mixin that adds convenience methods for CRUD (create, read, update, delete) operations."""
     __abstract__ = True
 
@@ -54,6 +65,13 @@ class Model(CRUDMixin):
     """Base model class that includes CRUD convenience methods."""
 
     __abstract__ = True
+    id: Mapped[int] = mapped_column(primary_key=True)
+    date_created: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)
+    date_modified: Mapped[datetime] = mapped_column(
+        DateTime,
+        default=datetime.now,
+        onupdate=datetime.now,
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -69,17 +87,6 @@ class Model(CRUDMixin):
         ):
             return db.session.get(cls, int(record_id))
         return None
-
-
-class MainBase(Model):
-    __abstract__ = True
-    id: Mapped[int] = mapped_column(primary_key=True)
-    date_created: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)
-    date_modified: Mapped[datetime] = mapped_column(
-        DateTime,
-        default=datetime.now,
-        onupdate=datetime.now,
-    )
 
     @property
     def create_time_format(self):

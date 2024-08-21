@@ -3,13 +3,13 @@ from datetime import datetime
 from sqlalchemy import Column, ForeignKey, UniqueConstraint, JSON, String, Integer
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.models import MainBase, relationship
+from app.models import Model, relationship
 from app.models.admin import Admin
 from app.models.user import User
 from . import db
 
 
-class Host(MainBase):
+class Host(Model):
     __tablename__ = 'docker_host'
     name = Column(db.String(256), unique=True, nullable=False, comment='用户名')
     ip = Column(db.String(256), unique=True, nullable=False, comment="外部访问连接")
@@ -20,7 +20,7 @@ class Host(MainBase):
     system = Column(db.JSON(), comment="详情信息")
 
 
-class ComposeDB(MainBase):
+class ComposeDB(Model):
     """
         compose 数据库  用来存储管理本地数据映射
     """
@@ -34,7 +34,7 @@ class ComposeDB(MainBase):
     path = Column(db.String(256), unique=True, nullable=False, comment='目录地址')
 
 
-class ComposeRunner(MainBase):
+class ComposeRunner(Model):
     """
         启动compose后的管理状态
     """
@@ -54,7 +54,7 @@ class ComposeRunner(MainBase):
     flag = Column(db.String(64), comment="flag")
 
 
-class DockerResource(MainBase):
+class DockerResource(Model):
     """
         docker 镜像资源 包括远程镜像 tar包 和 docker file
     """
@@ -97,7 +97,7 @@ class DockerResource(MainBase):
         return self.STATUS_MAP[self.status]
 
 
-class DockerRunner(MainBase):
+class DockerRunner(Model):
     __tablename__ = "docker_runner"
     TYPE_USER = 1
     TYPE_ADMIN = 2

@@ -6,7 +6,7 @@ from enum import Enum
 from sqlalchemy import Column, ForeignKey
 from sqlalchemy.orm import relationship
 
-from app.models import MainBase
+from app.models import Model
 from app.extensions import db
 from app.models.docker import Host, DockerResource, DockerRunner
 from app.models.user import User
@@ -21,7 +21,7 @@ class QType(Enum):
     iot = "Iot"
 
 
-class ImageResource(MainBase):
+class ImageResource(Model):
     __tablename__ = 'image_resource'
     """
         上传的镜像资源
@@ -41,7 +41,7 @@ class ImageResource(MainBase):
     build_result = Column(db.String(4096), comment="镜像状态说明")
 
 
-class Question(MainBase):
+class Question(Model):
     __tablename__ = 'ctf_question'
     name = Column(db.String(256), nullable=False, comment='题目名称')
     type = Column(db.String(16), comment="分类")
@@ -55,7 +55,7 @@ class Question(MainBase):
     resource = relationship(DockerResource)
 
 
-class Attachment(MainBase):
+class Attachment(Model):
     """
         附件表
     """
@@ -64,7 +64,7 @@ class Attachment(MainBase):
     file_path = Column(db.String(128), comment="文件相对路径")
 
 
-class CtfResource(MainBase):
+class CtfResource(Model):
     __tablename__ = 'ctf_resource'
     """
         实际的容器资源 不一定是实际的主机容器  主要是用来记录用户对容器的使用 同时绑定Flag
@@ -80,7 +80,7 @@ class CtfResource(MainBase):
     question = relationship(Question, backref='container_ref')
 
 
-class Answer(MainBase):
+class Answer(Model):
     """
         答题记录表
     """
