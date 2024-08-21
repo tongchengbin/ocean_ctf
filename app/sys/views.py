@@ -3,20 +3,20 @@ import os
 import uuid
 from datetime import datetime
 from operator import or_
-from flask import Blueprint, make_response, jsonify, request, g, current_app
+
+from flask import Blueprint, jsonify, request, g, current_app
 from sqlalchemy import func, desc
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from app.extensions import cache
-from app import db
-from app.sys.service import insert_operator
-from app.lib import exceptions
+from app.extensions import db
 from app.lib.api import api_fail, api_success
 from app.lib.utils.authlib import create_token
 from app.models.admin import (Admin, TaskList, Operator, Config, AdminMessage)
 from app.models.admin import RequestState, Role, Notice
 from app.models.ctf import CtfResource, Question
 from app.models.user import User
+from app.sys.service import insert_operator
 
 bp = Blueprint("admin", __name__, url_prefix="/api/admin")
 logger = logging.getLogger('app')

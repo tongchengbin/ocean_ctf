@@ -1,5 +1,6 @@
 import click
 from flask.cli import with_appcontext
+from app.extensions import db
 from werkzeug.security import generate_password_hash
 
 
@@ -16,8 +17,7 @@ def init_superuser():
     """
         初始化管理员账号 admin:superuser/admin
     """
-    from data.database import DEFAULT_DATABASE as db
-    from data.models.admin import Admin
+    from app.models.admin import Admin
     admin = db.session.query(Admin).filter(Admin.username == 'superuser').one_or_none()
     if admin:
         admin.password = generate_password_hash('admin')
@@ -32,10 +32,9 @@ def init_data():
     """
         初始化数据  删除表数据 重新创建
     """
-    from data.database import DEFAULT_DATABASE as db
-    from data.models.admin import Admin, Role
-    db.db.drop_all()
-    db.db.create_all()
+    from app.models.admin import Admin, Role
+    db.drop_all()
+    db.create_all()
     db.session.commit()
     # 创建角色
     for name in ("超级管理员", "运维管理员"):
