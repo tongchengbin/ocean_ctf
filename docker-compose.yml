@@ -84,7 +84,7 @@ services:
   nginx:
     image: nginx:latest
     ports:
-      - "80:80"
+      - "${HTTP_PORT}:80"
     container_name: nginx
     volumes:
       - /opt/ocean_ctf/install/nginx.conf:/etc/nginx/nginx.conf

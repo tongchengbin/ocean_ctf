@@ -4,21 +4,17 @@ import uuid
 
 import docker
 from docker import errors as docker_error
-from docker.errors import DockerException
 from flask import Blueprint, request, g
-from flask import current_app
 from flask_pydantic import validate
 
 from app.ctf import tasks
 from app.ctf.form import QuestionForm
-from app.ctf.tasks import build_question_tar
 from app.docker.service import destroy_docker_runner
 from app.extensions import db
 from app.lib.api import api_fail, api_success
 from app.models.admin import Config
 from app.models.ctf import QType, ImageResource, CtfResource, Answer, Attachment
 from app.models.ctf import Question
-from app.models.docker import Host
 from app.models.user import User
 from config import config
 
@@ -388,28 +384,6 @@ def image_update(pk):
     instance.file_id = _data["file_id"]
     instance.status = ImageResource.STATUS_BUILDING
     db.session.commit()
-    return api_success()
-
-
-@bp.post('/upload_docker_tar')
-def upload_docker_tar():
-    # Deprecated
-    pk = request.form.get("host")
-    host_ = db.session.query(Host).get(pk)
-    if not host_:
-        return api_fail(msg="请选择宿主机", code=400)
-    docker_api = host_.docker_api
-    # 测试连通性
-    try:
-        docker.DockerClient(docker_api, timeout=1)
-    except DockerException:
-        return api_fail(msg="Docker主机不在线", code=400)
-    file = request.files["file"]
-    filename = file.name
-    base_dir = current_app.config.get("BASE_DIR")
-    save_file_path = os.path.join(base_dir, 'upload', filename)
-    file.save(save_file_path)
-    build_question_tar.apply_async((save_file_path, docker_api))
     return api_success()
 
 

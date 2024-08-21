@@ -1,6 +1,6 @@
 import datetime
 
-from sqlalchemy import Column, ForeignKey
+from sqlalchemy import ForeignKey
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 
 from . import Model
@@ -18,13 +18,13 @@ class Role(Model):
 
 class Admin(Model):
     __tablename__ = 's_admin'
-    username: Mapped[str] = Column(db.String(256), unique=True, nullable=False, comment='用户名')
-    password: Mapped[str] = Column(db.String(512), nullable=False, comment='密码')
-    role_id: Mapped[int] = Column(db.Integer, ForeignKey('s_role.id'))
+    username: Mapped[str] = mapped_column(db.String(256), unique=True, nullable=False, comment='用户名')
+    password: Mapped[str] = mapped_column(db.String(512), nullable=False, comment='密码')
+    role_id: Mapped[int] = mapped_column(db.Integer, ForeignKey('s_role.id'))
     role: Mapped['Role'] = relationship('Role')
-    active: Mapped[bool] = Column(db.Boolean(), comment="是否启用")
-    login_time: Mapped[datetime.datetime] = Column(db.DateTime, default=None)
-    token: Mapped[str] = Column(db.String(64), comment="token", nullable=True, unique=True)
+    active: Mapped[bool] = mapped_column(db.Boolean(), comment="是否启用", default=True)
+    login_time: Mapped[datetime.datetime] = mapped_column(db.DateTime, default=None, nullable=True)
+    token: Mapped[str] = mapped_column(db.String(64), comment="token", nullable=True, unique=True)
     task_list: Mapped['TaskList'] = relationship('TaskList', backref='admin')
 
     @property
@@ -44,11 +44,11 @@ class TaskList(Model):
                       (STATUS_RUN, "执行中"),
                       (STATUS_ERROR, "执行错误"),
                       (STATUS_DONE, "执行完成"))
-    admin_id = Column(db.Integer, ForeignKey('s_admin.id'), comment="操作用户")
-    status = Column(db.Integer, default=STATUS_WAIT, comment="任务状况")
-    title = Column(db.String(64), comment="任务标题")
-    target_id = Column(db.String(32), comment="操作对象ID 可以是主机 容器 镜像 题库等")
-    remark = Column(db.Text, comment="备注 报错错误信息记录")
+    admin_id = mapped_column(db.Integer, ForeignKey('s_admin.id'), comment="操作用户")
+    status = mapped_column(db.Integer, default=STATUS_WAIT, comment="任务状况")
+    title = mapped_column(db.String(64), comment="任务标题")
+    target_id = mapped_column(db.String(32), comment="操作对象ID 可以是主机 容器 镜像 题库等")
+    remark = mapped_column(db.Text, comment="备注 报错错误信息记录")
 
     @property
     def status_name(self):
@@ -57,8 +57,8 @@ class TaskList(Model):
 
 class TaskLog(Model):
     __tablename__ = 'task_log'
-    task_id = Column(db.Integer, ForeignKey('task_list.id'))
-    content = Column(db.String(1024), comment="内容")
+    task_id = mapped_column(db.Integer, ForeignKey('task_list.id'))
+    content = mapped_column(db.String(1024), comment="内容")
 
 
 class RequestState(Model):
@@ -66,16 +66,16 @@ class RequestState(Model):
         每日请求统计
     """
     __tablename__ = 'request_state'
-    ip_count = Column(db.Integer)
-    req_count = Column(db.Integer)
-    day = Column(db.Date, comment="日期")
+    ip_count: Mapped[int] = mapped_column(db.Integer)
+    req_count: Mapped[int] = mapped_column(db.Integer)
+    day: Mapped[datetime.date] = mapped_column(db.Date, comment="日期")
 
 
 class Notice(Model):
     __tablename__ = 'notice'
-    active = Column(db.Boolean(), default=True)
-    is_top = Column(db.Boolean(), default=False)
-    content = Column(db.String(1024), comment="内容")
+    active: Mapped[bool] = mapped_column(db.Boolean(), default=True)
+    is_top: Mapped[bool] = mapped_column(db.Boolean(), default=False)
+    content: Mapped[str] = mapped_column(db.String(1024), comment="内容")
 
 
 class Operator(Model):
@@ -83,11 +83,11 @@ class Operator(Model):
         行为审计日志
     """
     __tablename__ = 'operator'
-    username = Column(db.String(255), comment="操作人用户名")
-    code = Column(db.Boolean, default=True, comment="操作结果")
-    ip = Column(db.String(15), comment="操作IP")
-    content = Column(db.String(128), comment="操作内容")
-    role = Column(db.String(10), comment="操作人角色")
+    username: Mapped[str] = mapped_column(db.String(255), comment="操作人用户名")
+    code: Mapped[bool] = mapped_column(db.Boolean(), default=True, comment="操作结果")
+    ip: Mapped[str] = mapped_column(db.String(15), comment="操作IP")
+    content: Mapped[str] = mapped_column(db.String(128), comment="操作内容")
+    role: Mapped[str] = mapped_column(db.String(10), comment="操作人角色")
 
 
 class Config(Model):
@@ -109,9 +109,9 @@ class Config(Model):
     }
 
     __tablename__ = 'config'
-    key = Column(db.String(255), comment="键")
-    val = Column(db.String(255), comment="值")
-    type = Column(db.String(32), comment="数据类型")
+    key: Mapped[str] = mapped_column(db.String(255), comment="键")
+    val: Mapped[str] = mapped_column(db.String(255), comment="值")
+    type: Mapped[str] = mapped_column(db.String(32), comment="数据类型")
 
     @staticmethod
     def get_config(key):
@@ -127,13 +127,24 @@ class Config(Model):
             return val_default
 
 
+class MessageType:
+    TYPE_ADMIN = 0
+    TYPE_DOCKER = 1
+
+
+class MessageLevel:
+    INFO = 0
+    WARN = 1
+    ERROR = 2
+
+
 class AdminMessage(Model):
     """
         管理员消息
     """
     __tablename__ = 'admin_message'
-    mtype = Column(db.Integer, comment="消息类型")
-    admin_id = Column(db.Integer, ForeignKey('s_admin.id'), comment="关联管理员")
-    content = Column(db.String(1024))
-    read = Column(db.Boolean(), default=False, comment="是否已读")
-    level = Column(db.Integer, comment="重要级别")
+    mtype: Mapped[int] = mapped_column(db.Integer, comment="消息类型", default=MessageType.TYPE_ADMIN)
+    admin_id: Mapped[int] = mapped_column(db.Integer, ForeignKey('s_admin.id'), comment="关联管理员")
+    content: Mapped[str] = mapped_column(db.String(1024))
+    read: Mapped[bool] = mapped_column(db.Boolean(), default=False, comment="是否已读")
+    level: Mapped[int] = mapped_column(db.Integer, comment="重要级别")

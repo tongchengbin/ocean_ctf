@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import Column, ForeignKey, UniqueConstraint, JSON, String, Integer
+from sqlalchemy import Column, ForeignKey, UniqueConstraint, JSON, String, Integer, DateTime, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models import Model, relationship
@@ -41,17 +41,17 @@ class ComposeRunner(Model):
     __tablename__ = "compose_runner"
     TYPE_USER = 1
     TYPE_ADMIN = 2
-    name = Column(db.String(256), unique=True, comment="名称")
-    compose_id = Column(db.Integer, ForeignKey(ComposeDB.id), comment="漏洞环境")
-    compose = relationship(ComposeDB)
-    type = Column(db.Integer, default=1)
-    user_id = Column(db.Integer, ForeignKey(User.id), comment="启动用户")
-    user = relationship(User)
-    create_time = Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    update_time = Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
-    port_info = Column(db.JSON, comment="服务端口信息")
-    project_dir = Column(db.String(256), comment="项目目录")
-    flag = Column(db.String(64), comment="flag")
+    name: Mapped[str] = mapped_column(String(256), unique=True, comment="名称")
+    compose_id: Mapped[int] = mapped_column(Integer, ForeignKey("compose_db.id"), comment="漏洞环境")
+    compose: Mapped[ComposeDB] = relationship(ComposeDB)
+    type: Mapped[int] = mapped_column(Integer, default=1)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), comment="启动用户")
+    user: Mapped[User] = relationship(User)
+    create_time: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.now)
+    update_time: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.now, onupdate=datetime.now)
+    port_info: Mapped[dict] = mapped_column(JSON, comment="服务端口信息")
+    project_dir: Mapped[str] = mapped_column(String(256), comment="项目目录")
+    flag: Mapped[str] = mapped_column(String(64), comment="flag")
 
 
 class DockerResource(Model):
@@ -77,11 +77,11 @@ class DockerResource(Model):
     docker_type: Mapped[int] = mapped_column(Integer, default=DOCKER_TYPE_REMOTE_IMAGE, comment="资源类型")
     name: Mapped[str] = mapped_column(String(256), comment="资源名称")
     image: Mapped[str] = mapped_column(String(256), comment="镜像名称:tag")
-    dockerfile: Mapped[str] = mapped_column(db.Text, comment="Dockerfile")
-    ports: Mapped[str] = mapped_column(String(256), comment="开放端口")
-    description: Mapped[str] = mapped_column(db.Text, comment="描述信息")
-    cve: Mapped[str] = mapped_column(JSON, comment="关联CVE")
-    app: Mapped[str] = mapped_column(String(128), comment="相关组件")
+    dockerfile: Mapped[str] = mapped_column(db.Text, comment="Dockerfile", nullable=True)
+    ports: Mapped[str] = mapped_column(String(256), comment="开放端口", nullable=True)
+    description: Mapped[str] = mapped_column(Text, comment="描述信息")
+    cve: Mapped[str] = mapped_column(JSON, comment="关联CVE", nullable=True)
+    app: Mapped[str] = mapped_column(String(128), comment="相关组件", nullable=True)
 
     __table__args = (
         UniqueConstraint('name', 'docker_type', name='idx_name_docker_type'),
@@ -101,15 +101,15 @@ class DockerRunner(Model):
     __tablename__ = "docker_runner"
     TYPE_USER = 1
     TYPE_ADMIN = 2
-    name = Column(db.String(256), unique=True, comment="名称")
-    resource_id = Column(db.Integer, ForeignKey(DockerResource.id), comment="漏洞环境")
-    resource = relationship(DockerResource)
-    type = Column(db.Integer, default=1)
-    user_id = Column(db.Integer, ForeignKey(User.id, ondelete='CASCADE'), comment="启动用户")
-    admin_id = Column(db.Integer, ForeignKey(Admin.id, ondelete='CASCADE'), comment="启动用户")
-    user = relationship(User)
-    admin = relationship(Admin)
-    create_time = Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    update_time = Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
-    port_info = Column(db.JSON, comment="服务端口信息")
-    container_id = Column(db.String(255), comment="实际容器ID")
+    name: Mapped[str] = mapped_column(db.String(256), unique=True, comment="名称")
+    resource_id: Mapped[int] = mapped_column(Integer, ForeignKey("docker_resource.id"), comment="漏洞环境")
+    resource: Mapped[DockerResource] = relationship(DockerResource)
+    type: Mapped[int] = mapped_column(Integer, default=1)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id", ondelete='CASCADE'), comment="启动用户")
+    admin_id: Mapped[int] = mapped_column(Integer, ForeignKey("s_admin.id", ondelete='CASCADE'), comment="启动用户")
+    user: Mapped[User] = relationship(User)
+    admin: Mapped[Admin] = relationship(Admin)
+    create_time: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.now)
+    update_time: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.now, onupdate=datetime.now)
+    port_info: Mapped[dict] = mapped_column(JSON, comment="服务端口信息")
+    container_id: Mapped[str] = mapped_column(String(255), comment="实际容器ID")

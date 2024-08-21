@@ -18,7 +18,7 @@ from app.extensions import db
 from app.lib.api import api_success, api_fail
 from app.lib.tools import model2dict
 from app.models.admin import TaskList, Config
-from app.models.docker import (Host, ComposeDB, ComposeRunner, DockerResource, )
+from app.models.docker import (ComposeDB, ComposeRunner, DockerResource, )
 from .form import PageForm, ComposeDBForm, DockerResourceForm
 from ..lib.validator import check_image_name
 from ..models.ctf import Question
@@ -124,42 +124,6 @@ def host_docker_container():
     return api_success({"data": containers})
 
 
-@bp.post('/containerStop')
-def container_stop():
-    """
-        关闭容器
-    :return:
-    """
-    host = request.get_json().get("host")
-    container_id = request.get_json().get("id")
-    instance = db.session.query(Host).filter(Host.id == host).one_or_none()
-    try:
-        client = docker.DockerClient(instance.docker_api)
-        container = client.containers.get(container_id)
-        container.stop()
-    except docker_error.DockerException:
-        return api_fail(msg=f'关闭容器失败:{container_id}')
-    return api_success({"status": 'ok'})
-
-
-@bp.post('/containerStart')
-def container_start():
-    """
-        关闭容器
-    :return:
-    """
-    host = request.get_json().get("host")
-    container_id = request.get_json().get("id")
-    instance = db.session.query(Host).filter(Host.id == host).one_or_none()
-    try:
-        client = docker.DockerClient(instance.docker_api)
-        container = client.containers.get(container_id)
-        res = container.start()
-    except docker_error.DockerException:
-        return api_fail(msg='关闭容器失败:{container_id}')
-    return api_success({"status": 'ok'})
-
-
 @bp.post('/containerAction')
 def container_action():
     """
@@ -177,31 +141,6 @@ def container_action():
     except docker_error.DockerException as e:
         return api_fail(msg='关闭容器失败:{container_id}')
     return api_success({"status": 'ok'})
-
-
-@bp.get('/host/<int:host>/image/<image>')
-def image_detail(host, image):
-    """
-        镜像详情
-    :param host: 主机
-    :param image: 镜像ID
-    :return:
-    """
-
-    instance = db.session.query(Host).filter(Host.id == host).one_or_none()
-    try:
-        client = docker.DockerClient(instance.docker_api)
-        image = client.images.get(image).attrs
-    except docker_error.DockerException as e:
-        image = {}
-    data = {
-        "id": instance.id,
-        "name": instance.name,
-        "docker_api": instance.docker_api,
-        "remark": instance.remark,
-        "image": image
-    }
-    return api_success({"results": data})
 
 
 @bp.route('/image', methods=['post'])
@@ -235,24 +174,6 @@ def image_create():
         kwargs = {}
     tasks.build_delay.apply_async(args=args, kwargs=kwargs)
     return api_success({"status": 'ok', 'data': {"task": task_obj.id}})
-
-
-@bp.get('/host/<int:host>/image_list')
-def image_list(host):
-    instance = db.session.query(Host).filter(Host.id == host).one_or_none()
-    try:
-        client = docker.DockerClient(instance.docker_api)
-        images_list = client.images.list()
-    except docker_error.DockerException as e:
-        return api_fail(msg="容器主机无法连接", code=400)
-    repos = []
-    for i in images_list:
-        attrs = i.attrs
-        if not attrs["RepoTags"]:
-            continue
-        for r in i.tags:
-            repos.append(r)
-    return api_success({"data": repos})
 
 
 @bp.get("/compose_db")

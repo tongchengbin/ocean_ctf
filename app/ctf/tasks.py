@@ -129,7 +129,11 @@ def sync_ctf_question_repo(repo, admin_id=None):
         except docker.errors.DockerException as e:
             logger.exception(e)
             obj.status = DockerResource.STATUS_INIT
-        db.session.add(obj)
-        db.session.commit()
+        try:
+            db.session.add(obj)
+            db.session.commit()
+        except Exception as e:
+            logger.error(e)
+            continue
         logger.info('Add Image:{}'.format(image))
     service.create_admin_message(admin_id, f"同步远程CTF仓库完成")
