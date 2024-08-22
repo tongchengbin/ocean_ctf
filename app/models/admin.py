@@ -87,7 +87,7 @@ class Operator(Model):
     code: Mapped[bool] = mapped_column(db.Boolean(), default=True, comment="操作结果")
     ip: Mapped[str] = mapped_column(db.String(15), comment="操作IP")
     content: Mapped[str] = mapped_column(db.String(128), comment="操作内容")
-    role: Mapped[str] = mapped_column(db.String(10), comment="操作人角色")
+    role: Mapped[str] = mapped_column(db.String(10), comment="操作人角色", nullable=True)
 
 
 class Config(Model):
