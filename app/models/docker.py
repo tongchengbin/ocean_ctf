@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import Column, ForeignKey, UniqueConstraint, JSON, String, Integer, DateTime, Text
+from sqlalchemy import Column, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models import Model, relationship
@@ -41,17 +41,18 @@ class ComposeRunner(Model):
     __tablename__ = "compose_runner"
     TYPE_USER = 1
     TYPE_ADMIN = 2
-    name: Mapped[str] = mapped_column(String(256), unique=True, comment="名称")
-    compose_id: Mapped[int] = mapped_column(Integer, ForeignKey("compose_db.id"), comment="漏洞环境")
+    name: Mapped[str] = mapped_column(db.String(256), unique=True, comment="名称")
+    compose_id: Mapped[int] = mapped_column(db.Integer, db.ForeignKey("compose_db.id"), comment="漏洞环境")
     compose: Mapped[ComposeDB] = relationship(ComposeDB)
-    type: Mapped[int] = mapped_column(Integer, default=1)
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), comment="启动用户")
+    type: Mapped[int] = mapped_column(db.Integer, default=1)
+    user_id: Mapped[int] = mapped_column(db.Integer, db.ForeignKey("user.id"), comment="启动用户")
     user: Mapped[User] = relationship(User)
-    create_time: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.now)
-    update_time: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.now, onupdate=datetime.now)
-    port_info: Mapped[dict] = mapped_column(JSON, comment="服务端口信息")
-    project_dir: Mapped[str] = mapped_column(String(256), comment="项目目录")
-    flag: Mapped[str] = mapped_column(String(64), comment="flag")
+    create_time: Mapped[datetime] = mapped_column(db.DateTime, nullable=False, default=datetime.now)
+    update_time: Mapped[datetime] = mapped_column(db.DateTime, nullable=False, default=datetime.now,
+                                                  onupdate=datetime.now)
+    port_info: Mapped[dict] = mapped_column(db.JSON, comment="服务端口信息")
+    project_dir: Mapped[str] = mapped_column(db.String(256), comment="项目目录")
+    flag: Mapped[str] = mapped_column(db.String(64), comment="flag")
 
 
 class DockerResource(Model):
@@ -72,16 +73,16 @@ class DockerResource(Model):
         STATUS_INIT: "初始化",
         STATUS_BUILD: "已就绪"
     }
-    status: Mapped[int] = mapped_column(Integer, default=STATUS_INIT, comment="资源状态")
-    resource_type: Mapped[str] = mapped_column(String(12), comment="资源类型(CTF|VUL)")
-    docker_type: Mapped[int] = mapped_column(Integer, default=DOCKER_TYPE_REMOTE_IMAGE, comment="资源类型")
-    name: Mapped[str] = mapped_column(String(256), comment="资源名称")
-    image: Mapped[str] = mapped_column(String(256), comment="镜像名称:tag")
+    status: Mapped[int] = mapped_column(db.Integer, default=STATUS_INIT, comment="资源状态")
+    resource_type: Mapped[str] = mapped_column(db.String(12), comment="资源类型(CTF|VUL)")
+    docker_type: Mapped[int] = mapped_column(db.Integer, default=DOCKER_TYPE_REMOTE_IMAGE, comment="资源类型")
+    name: Mapped[str] = mapped_column(db.String(256), comment="资源名称")
+    image: Mapped[str] = mapped_column(db.String(256), comment="镜像名称:tag")
     dockerfile: Mapped[str] = mapped_column(db.Text, comment="Dockerfile", nullable=True)
-    ports: Mapped[str] = mapped_column(String(256), comment="开放端口", nullable=True)
-    description: Mapped[str] = mapped_column(Text, comment="描述信息")
-    cve: Mapped[str] = mapped_column(JSON, comment="关联CVE", nullable=True)
-    app: Mapped[str] = mapped_column(String(128), comment="相关组件", nullable=True)
+    ports: Mapped[str] = mapped_column(db.String(256), comment="开放端口", nullable=True)
+    description: Mapped[str] = mapped_column(db.Text, comment="描述信息")
+    cve: Mapped[str] = mapped_column(db.JSON, comment="关联CVE", nullable=True)
+    app: Mapped[str] = mapped_column(db.String(128), comment="相关组件", nullable=True)
 
     __table__args = (
         UniqueConstraint('name', 'docker_type', name='idx_name_docker_type'),
@@ -102,16 +103,18 @@ class DockerRunner(Model):
     TYPE_USER = 1
     TYPE_ADMIN = 2
     name: Mapped[str] = mapped_column(db.String(256), unique=True, comment="名称")
-    resource_id: Mapped[int] = mapped_column(Integer, ForeignKey("docker_resource.id"), comment="漏洞环境")
+    resource_id: Mapped[int] = mapped_column(db.Integer, db.ForeignKey("docker_resource.id"), comment="漏洞环境")
     resource: Mapped[DockerResource] = relationship(DockerResource)
-    type: Mapped[int] = mapped_column(Integer, default=1)
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id", ondelete='CASCADE'), comment="启动用户",
+    type: Mapped[int] = mapped_column(db.Integer, default=1)
+    user_id: Mapped[int] = mapped_column(db.Integer, db.ForeignKey("user.id", ondelete='CASCADE'), comment="启动用户",
                                          nullable=True)
-    admin_id: Mapped[int] = mapped_column(Integer, ForeignKey("s_admin.id", ondelete='CASCADE'), comment="启动用户",
+    admin_id: Mapped[int] = mapped_column(db.Integer, db.ForeignKey("s_admin.id", ondelete='CASCADE'),
+                                          comment="启动用户",
                                           nullable=True)
     user: Mapped[User] = relationship(User)
     admin: Mapped[Admin] = relationship(Admin)
-    create_time: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.now)
-    update_time: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.now, onupdate=datetime.now)
-    port_info: Mapped[dict] = mapped_column(JSON, comment="服务端口信息")
-    container_id: Mapped[str] = mapped_column(String(255), comment="实际容器ID")
+    create_time: Mapped[datetime] = mapped_column(db.DateTime, nullable=False, default=datetime.now)
+    update_time: Mapped[datetime] = mapped_column(db.DateTime, nullable=False, default=datetime.now,
+                                                  onupdate=datetime.now)
+    port_info: Mapped[dict] = mapped_column(db.JSON, comment="服务端口信息")
+    container_id: Mapped[str] = mapped_column(db.String(255), comment="实际容器ID")

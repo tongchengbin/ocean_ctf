@@ -20,12 +20,12 @@ class Admin(Model):
     __tablename__ = 's_admin'
     username: Mapped[str] = mapped_column(db.String(256), unique=True, nullable=False, comment='用户名')
     password: Mapped[str] = mapped_column(db.String(512), nullable=False, comment='密码')
-    role_id: Mapped[int] = mapped_column(db.Integer, ForeignKey('s_role.id'))
+    role_id: Mapped[int] = mapped_column(db.Integer, db.ForeignKey('s_role.id'))
     role: Mapped['Role'] = relationship('Role')
     active: Mapped[bool] = mapped_column(db.Boolean(), comment="是否启用", default=True)
     login_time: Mapped[datetime.datetime] = mapped_column(db.DateTime, default=None, nullable=True)
     token: Mapped[str] = mapped_column(db.String(64), comment="token", nullable=True, unique=True)
-    task_list: Mapped['TaskList'] = relationship('TaskList', backref='admin')
+    # task_list: Mapped['TaskList'] = relationship('TaskList', backref='admin')
 
     @property
     def role_name(self):
