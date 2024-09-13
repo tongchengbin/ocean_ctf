@@ -287,7 +287,7 @@ def question_delayed(question):
     """
     container = db.session.query(CtfResource).filter(CtfResource.user_id == g.user.id,
                                                      CtfResource.question_id == question).order_by(
-        desc(CtfResource.id)).first()
+        CtfResource.id.desc()).first()
     if not container:
         return api_fail(msg="当前状态无法延长题目时间")
     # 最多延长三小时

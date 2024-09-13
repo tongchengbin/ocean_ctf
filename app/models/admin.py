@@ -12,7 +12,7 @@ class Role(Model):
     """
         角色  后面会关联权限
     """
-    id: Mapped[int] = mapped_column(primary_key=True)
+    id: Mapped[int] = mapped_column(db.Integer, primary_key=True)
     name: Mapped[str] = mapped_column(db.String(256), nullable=False, unique=True)
 
 
@@ -25,6 +25,7 @@ class Admin(Model):
     active: Mapped[bool] = mapped_column(db.Boolean(), comment="是否启用", default=True)
     login_time: Mapped[datetime.datetime] = mapped_column(db.DateTime, default=None, nullable=True)
     token: Mapped[str] = mapped_column(db.String(64), comment="token", nullable=True, unique=True)
+
     # task_list: Mapped['TaskList'] = relationship('TaskList', backref='admin')
 
     @property
