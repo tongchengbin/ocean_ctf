@@ -234,7 +234,7 @@ def docker_resource_list(query: PageForm):
     resource_type = request.args.get("type")
     if resource_type:
         db_query = db_query.filter(DockerResource.resource_type == resource_type)
-    page = db_query.paginate(page=query.page, per_page=query.page_size)
+    page = db_query.order_by(DockerResource.id.desc()).paginate(page=query.page, per_page=query.page_size)
     data = []
     for item in page.items:
         info = model2dict(item)
