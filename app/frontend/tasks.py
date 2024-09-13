@@ -1,18 +1,19 @@
 import logging
+from datetime import datetime
+
+import docker
+from docker.errors import DockerException
 
 from app.celeryapp import ContextTask
 from app.extensions import db, celery
 from app.models.admin import Config
 from app.models.ctf import CtfResource
-from datetime import datetime
-import docker
-from docker.errors import DockerException
 
 logger = logging.getLogger('app')
 
 
 @celery.task(base=ContextTask)
-def ctf_finish_container(container_id):
+def ctf_finish_container(container_id, current=False):
     """
         启动题目后自动销毁
         定时任务 定时结束容器
@@ -22,7 +23,7 @@ def ctf_finish_container(container_id):
     if not resource:
         logger.info("container not found:{}".format(container_id))
         return
-    if resource.destroy_time > datetime.now():
+    if not current and resource.destroy_time > datetime.now():
         logger.info(f"{datetime.now()} -> {resource.destroy_time}")
         logger.info("container time is delay ")
         return

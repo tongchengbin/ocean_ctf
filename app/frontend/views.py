@@ -366,6 +366,7 @@ def challenge_submit():
         # todo 添加作弊记录
         Answer.create(question_id=question_id, user_id=g.user.id, flag=flag, ip=ip, status=Answer.status_cheat)
         return api_fail(msg="检测到作弊、本次答题无效!")
+    current_ctf_resource = None
     if challenge.active_flag:
         current_ctf_resource = db.session.query(CtfResource).filter(CtfResource.user_id == g.user.id,
                                                                     CtfResource.question_id == question_id).order_by(
@@ -376,10 +377,13 @@ def challenge_submit():
             return api_fail(msg="当前状态无法作答、请启动环境!")
     else:
         ok_flag = challenge.flag.strip()
-    print("ok", ok_flag)
     if ok_flag == flag:
         Answer.create(question_id=question_id, user_id=g.user.id, flag=flag, ip=ip, status=Answer.status_ok,
                       score=challenge.score)
+        if current_ctf_resource:
+            # 停止容器
+            tasks.ctf_finish_container.apply_async(args=(current_ctf_resource.id,), kwargs={"current": True})
+
         return api_success(msg="答案正确、获得{}积分".format(challenge.score))
     else:
         Answer.create(question_id=question_id, user_id=g.user.id, flag=flag, ip=ip, status=Answer.status_error)
