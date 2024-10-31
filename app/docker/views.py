@@ -19,13 +19,12 @@ from app.lib.api import api_success, api_fail
 from app.lib.tools import model2dict
 from app.models.admin import TaskList, Config
 from app.models.docker import (ComposeDB, ComposeRunner, DockerResource, )
-from .form import PageForm, ComposeDBForm, DockerResourceForm
+from .form import PageForm, ComposeDBForm, DockerResourceForm, DockerResourceEditForm
 from ..lib.validator import check_image_name
 from ..models.ctf import Question
 
 logger = logging.getLogger('app')
 bp = Blueprint("admin_docker", __name__, url_prefix="/api/admin/docker")
-
 
 @bp.get('/info')
 def docker_info():
@@ -256,13 +255,14 @@ def docker_resource_create(body: DockerResourceForm):
 
 @bp.put("/resource/<int:pk>")
 @validate()
-def docker_resource_update(pk: int, body: DockerResourceForm):
+def docker_resource_update(pk: int, body: DockerResourceEditForm):
     instance = DockerResource.get_by_id(pk)
     # 判断是否修改了镜像
     if instance.image != body.image or instance.docker_type != body.docker_type:
         instance.status = DockerResource.STATUS_INIT
     instance.name = body.name
-    instance.resource_type = body.resource_type
+    # 资源类型无法更新
+    # instance.resource_type = body.resource_type
     instance.image = body.image
     instance.docker_type = body.docker_type
     instance.description = body.description
@@ -286,10 +286,15 @@ def docker_resource_build(pk):
         if resource.dockerfile:
             try:
                 directory = os.path.dirname(resource.dockerfile)
-                client.build(path=directory, tag=resource.image)
+                logger.info(f"build {resource.image} images <- {directory}")
+                ret = client.build(path=directory, tag=resource.image, dockerfile=resource.dockerfile)
+                for chunk in ret:
+                    logger.info(chunk)
+                logger.info(f"build success {resource.image}")
             except docker_error.DockerException as e:
                 logger.exception(e)
                 return api_fail(msg="Docker构建失败")
+            logger.info(resource.image)
             img = client.images(resource.image)
         else:
             img = client.images(resource.image)
@@ -356,9 +361,16 @@ def docker_resource_sync():
 def resource_delete(pk):
     logger.info(db.session.query(Question).filter(Question.resource_id == pk).all())
     try:
-        DockerResource.get_by_id(pk).delete()
+        instance = DockerResource.get_by_id(pk)
+        image = instance.image
+        instance.delete()
     except IntegrityError as e:
         logger.exception(e)
         db.session.rollback()
         return api_fail(msg="资源占用中、当前状态无法删除,请检查引用对象!", code=400)
+    # 删除docker images
+    client = APIClient(Config.get_config(Config.KEY_DOCKER_API))
+    logger.info("删除镜像：%s" % image)
+    client.remove_image(image)
+    db.session.commit()
     return api_success({})
