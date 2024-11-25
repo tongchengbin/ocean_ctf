@@ -96,7 +96,7 @@ admin/admin
 ## 开发
 
   后台管理源码：https://github.com/tongchengbin/ocean_manager
-
+  用户端源码：https://github.com/tongchengbin/ocean-player
 ## 社群
   QQ群: 836641851
   
