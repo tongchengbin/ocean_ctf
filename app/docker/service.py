@@ -5,12 +5,10 @@ import shutil
 
 import docker
 from docker.errors import ImageNotFound, NotFound
-from app import db
+from app.extensions import db
 from app.lib.tools import generate_flag
-from app.models.admin import Config
-from app.models.docker import ComposeRunner, ComposeDB, DockerResource, DockerRunner
-from compose.cli.command import project_from_options
-import compose
+from app.sys.models import Config
+from app.docker.models import ComposeRunner, ComposeDB, DockerResource, DockerRunner
 
 logger = logging.getLogger(__name__)
 

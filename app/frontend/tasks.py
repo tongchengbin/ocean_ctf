@@ -6,8 +6,8 @@ from docker.errors import DockerException
 
 from app.celeryapp import ContextTask
 from app.extensions import db, celery
-from app.models.admin import Config
-from app.models.ctf import CtfResource
+from app.sys.models  import Config
+from app.ctf.modles import CtfResource
 
 logger = logging.getLogger('app')
 

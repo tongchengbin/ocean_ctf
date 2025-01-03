@@ -1,10 +1,10 @@
 import datetime
 
-from sqlalchemy import ForeignKey
+from sqlalchemy import ForeignKey, Column
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 
-from . import Model
-from . import db
+from app.database import Model
+from app.extensions import db
 
 
 class Role(Model):
@@ -149,3 +149,11 @@ class AdminMessage(Model):
     content: Mapped[str] = mapped_column(db.String(1024))
     read: Mapped[bool] = mapped_column(db.Boolean(), default=False, comment="是否已读")
     level: Mapped[int] = mapped_column(db.Integer, comment="重要级别")
+
+
+class User(Model):
+    __tablename__ = 'user'
+    username = Column(db.String(256), unique=True, nullable=False, comment='用户名')
+    password = Column(db.String(512), nullable=False, comment='密码')
+    active = Column(db.Boolean(), default=True, comment="是否启用")
+    token = Column(db.String(64), comment="token", nullable=True)

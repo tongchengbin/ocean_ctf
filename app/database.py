@@ -3,25 +3,15 @@ import logging
 from datetime import datetime
 from typing import Optional, Type, TypeVar
 
-from flask_sqlalchemy import SQLAlchemy as SQLAlchemyBase  # type: ignore
-from sqlalchemy import DateTime
-from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import Mapped, mapped_column
+
+from app.extensions import db
 
 T = TypeVar("T", bound="PkModel")
 
 log = logging.getLogger(__name__)
 
 DEFAULT_DATETIME_FORMAT = "%Y-%m-%d %H:%M"
-
-
-class Base(DeclarativeBase):
-    pass
-
-
-db = SQLAlchemyBase(model_class=Base)
-Column = db.Column
-relationship = db.relationship
 
 
 class CRUDMixin(db.Model):

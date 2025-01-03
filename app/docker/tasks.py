@@ -3,15 +3,14 @@ import logging
 from io import BytesIO
 
 import docker.errors
-from compose.cli.command import project_from_options
 from docker import APIClient
 from docker.errors import DockerException
 
 from app.celeryapp import ContextTask
 from app.docker.service import user_compose_down
 from app.extensions import cache, celery
-from app.models.admin import Config, TaskList
-from app.models.docker import ComposeDB, DockerResource
+from app.sys.models import Config, TaskList
+from app.docker.models import ComposeDB, DockerResource
 
 logger = logging.getLogger(__name__)
 

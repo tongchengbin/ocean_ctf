@@ -9,3 +9,4 @@ celerybeat-schedule
 *.pyc
 venv
 .env
+.vscode

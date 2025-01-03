@@ -6,8 +6,8 @@ from datetime import datetime
 from flask import request, g
 
 from app.lib.api import api_fail
-from app.models.admin import Admin
 from app.extensions import db, cache
+from app.sys.models import Admin
 
 logger = logging.getLogger(__name__)
 

@@ -13,9 +13,9 @@ from app.celeryapp import ContextTask
 from app.extensions import celery, db, cache
 from app.lib.const import ConstCacheKey
 from app.lib.tools import find_directories_with_filename
-from app.models.admin import Config
-from app.models.ctf import CtfResource, ImageResource
-from app.models.docker import DockerResource
+from app.sys.models import Config
+from app.ctf.modles import CtfResource, ImageResource
+from app.docker.models import DockerResource
 from app.sys import service
 from config import config
 
