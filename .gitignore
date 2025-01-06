@@ -10,3 +10,4 @@ celerybeat-schedule
 venv
 .env
 .vscode
+*.py~
