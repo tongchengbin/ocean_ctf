@@ -5,7 +5,7 @@ from celery.schedules import crontab
 
 BASE_DIR = os.path.dirname(os.path.abspath(os.path.dirname(__file__)))
 
-load_dotenv(verbose=True)
+load_dotenv(verbose=False)
 
 DEBUG = False
 # db
@@ -61,7 +61,6 @@ LOGGING = {
             'stream': 'ext://sys.stdout',
         }
     },
-
     'loggers': {
         '': {
             'propagate': False,

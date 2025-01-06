@@ -54,10 +54,10 @@ def resource_list():
         data.append({
             "id": resource.id,
             "name": resource.docker_runner.name,
-            "date_created": resource.date_created.strftime(
-                "%Y-%m-%d %H:%M:%S") if resource.date_created else None,
-            "date_modified": resource.date_modified.strftime(
-                "%Y-%m-%d %H:%M:%S") if resource.date_modified else None,
+            "date_created": resource.created_at.strftime(
+                "%Y-%m-%d %H:%M:%S") if resource.created_at else None,
+            "date_modified": resource.updated_at.strftime(
+                "%Y-%m-%d %H:%M:%S") if resource.updated_at else None,
             "container_port": resource.docker_runner.port_info,
             "flag": resource.flag,
             "destroy_time": resource.destroy_time.strftime(
@@ -192,8 +192,8 @@ def answers_list():
         answer, question, user = item
         data.append({
             "id": answer.id,
-            "date_created": answer.date_created.strftime("%Y-%m-%d %H:%M:%S") if answer.date_created else None,
-            "date_modified": answer.date_modified.strftime("%Y-%m-%d %H:%M:%S") if answer.date_modified else None,
+            "date_created": answer.created_at.strftime("%Y-%m-%d %H:%M:%S") if answer.created_at else None,
+            "date_modified": answer.updated_at.strftime("%Y-%m-%d %H:%M:%S") if answer.updated_at else None,
             "status": answer.status,
             "status_name": answer.status_name,
             "question": {
@@ -249,8 +249,8 @@ def question_list():
             "resource_name": item.resource.name if item.resource_id else None,
             "attachment": attachment_info,
             "id": item.id,
-            "date_created": item.date_created.strftime("%Y-%m-%d %H:%M:%S") if item.date_created else None,
-            "date_modified": item.date_modified.strftime("%Y-%m-%d %H:%M:%S") if item.date_modified else None,
+            "date_created": item.created_at.strftime("%Y-%m-%d %H:%M:%S") if item.created_at else None,
+            "date_modified": item.updated_at.strftime("%Y-%m-%d %H:%M:%S") if item.updated_at else None,
             "name": item.name,
             'type': item.type,
             "active": item.active,

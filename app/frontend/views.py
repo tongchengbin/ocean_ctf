@@ -204,8 +204,8 @@ def challenge_detail(question):
             })
 
         container_data = {
-            "timeout": (resource.destroy_time - resource.date_created).total_seconds(),
-            "create_time": resource.date_created.strftime("%Y-%m-%d %H:%M:%S"),
+            "timeout": (resource.destroy_time - resource.updated_at).total_seconds(),
+            "create_time": resource.updated_at.strftime("%Y-%m-%d %H:%M:%S"),
             "urls": urls,
         }
     else:
@@ -235,7 +235,7 @@ def challenge_detail(question):
         "type": instance.type,
         "solved": db.session.query(Answer).filter(Answer.question_id == instance.id,
                                                   Answer.status == Answer.status_ok).count(),
-        "date_created": instance.date_created.strftime("%y-%m-%d")
+        "date_created": instance.updated_at.strftime("%y-%m-%d")
     }
     return api_success({"data": data})
 
@@ -370,7 +370,7 @@ def challenge_submit():
     if challenge.active_flag:
         current_ctf_resource = db.session.query(CtfResource).filter(CtfResource.user_id == g.user.id,
                                                                     CtfResource.question_id == question_id).order_by(
-            CtfResource.date_modified.desc()).first()
+            CtfResource.updated_at.desc()).first()
         if current_ctf_resource:
             ok_flag = current_ctf_resource.flag.strip()
         else:
@@ -405,7 +405,7 @@ def notice():
             "id": item.id,
             "is_top": item.is_top,
             "content": item.content,
-            "create_time": item.date_created.strftime("%Y-%m-%d %H:%M")
+            "create_time": item.updated_at.strftime("%Y-%m-%d %H:%M")
         })
     return api_success({"data": notices})
 

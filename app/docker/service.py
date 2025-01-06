@@ -9,8 +9,7 @@ from app import db
 from app.lib.tools import generate_flag
 from app.models.admin import Config
 from app.models.docker import ComposeRunner, ComposeDB, DockerResource, DockerRunner
-from compose.cli.command import project_from_options
-import compose
+
 
 logger = logging.getLogger(__name__)
 

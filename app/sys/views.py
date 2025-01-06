@@ -158,8 +158,8 @@ def user_list():
         data.append({
             "id": item.id,
             "username": item.username,
-            "date_created": item.date_created.strftime("%Y-%m-%d %H:%M:%S") if item.date_created else None,
-            "date_modified": item.date_modified.strftime("%Y-%m-%d %H:%M:%S") if item.date_modified else None,
+            "date_created": item.created_at.strftime("%Y-%m-%d %H:%M:%S") if item.created_at else None,
+            "date_modified": item.updated_at.strftime("%Y-%m-%d %H:%M:%S") if item.updated_at else None,
             "active": item.active
         })
     return api_success({
@@ -213,11 +213,11 @@ def index_state():
                 :return:今日容器启动数量、今日IP数量、题库数量
                 """
     today_query = db.session.query(CtfResource).filter(
-        func.date(CtfResource.date_created) == datetime.today().date())
+        func.date(CtfResource.created_at) == datetime.today().date())
     challenges_cnt = db.session.query(Question).count()
     user_cnt = db.session.query(User).count()
     today_register = db.session.query(User).filter(
-        func.date(User.date_created) == datetime.today().date()).count()
+        func.date(User.created_at) == datetime.today().date()).count()
     today_create_cnt = today_query.count()
     today = datetime.today().strftime("%Y%m%d")
     ip_count = cache.scard('ip-%s' % today)
@@ -270,7 +270,7 @@ def notice_list():
     for item in page.items:
         data.append({
             "id": item.id,
-            "date_created": item.date_created.strftime("%Y-%m-%d %H:%M:%S") if item.date_created else None,
+            "updated_at": item.updated_at.strftime("%Y-%m-%d %H:%M:%S") if item.created_at else None,
             "content": item.content,
             "is_top": item.is_top,
             "active": item.active
@@ -516,7 +516,7 @@ def message_notice():
         messages.append({
             "avatar": "https://gw.alipayobjects.com/zos/rmsportal/kISTdvpyTAhtGxpovNWd.png",
             "title": item.content,
-            "datetime": item.date_created.strftime("%Y-%m-%d %H:%M"),
+            "datetime": item.created_at.strftime("%Y-%m-%d %H:%M"),
             "description": "",
             "type": 2
         })

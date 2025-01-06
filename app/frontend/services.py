@@ -70,7 +70,7 @@ def score_rank(username=None, page=1, page_size=20):
     # 第一步查询只需要获取排名即可 和过滤条件即可
     base_arg_query = db.session.query(Answer.user_id, func.sum(Answer.score).label("sum_score"),
                                       func.count(Answer.id).label("cnt"),
-                                      func.max(Answer.date_created).label("last_time"),
+                                      func.max(Answer.updated_at).label("last_time"),
                                       func.aggregate_strings(Question.type, ",").label("strong")).join(Question,
                                                                                                 Question.id == Answer.question_id).filter(
         Answer.status == Answer.status_ok)

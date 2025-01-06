@@ -2,9 +2,7 @@
 import logging
 from datetime import datetime
 from typing import Optional, Type, TypeVar
-
 from flask_sqlalchemy import SQLAlchemy as SQLAlchemyBase  # type: ignore
-from sqlalchemy import DateTime
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -66,8 +64,8 @@ class Model(CRUDMixin):
 
     __abstract__ = True
     id: Mapped[int] = mapped_column(db.Integer, primary_key=True)
-    date_created: Mapped[datetime] = mapped_column(db.DateTime, default=datetime.now)
-    date_modified: Mapped[datetime] = mapped_column(
+    created_at: Mapped[datetime] = mapped_column(db.DateTime, default=datetime.now)
+    updated_at: Mapped[datetime] = mapped_column(
         db.DateTime,
         default=datetime.now,
         onupdate=datetime.now,
@@ -90,7 +88,7 @@ class Model(CRUDMixin):
 
     @property
     def create_time_format(self):
-        return self.date_created.strftime('%Y-%m-%d %H:%M')
+        return self.updated_at.strftime('%Y-%m-%d %H:%M')
 
     # 把SQLAlchemy查询对象转换成字典
     def to_dict(self):

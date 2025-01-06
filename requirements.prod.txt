@@ -1,0 +1,2 @@
+-r requirements.txt
+uwsgi==2.0.28

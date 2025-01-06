@@ -66,7 +66,7 @@ services:
     build:
       context: .
       dockerfile: ./install/docker/ocean_web.Dockerfile
-    image: ocean_web:v1.9
+    image: ocean_web:v1.10
     container_name: beat
     depends_on:
       - db

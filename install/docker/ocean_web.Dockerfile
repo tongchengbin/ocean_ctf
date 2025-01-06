@@ -1,4 +1,4 @@
-FROM python:3.8.8
+FROM python:3.10.12
 COPY requirements.txt /tmp/
 RUN sed -i 's#http://deb.debian.org#http://mirrors.cloud.tencent.com#g' /etc/apt/sources.list
 RUN sed -i 's#http://security.debian.org#http://mirrors.cloud.tencent.com#g' /etc/apt/sources.list

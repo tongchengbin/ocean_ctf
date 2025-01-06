@@ -8,7 +8,7 @@ from . import db
 
 
 class Role(Model):
-    __tablename__ = 's_role'
+    __tablename__ = 'role'
     """
         角色  后面会关联权限
     """
@@ -17,10 +17,10 @@ class Role(Model):
 
 
 class Admin(Model):
-    __tablename__ = 's_admin'
+    __tablename__ = 'admin'
     username: Mapped[str] = mapped_column(db.String(256), unique=True, nullable=False, comment='用户名')
     password: Mapped[str] = mapped_column(db.String(512), nullable=False, comment='密码')
-    role_id: Mapped[int] = mapped_column(db.Integer, db.ForeignKey('s_role.id'))
+    role_id: Mapped[int] = mapped_column(db.Integer, db.ForeignKey('role.id'))
     role: Mapped['Role'] = relationship('Role')
     active: Mapped[bool] = mapped_column(db.Boolean(), comment="是否启用", default=True)
     login_time: Mapped[datetime.datetime] = mapped_column(db.DateTime, default=None, nullable=True)
@@ -45,7 +45,7 @@ class TaskList(Model):
                       (STATUS_RUN, "执行中"),
                       (STATUS_ERROR, "执行错误"),
                       (STATUS_DONE, "执行完成"))
-    admin_id = mapped_column(db.Integer, ForeignKey('s_admin.id'), comment="操作用户")
+    admin_id = mapped_column(db.Integer, ForeignKey('admin.id'), comment="操作用户")
     status = mapped_column(db.Integer, default=STATUS_WAIT, comment="任务状况")
     title = mapped_column(db.String(64), comment="任务标题")
     target_id = mapped_column(db.String(32), comment="操作对象ID 可以是主机 容器 镜像 题库等")
@@ -145,7 +145,7 @@ class AdminMessage(Model):
     """
     __tablename__ = 'admin_message'
     mtype: Mapped[int] = mapped_column(db.Integer, comment="消息类型", default=MessageType.TYPE_ADMIN)
-    admin_id: Mapped[int] = mapped_column(db.Integer, ForeignKey('s_admin.id'), comment="关联管理员")
+    admin_id: Mapped[int] = mapped_column(db.Integer, ForeignKey('admin.id'), comment="关联管理员")
     content: Mapped[str] = mapped_column(db.String(1024))
     read: Mapped[bool] = mapped_column(db.Boolean(), default=False, comment="是否已读")
     level: Mapped[int] = mapped_column(db.Integer, comment="重要级别")

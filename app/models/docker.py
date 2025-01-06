@@ -108,7 +108,7 @@ class DockerRunner(Model):
     type: Mapped[int] = mapped_column(db.Integer, default=1)
     user_id: Mapped[int] = mapped_column(db.Integer, db.ForeignKey("user.id", ondelete='CASCADE'), comment="启动用户",
                                          nullable=True)
-    admin_id: Mapped[int] = mapped_column(db.Integer, db.ForeignKey("s_admin.id", ondelete='CASCADE'),
+    admin_id: Mapped[int] = mapped_column(db.Integer, db.ForeignKey("admin.id", ondelete='CASCADE'),
                                           comment="启动用户",
                                           nullable=True)
     user: Mapped[User] = relationship(User)

@@ -3,7 +3,6 @@ import logging
 from io import BytesIO
 
 import docker.errors
-from compose.cli.command import project_from_options
 from docker import APIClient
 from docker.errors import DockerException
 
