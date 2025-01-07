@@ -1,6 +1,8 @@
 from __future__ import absolute_import
 
+import logging
 from urllib.parse import urljoin, urlparse
+
 import redis
 import sqlalchemy.exc
 from werkzeug.exceptions import HTTPException
@@ -9,25 +11,21 @@ from flask import Flask, jsonify, make_response
 from flask import g
 from flask import request
 from flask import url_for
-
 from app.lib import command as command_app
 from app.lib.exceptions import RestExceptions
 from app.lib.middlewares import before_req_cache_ip, global_admin_required
 from app.lib.tools import telnet_port
 from config import config
 from .extensions import db, celery, cache
-import logging
-
-logger = logging.getLogger(__name__)
 
 
 def create_app():
     """
+        特别注意 因为使用了bp路由会导致 view task main 三个互相依赖 所以在这里要去掉路由 把路由和main 绑定在一起
+        当然也可以通过app_name 参数实现 但是需要使用单例模式 否者api和task 会启动两个app 一个提供接口 一个提供对celery的连接 感觉不太合理
     Application factory.
-    特别注意 因为使用了bp路由会导致 view task main 三个互相依赖 所以在这里要去掉路由 把路由和main 绑定在一起
-    当然也可以通过app_name 参数实现 但是需要使用单例模式 否者api和task 会启动两个app 一个提供接口 一个提供对celery的连接 感觉不太合理
     """
-    flask_app = Flask('ocean')
+    flask_app = Flask('main')
     flask_app.config.from_object(config)
     # 注册缓存
     cache.init_app(flask_app)
@@ -41,7 +39,8 @@ def create_app():
         db.engine.connect().close()
     except sqlalchemy.exc.OperationalError as e:
         db.session.rollback()
-        logger.error(f"数据库未就绪: {str(e)}")
+        logging.error(e)
+        logging.error("数据库未就绪")
         exit(1)
     db.create_all()
     create_default_data()
@@ -69,17 +68,17 @@ def register_custom_helpers(scope_app):
 
 
 def exception_handle(e):
-    logger.error(f'Exception occurred: {str(e)}')
     if isinstance(e, redis.exceptions.ConnectionError):
-        return make_response(jsonify({"message": "缓存服务不可用", "code": 503}), 503)
+        return make_response(jsonify({"message": "缓存服务不可用"}), 503)
     if isinstance(e, RestExceptions):
         return make_response(jsonify({"message": e.msg, "code": e.code}), e.status)
     if isinstance(e, HTTPException):
         return make_response(jsonify({"message": e.name, "code": e.code}), e.code)
-
+    
     # 记录详细错误信息
-    logger.error(f'Exception occurred: {str(e)}', exc_info=True)
-    logger.exception(e)
+    logger = logging.getLogger('app')
+    logger.error('Exception occurred', exc_info=True)
+    
     # 返回通用错误响应
     return make_response(jsonify({
         "message": "服务器内部错误",
@@ -149,7 +148,7 @@ def create_default_data():
     from app.models.admin import Admin, Role
     # 添加角色 目前角色权限控制作为预留
     for role in ('超级管理员', '运维管理员', '审计员', '访客'):
-        if not db.session.query(Role).filter_by(name=role).first():
+        if not db.session.query(Role).filter_by(name = role).first():
             db.session.add(Role(name=role))
     db.session.commit()
     superuser_role_id = db.session.query(Role.id).filter(Role.name == '超级管理员').first()[0]
