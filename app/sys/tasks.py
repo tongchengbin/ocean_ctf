@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from app.celeryapp import ContextTask
 from app.extensions import db, cache
 from app.models.admin import RequestState
-from app.lib.const import ConstCacheKey
+from app.core.const import ConstCacheKey
 from app.extensions import celery
 
 logger = logging.getLogger('app')

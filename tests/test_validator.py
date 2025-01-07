@@ -1,6 +1,6 @@
 import unittest
 
-from app.lib.validator import check_image_name
+from app.utils.validator import check_image_name
 
 
 class TestValidator(unittest.TestCase):

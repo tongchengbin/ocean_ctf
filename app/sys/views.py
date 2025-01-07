@@ -6,17 +6,16 @@ from operator import or_
 
 from flask import Blueprint, jsonify, request, g, current_app
 from sqlalchemy import func, desc
-from werkzeug.security import check_password_hash, generate_password_hash
 
+from app.core.api import api_fail, api_success
 from app.extensions import cache
 from app.extensions import db
-from app.lib.api import api_fail, api_success
-from app.lib.utils.authlib import create_token
 from app.models.admin import (Admin, TaskList, Operator, Config, AdminMessage)
 from app.models.admin import RequestState, Role, Notice
 from app.models.ctf import CtfResource, Question
 from app.models.user import User
 from app.sys.service import insert_operator
+from app.utils.security import check_password, hash_password, create_token
 
 bp = Blueprint("admin", __name__, url_prefix="/api/admin")
 logger = logging.getLogger('app')
@@ -30,8 +29,8 @@ def admin_rest_pass():
     if not all([old_pass, new_pass]):
         return api_fail(msg="参数错误")
     user = g.user
-    if check_password_hash(user.password, old_pass):
-        user.password = generate_password_hash(new_pass)
+    if check_password(user.password, old_pass):
+        user.password = hash_password(new_pass)
         db.session.commit()
         return api_success()
     else:
@@ -113,7 +112,7 @@ def admin_update(pk):
     if role:
         admin.role_id = role
     if password:
-        admin.password = generate_password_hash(password)
+        admin.password = hash_password(password)
     db.session.commit()
     return api_success({})
 
@@ -126,7 +125,7 @@ def admin_create():
     role = data.get('role')
     if db.session.query(Admin).filter(Admin.username == username).count():
         return api_fail(msg="管理员已存在")
-    safe_password = generate_password_hash(password)
+    safe_password = hash_password(password)
     admin = Admin(username=username, password=safe_password, role_id=role)
     db.session.add(admin)
     db.session.commit()
@@ -178,7 +177,7 @@ def user_create():
     password = data.get("password")
     if db.session.query(User).filter(User.username == username).one_or_none():
         return api_fail(msg="用户名已存在")
-    safe_password = generate_password_hash(password)
+    safe_password = hash_password(password)
     db.session.add(User(username=username, password=safe_password))
     db.session.commit()
     return api_success({})
@@ -190,7 +189,7 @@ def user_update(pk):
     password = data.get('password')
     user = db.session.query(User).get(pk)
     if password:
-        user.password = generate_password_hash(password)
+        user.password = hash_password(password)
     db.session.commit()
     return api_success({})
 
@@ -346,7 +345,7 @@ def login():
     if admin is None:
         insert_operator(code=False, content="登录失败", username=username, role_name=None)
         return api_fail(code=403, msg="用户名或密码错误")
-    if check_password_hash(admin.password, password):
+    if check_password(admin.password, password):
         token = create_token()
         admin.token = token
         admin.login_time = datetime.now()
@@ -506,18 +505,35 @@ def message_notice():
     """
         获取管理员消息 通知  代办
     """
-    page = 1
-    page_size = 100
-    query = db.session.query(AdminMessage).filter(AdminMessage.admin_id == g.user.id).order_by(
-        AdminMessage.id.desc())
+    page = int(request.args.get('page', 1))
+    page_size = int(request.args.get("page_size", 10))
+    read = request.args.get("read")
+    query = db.session.query(AdminMessage).filter(AdminMessage.admin_id == g.user.id)
+    if read == "0":
+        query = query.filter(AdminMessage.read == False)
+    query = query.order_by(AdminMessage.id.desc())
     page_query = query.paginate(page=page, per_page=page_size)
     messages = []
     for item in page_query.items:
         messages.append({
+            "id": item.id,
+            "read": item.read,
             "avatar": "https://gw.alipayobjects.com/zos/rmsportal/kISTdvpyTAhtGxpovNWd.png",
             "title": item.content,
             "datetime": item.created_at.strftime("%Y-%m-%d %H:%M"),
             "description": "",
             "type": 2
         })
-    return api_success({"data": [{"key": 2, "name": "通知", "list": messages}]})
+    return api_success(results=messages, total=page_query.total)
+
+
+@bp.post('/message/read')
+def message_read():
+    """
+        消息已读
+    :return:
+    """
+    ids = request.get_json().get("ids")
+    db.session.query(AdminMessage).filter(AdminMessage.id.in_(ids)).update({"read": True})
+    db.session.commit()
+    return api_success()

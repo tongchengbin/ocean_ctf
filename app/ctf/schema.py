@@ -7,7 +7,7 @@ class QuestionForm(BaseModel):
     name: str
     active: Optional[bool]
     active_flag: Optional[bool]
-    flag: Optional[str]
+    flag: Optional[str] = None  # Set default to None
     desc: str
     type: str
     score: int

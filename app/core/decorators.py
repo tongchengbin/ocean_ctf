@@ -1,10 +1,10 @@
 import logging
-import threading
 from functools import wraps
+
 from flask import request, g
 
-from app.lib.api import api_fail
 from app.extensions import db
+from app.core.api import api_fail
 from app.models.user import User
 
 logger = logging.getLogger('app')

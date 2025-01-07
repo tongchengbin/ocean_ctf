@@ -1,22 +1,19 @@
-from __future__ import absolute_import
-
 import logging
 from urllib.parse import urljoin, urlparse
-
-import redis
 import sqlalchemy.exc
-from werkzeug.exceptions import HTTPException
-from werkzeug.security import generate_password_hash
-from flask import Flask, jsonify, make_response
+from flask import Flask
 from flask import g
 from flask import request
 from flask import url_for
-from app.lib import command as command_app
-from app.lib.exceptions import RestExceptions
-from app.lib.middlewares import before_req_cache_ip, global_admin_required
-from app.lib.tools import telnet_port
+from app.core.exceptions import RestExceptions
+from app.core.middlewares import before_req_cache_ip, global_admin_required
+from app.utils.tools import telnet_port
 from config import config
+from .core import error_handlers, command as command_app
 from .extensions import db, celery, cache
+from .utils.security import hash_password
+
+logger = logging.getLogger(__name__)
 
 
 def create_app():
@@ -27,14 +24,20 @@ def create_app():
     """
     flask_app = Flask('main')
     flask_app.config.from_object(config)
+
     # 注册缓存
     cache.init_app(flask_app)
+
+
     register_extensions(flask_app)
     register_blueprints(flask_app)
     register_custom_helpers(flask_app)
     flask_app.before_request_funcs.setdefault(None, []).append(before_req_cache_ip)
     flask_app.before_request_funcs.setdefault(None, []).append(global_admin_required)
-    flask_app.register_error_handler(Exception, exception_handle)
+
+    # register error handler
+    error_handlers.register_error_handlers(flask_app)
+
     try:
         db.engine.connect().close()
     except sqlalchemy.exc.OperationalError as e:
@@ -67,24 +70,7 @@ def register_custom_helpers(scope_app):
     scope_app.jinja_env.globals['url_for_no_querystring'] = url_for_no_querystring
 
 
-def exception_handle(e):
-    if isinstance(e, redis.exceptions.ConnectionError):
-        return make_response(jsonify({"message": "缓存服务不可用"}), 503)
-    if isinstance(e, RestExceptions):
-        return make_response(jsonify({"message": e.msg, "code": e.code}), e.status)
-    if isinstance(e, HTTPException):
-        return make_response(jsonify({"message": e.name, "code": e.code}), e.code)
-    
-    # 记录详细错误信息
-    logger = logging.getLogger('app')
-    logger.error('Exception occurred', exc_info=True)
-    
-    # 返回通用错误响应
-    return make_response(jsonify({
-        "message": "服务器内部错误",
-        "code": 500,
-        "error": str(e) if config.DEBUG else None
-    }), 500)
+
 
 
 def register_extensions(scope_app):
@@ -109,7 +95,6 @@ def register_extensions(scope_app):
         return environ
 
     scope_app.after_request(cors)
-
 
 def register_blueprints(flask_app):
     """
@@ -148,12 +133,12 @@ def create_default_data():
     from app.models.admin import Admin, Role
     # 添加角色 目前角色权限控制作为预留
     for role in ('超级管理员', '运维管理员', '审计员', '访客'):
-        if not db.session.query(Role).filter_by(name = role).first():
+        if not db.session.query(Role).filter_by(name=role).first():
             db.session.add(Role(name=role))
     db.session.commit()
     superuser_role_id = db.session.query(Role.id).filter(Role.name == '超级管理员').first()[0]
     if not db.session.query(Admin).filter(Admin.username == 'admin').first():
-        db.session.add(Admin(username='admin', password=generate_password_hash('admin'), role_id=superuser_role_id))
+        db.session.add(Admin(username='admin', password=hash_password('admin'), role_id=superuser_role_id))
         db.session.commit()
 
 

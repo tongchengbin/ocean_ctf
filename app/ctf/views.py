@@ -8,10 +8,10 @@ from flask import Blueprint, request, g
 from flask_pydantic import validate
 
 from app.ctf import tasks
-from app.ctf.form import QuestionForm
+from app.ctf.schema import QuestionForm
 from app.docker.service import destroy_docker_runner
 from app.extensions import db
-from app.lib.api import api_fail, api_success
+from app.core.api import api_fail, api_success
 from app.models.admin import Config
 from app.models.ctf import QType, ImageResource, CtfResource, Answer, Attachment
 from app.models.ctf import Question
@@ -129,7 +129,7 @@ def question_update(pk):
     return api_success()
 
 
-@bp.route('/containers/<int:container_resource>/refresh', methods=['post'])
+@bp.post('/containers/<int:container_resource>/refresh')
 def ctf_containers_refresh(container_resource):
     """
         刷新容器状态 数据库和实际容器状态同步
@@ -219,7 +219,7 @@ def answer_status_list():
     return api_success({"data": list(Answer.status_choices)})
 
 
-@bp.route('/question', methods=['get'])
+@bp.get('/question')
 def question_list():
     """
         题库列表 和题库添加

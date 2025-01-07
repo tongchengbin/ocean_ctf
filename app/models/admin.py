@@ -112,7 +112,6 @@ class Config(Model):
     __tablename__ = 'config'
     key: Mapped[str] = mapped_column(db.String(255), comment="键")
     val: Mapped[str] = mapped_column(db.String(255), comment="值")
-    type: Mapped[str] = mapped_column(db.String(32), comment="数据类型")
 
     @staticmethod
     def get_config(key):

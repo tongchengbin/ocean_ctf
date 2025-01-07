@@ -5,7 +5,7 @@ import logging
 from datetime import datetime
 from flask import request, g
 
-from app.lib.api import api_fail
+from app.core.api import api_fail
 from app.models.admin import Admin
 from app.extensions import db, cache
 

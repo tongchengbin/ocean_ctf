@@ -3,7 +3,8 @@ import typing
 from flask import jsonify
 
 
-def api_success(data: typing.Union[typing.Dict, None] = None, msg=""):
+def api_success(data: typing.Union[typing.Dict, None] = None, msg="", results: typing.List[typing.Dict] = None,
+                total=None):
     if data is None:
         data = {}
     if "code" in data:
@@ -11,6 +12,10 @@ def api_success(data: typing.Union[typing.Dict, None] = None, msg=""):
     data['code'] = 0
     if msg:
         data["message"] = msg
+    if results:
+        data["results"] = results
+    if total is not None:
+        data["total"] = total
     return jsonify(data)
 
 

@@ -69,9 +69,11 @@ class DockerResource(Model):
     }
     STATUS_INIT = 0
     STATUS_BUILD = 1
+    STATUS_BUILD_ERROR = 2
     STATUS_MAP = {
         STATUS_INIT: "初始化",
-        STATUS_BUILD: "已就绪"
+        STATUS_BUILD: "已就绪",
+        STATUS_BUILD_ERROR: "构建失败"
     }
     status: Mapped[int] = mapped_column(db.Integer, default=STATUS_INIT, comment="资源状态")
     resource_type: Mapped[str] = mapped_column(db.String(12), comment="资源类型(CTF|VUL)")

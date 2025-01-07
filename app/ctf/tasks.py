@@ -11,8 +11,8 @@ from docker.errors import NotFound
 
 from app.celeryapp import ContextTask
 from app.extensions import celery, db, cache
-from app.lib.const import ConstCacheKey
-from app.lib.tools import find_directories_with_filename
+from app.core.const import ConstCacheKey
+from app.utils.tools import find_directories_with_filename
 from app.models.admin import Config
 from app.models.ctf import CtfResource, ImageResource
 from app.models.docker import DockerResource
@@ -100,7 +100,8 @@ def sync_ctf_question_repo(repo, admin_id=None):
         service.create_admin_message(admin_id, f"同步远程CTF仓库失败\n{e}")
         logger.error(e)
         return
-    client = docker.DockerClient(Config.get_config(Config.KEY_DOCKER_API))
+    docker_api= Config.get_config(Config.KEY_DOCKER_API)
+    client = docker.DockerClient(docker_api)
     vulnerabilities = find_directories_with_filename(local_repo, filename='metadata.yml')
     for directory in vulnerabilities:
         with open(os.path.join(directory, 'metadata.yml')) as f:

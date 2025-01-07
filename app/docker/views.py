@@ -12,19 +12,20 @@ from flask_pydantic import validate
 from sqlalchemy import or_
 from sqlalchemy.exc import IntegrityError
 
+from app.core.api import api_success, api_fail
+from app.core.tools import model2dict
 from app.docker import tasks
 from app.extensions import cache
 from app.extensions import db
-from app.lib.api import api_success, api_fail
-from app.lib.tools import model2dict
 from app.models.admin import TaskList, Config
 from app.models.docker import (ComposeDB, ComposeRunner, DockerResource, )
+from app.utils.validator import check_image_name
 from .form import PageForm, ComposeDBForm, DockerResourceForm, DockerResourceEditForm
-from ..lib.validator import check_image_name
 from ..models.ctf import Question
 
 logger = logging.getLogger('app')
 bp = Blueprint("admin_docker", __name__, url_prefix="/api/admin/docker")
+
 
 @bp.get('/info')
 def docker_info():
@@ -289,7 +290,14 @@ def docker_resource_build(pk):
                 logger.info(f"build {resource.image} images <- {directory}")
                 ret = client.build(path=directory, tag=resource.image, dockerfile=resource.dockerfile)
                 for chunk in ret:
-                    logger.info(chunk)
+                    log = json.loads(chunk)
+                    err_log = log.get("errorDetail")
+                    if err_log:
+                        resource.status = DockerResource.STATUS_BUILD_ERROR
+                        resource.save()
+                    # save to redis
+                    cache.lpush("DOCKER_RESOURCE_%s" % resource.id, chunk)
+                    logger.info(json.loads(chunk))
                 logger.info(f"build success {resource.image}")
             except docker_error.DockerException as e:
                 logger.exception(e)
@@ -315,13 +323,12 @@ def docker_resource_logs(pk):
     key = "DOCKER_RESOURCE_%s" % pk
     data = []
     for log in cache.lrange(key, start, -1):
-        data.append(json.loads(log))
-
+        data.insert(0, json.loads(log))
     results = {
         "status": resource.status,
         "data": data
     }
-    return api_success(results)
+    return api_success({"data":results})
 
 
 @bp.post("/resource/sync")

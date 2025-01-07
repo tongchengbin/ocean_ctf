@@ -6,7 +6,7 @@ import shutil
 import docker
 from docker.errors import ImageNotFound, NotFound
 from app import db
-from app.lib.tools import generate_flag
+from app.utils.tools import generate_flag
 from app.models.admin import Config
 from app.models.docker import ComposeRunner, ComposeDB, DockerResource, DockerRunner
 

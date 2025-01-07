@@ -1,7 +1,9 @@
 import click
+import os
+import hashlib
 from flask.cli import with_appcontext
 from app.extensions import db
-from werkzeug.security import generate_password_hash
+from app.utils.security import hash_password
 
 
 @click.command("init-db")
@@ -20,7 +22,7 @@ def init_superuser():
     from app.models.admin import Admin
     admin = db.session.query(Admin).filter(Admin.username == 'superuser').one_or_none()
     if admin:
-        admin.password = generate_password_hash('admin')
+        admin.password = hash_password('admin')
         db.session.commit()
     else:
         pass
@@ -40,8 +42,9 @@ def init_data():
     for name in ("超级管理员", "运维管理员"):
         db.session.add(Role(name=name))
     # 添加超级管理员
-    db.session.add(Admin(username='superuser', role_id=1, password=generate_password_hash('admin')))
+    db.session.add(Admin(username='superuser', role_id=1, password=hash_password('admin')))
     db.session.commit()
+
 
 
 def init_app(app):

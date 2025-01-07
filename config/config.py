@@ -110,3 +110,5 @@ beat_schedule = {
 }
 timezone = 'Asia/Shanghai'
 CELERY_ENABLE_UTC = True
+
+FLASK_PYDANTIC_VALIDATION_ERROR_RAISE = True
