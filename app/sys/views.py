@@ -440,14 +440,13 @@ def set_config():
         # 校验数据
         val_type = Config.CONFIG_MAP[k][0]
         if not isinstance(v, val_type):
-            print(v, val_type)
             return api_fail(msg="数据格式错误")
         old = db.session.query(Config).filter(Config.key == k).first()
         if old:
             old.val = v
             old.type = val_type.__name__
         else:
-            db.session.add(Config(key=k, val=v, type=val_type.__name__))
+            db.session.add(Config(key=k, val=v))
     db.session.commit()
     return api_success()
 
