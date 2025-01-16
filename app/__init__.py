@@ -48,7 +48,7 @@ def create_app():
         exit(1)
     db.create_all()
     create_default_data()
-    logging.info("初始化数据完成")
+    logger.info("数据库初始化完成")
     return flask_app
 
 
@@ -109,7 +109,7 @@ def register_blueprints(flask_app):
     # 用户平台注册
     from app.frontend.views import bp as view_bp
     from app.vulnerability import admin_views, user_views
-    from app.routes import ws
+    from .frontend import ws
     """Register Flask blueprints."""
     flask_app.register_blueprint(view_bp)
     flask_app.register_blueprint(admin_bp)

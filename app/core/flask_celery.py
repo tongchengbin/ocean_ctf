@@ -1,8 +1,7 @@
-import celery
+from celery import Task as TaskBase
 from flask import current_app
-from app.extensions import db
 
-TaskBase = celery.Task
+from app.extensions import db
 
 
 class ContextTask(TaskBase):
@@ -25,5 +24,3 @@ class ContextTask(TaskBase):
             if not isinstance(retval, Exception):
                 db.session.commit()
         db.session.remove()
-
-

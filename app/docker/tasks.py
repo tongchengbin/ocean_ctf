@@ -6,7 +6,7 @@ import docker.errors
 from docker import APIClient
 from docker.errors import DockerException
 
-from app.celeryapp import ContextTask
+from app.core.flask_celery import ContextTask
 from app.docker.service import user_compose_down
 from app.extensions import cache, celery
 from app.models.admin import Config, TaskList

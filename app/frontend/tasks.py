@@ -4,7 +4,7 @@ from datetime import datetime
 import docker
 from docker.errors import DockerException
 
-from app.celeryapp import ContextTask
+from app.core.flask_celery import ContextTask
 from app.extensions import db, celery
 from app.models.admin import Config
 from app.models.ctf import CtfResource

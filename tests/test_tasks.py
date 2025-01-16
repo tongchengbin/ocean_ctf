@@ -1,5 +1,4 @@
 import unittest
-from docker import APIClient
 
 from app import create_app
 from app.vulnerability import tasks

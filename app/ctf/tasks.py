@@ -9,7 +9,7 @@ import requests
 import yaml
 from docker.errors import NotFound
 
-from app.celeryapp import ContextTask
+from app.core.flask_celery import ContextTask
 from app.extensions import celery, db, cache
 from app.core.const import ConstCacheKey
 from app.utils.tools import find_directories_with_filename

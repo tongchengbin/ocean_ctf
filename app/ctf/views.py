@@ -1,12 +1,10 @@
 import logging
 import os
 import uuid
-
 import docker
 from docker import errors as docker_error
 from flask import Blueprint, request, g
 from flask_pydantic import validate
-
 from app.ctf import tasks
 from app.ctf.schema import QuestionForm
 from app.docker.service import destroy_docker_runner
