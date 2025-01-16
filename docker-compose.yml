@@ -34,12 +34,21 @@ services:
       - .:/opt/ocean_ctf
       - /var/run/docker.sock:/var/run/docker.sock
       - /opt/vulnerability:/opt/vulnerability
+      - /var/log/gunicorn:/var/log/gunicorn
     depends_on:
       - db
       - redis
     restart: always
     working_dir: /opt/ocean_ctf
-    command: "gunicorn -b 0.0.0.0:5000 --worker-class=eventlet -w 2 main:app"
+    command: >
+        gunicorn
+        -b 0.0.0.0:5000
+        --worker-class=eventlet
+        -w 2
+        --log-level=info
+        --access-logfile=/var/log/gunicorn/access.log
+        --error-logfile=/var/log/gunicorn/error.log
+        main:app
     environment:
       TZ: ${TZ}
   worker:

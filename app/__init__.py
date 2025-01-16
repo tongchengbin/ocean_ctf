@@ -48,6 +48,7 @@ def create_app():
         exit(1)
     db.create_all()
     create_default_data()
+    logging.info("初始化数据完成")
     return flask_app
 
 
