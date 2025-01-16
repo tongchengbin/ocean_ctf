@@ -63,7 +63,7 @@ class Model(CRUDMixin):
     """Base model class that includes CRUD convenience methods."""
 
     __abstract__ = True
-    id: Mapped[int] = mapped_column(db.Integer, primary_key=True)
+    id = Column(db.Integer, primary_key=True)
     created_at: Mapped[datetime] = mapped_column(db.DateTime, default=datetime.now)
     updated_at: Mapped[datetime] = mapped_column(
         db.DateTime,

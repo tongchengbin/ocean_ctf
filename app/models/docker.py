@@ -85,7 +85,7 @@ class DockerResource(Model):
     description: Mapped[str] = mapped_column(db.Text, comment="描述信息")
     cve: Mapped[str] = mapped_column(db.JSON, comment="关联CVE", nullable=True)
     app: Mapped[str] = mapped_column(db.String(128), comment="相关组件", nullable=True)
-
+    logs = Column(db.Text, comment="构建过程信息", nullable=True)
     __table__args = (
         UniqueConstraint('name', 'docker_type', name='idx_name_docker_type'),
         UniqueConstraint('image', 'docker_type', name='idx_image_docker_type'),
@@ -119,4 +119,4 @@ class DockerRunner(Model):
     update_time: Mapped[datetime] = mapped_column(db.DateTime, nullable=False, default=datetime.now,
                                                   onupdate=datetime.now)
     port_info: Mapped[dict] = mapped_column(db.JSON, comment="服务端口信息")
-    container_id: Mapped[str] = mapped_column(db.String(255), comment="实际容器ID")
+    container_id = mapped_column(db.String(255), comment="实际容器ID")

@@ -28,7 +28,7 @@ services:
     build:
       context: .
       dockerfile: ./install/docker/ocean_web.Dockerfile
-    image: ocean_web:v1.9
+    image: ocean_web:v1.11
     container_name: web
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
@@ -39,7 +39,7 @@ services:
       - redis
     restart: always
     working_dir: /opt/ocean_ctf
-    command: "uwsgi --ini uwsgi.ini"
+    command: "gunicorn -b 127.0.0.1:5000 --worker-class=eventlet -w 2 main:app"
     environment:
       TZ: ${TZ}
 
@@ -47,7 +47,7 @@ services:
     build:
       context: .
       dockerfile: ./install/docker/ocean_web.Dockerfile
-    image: ocean_web:v1.9
+    image: ocean_web:v1.11
     container_name: worker
     depends_on:
       - db
@@ -66,7 +66,7 @@ services:
     build:
       context: .
       dockerfile: ./install/docker/ocean_web.Dockerfile
-    image: ocean_web:v1.10
+    image: ocean_web:v1.11
     container_name: beat
     depends_on:
       - db

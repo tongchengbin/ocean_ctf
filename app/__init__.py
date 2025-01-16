@@ -1,16 +1,18 @@
 import logging
 from urllib.parse import urljoin, urlparse
+
 import sqlalchemy.exc
 from flask import Flask
 from flask import g
 from flask import request
 from flask import url_for
+
 from app.core.exceptions import RestExceptions
 from app.core.middlewares import before_req_cache_ip, global_admin_required
 from app.utils.tools import telnet_port
 from config import config
 from .core import error_handlers, command as command_app
-from .extensions import db, celery, cache
+from .extensions import db, celery, cache, socketio
 from .utils.security import hash_password
 
 logger = logging.getLogger(__name__)
@@ -27,7 +29,6 @@ def create_app():
 
     # 注册缓存
     cache.init_app(flask_app)
-
 
     register_extensions(flask_app)
     register_blueprints(flask_app)
@@ -70,13 +71,12 @@ def register_custom_helpers(scope_app):
     scope_app.jinja_env.globals['url_for_no_querystring'] = url_for_no_querystring
 
 
-
-
-
 def register_extensions(scope_app):
     """异常捕获"""
     db.init_app(scope_app)
     cache.init_app(scope_app)
+    # 注册 socketIo
+    socketio.init_app(scope_app, cors_allowed_origins="*", logger=True)
     scope_app.app_context().push()
     public_paths = ['/favicon.ico', '/static/']
 
@@ -96,6 +96,7 @@ def register_extensions(scope_app):
 
     scope_app.after_request(cors)
 
+
 def register_blueprints(flask_app):
     """
         这里如果在开头引用回出现循环引用的问题
@@ -107,6 +108,7 @@ def register_blueprints(flask_app):
     # 用户平台注册
     from app.frontend.views import bp as view_bp
     from app.vulnerability import admin_views, user_views
+    from app.routes import ws
     """Register Flask blueprints."""
     flask_app.register_blueprint(view_bp)
     flask_app.register_blueprint(admin_bp)

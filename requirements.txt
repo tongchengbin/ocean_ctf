@@ -1,12 +1,14 @@
 Flask==3.1.0
-Flask-SQLAlchemy==3.1.1
 SQLAlchemy==2.0.36
+Flask-SQLAlchemy==3.1.1
+Flask-Cors==5.0.0
+Flask-Pydantic==0.12.0
+Flask-SocketIO==5.5.1
 python-dotenv==0.21.0
 pymysql
 redis==4.5.4
 docker==7.1.0
 pydantic==2.10.4
-flask-pydantic==0.12.0
 click~=8.1.3
 requests~=2.32.0
 flask-redis

@@ -7,7 +7,7 @@ from operator import or_
 from flask import Blueprint, jsonify, request, g, current_app
 from sqlalchemy import func, desc
 
-from app.core.api import api_fail, api_success
+from app.core.api import api_fail, api_success, response_ok
 from app.extensions import cache
 from app.extensions import db
 from app.models.admin import (Admin, TaskList, Operator, Config, AdminMessage)
@@ -332,7 +332,7 @@ def login_info():
         "username": admin.username,
         "id": admin.id,
     }
-    return api_success(ret)
+    return response_ok(ret)
 
 
 @bp.post('/login')
@@ -511,7 +511,7 @@ def message_notice():
     query = db.session.query(AdminMessage).filter(AdminMessage.admin_id == g.user.id)
     if read == "0":
         query = query.filter(AdminMessage.read == False)
-    query = query.order_by(AdminMessage.id.desc())
+    query = query.order_by(desc(AdminMessage.id))
     page_query = query.paginate(page=page, per_page=page_size)
     messages = []
     for item in page_query.items:
@@ -535,5 +535,27 @@ def message_read():
     """
     ids = request.get_json().get("ids")
     db.session.query(AdminMessage).filter(AdminMessage.id.in_(ids)).update({"read": True})
+    db.session.commit()
+    return api_success()
+
+
+@bp.delete('/message/<int:pk>')
+def message_delete(pk: int):
+    """
+        消息删除
+    :return:
+    """
+    db.session.query(AdminMessage).filter(AdminMessage.id == pk).delete()
+    db.session.commit()
+    return api_success()
+
+
+@bp.post('/message/read_all')
+def message_read_all():
+    """
+        消息删除
+    :return:
+    """
+    db.session.query(AdminMessage).filter(AdminMessage.admin_id == g.user.id).update({"read": True})
     db.session.commit()
     return api_success()

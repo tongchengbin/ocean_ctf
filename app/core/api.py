@@ -19,6 +19,21 @@ def api_success(data: typing.Union[typing.Dict, None] = None, msg="", results: t
     return jsonify(data)
 
 
+def response_ok(data: typing.Union[typing.Dict, None] = None, msg="", results: typing.List[typing.Dict] = None,
+                total=None):
+    response = {
+        "code": 0,
+        "message": msg
+    }
+    if isinstance(data, dict) or data is None:
+        response['data'] = data
+    if total is not None:
+        response['total'] = total
+    if results is not None:
+        response['results'] = results
+    return response
+
+
 def api_fail(code=1, msg="参数错误", data: typing.Union[typing.Dict, None] = None):
     if data is None:
         data = {}

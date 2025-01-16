@@ -151,6 +151,8 @@ Copyright (c) 2022-present tongcb
 - 启动容器
   ![](./doc/image/启动容器.png)
 
+- 漏洞复现Shell
+  ![](./doc/image/漏洞复现shell.png)
 - 靶场
   ![]()![动态靶场](./doc/image/动态靶场.png)
 

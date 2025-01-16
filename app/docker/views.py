@@ -284,15 +284,21 @@ def docker_resource_build(pk):
             logger.exception(e)
             return api_fail(msg="Docker初始化失败")
         # 判断是否有docker file
+        logs = []
         if resource.dockerfile:
             try:
                 directory = os.path.dirname(resource.dockerfile)
                 logger.info(f"build {resource.image} images <- {directory}")
                 ret = client.build(path=directory, tag=resource.image, dockerfile=resource.dockerfile)
                 for chunk in ret:
-                    log = json.loads(chunk)
-                    err_log = log.get("errorDetail")
+                    log_item = json.loads(chunk)
+                    stream = log_item.get("stream")
+                    if stream:
+                        logs.append(stream)
+                    err_log = log_item.get("errorDetail")
                     if err_log:
+                        logs.append(err_log['message'])
+                        resource.logs = "\n".join(logs)
                         resource.status = DockerResource.STATUS_BUILD_ERROR
                         resource.save()
                     # save to redis
