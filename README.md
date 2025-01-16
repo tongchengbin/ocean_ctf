@@ -157,4 +157,4 @@ Copyright (c) 2022-present tongcb
   ![]()![动态靶场](./doc/image/动态靶场.png)
 
 - 漏洞复现
-    ![](./doc/image/vul.png)
+    ![](./doc/image/漏洞复现.png)
