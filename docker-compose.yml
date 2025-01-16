@@ -31,18 +31,17 @@ services:
     image: ocean_web:v1.11
     container_name: web
     volumes:
+      - .:/opt/ocean_ctf
       - /var/run/docker.sock:/var/run/docker.sock
-      - /opt/ocean_ctf:/opt/ocean_ctf
       - /opt/vulnerability:/opt/vulnerability
     depends_on:
       - db
       - redis
     restart: always
     working_dir: /opt/ocean_ctf
-    command: "gunicorn -b 127.0.0.1:5000 --worker-class=eventlet -w 2 main:app"
+    command: "gunicorn -b 0.0.0.0:5000 --worker-class=eventlet -w 2 main:app"
     environment:
       TZ: ${TZ}
-
   worker:
     build:
       context: .
@@ -53,8 +52,8 @@ services:
       - db
       - redis
     volumes:
+      - .:/opt/ocean_ctf
       - /var/run/docker.sock:/var/run/docker.sock
-      - /opt/ocean_ctf:/opt/ocean_ctf
       - /opt/vulnerability:/opt/vulnerability
     restart: unless-stopped
     working_dir: /opt/ocean_ctf
@@ -73,7 +72,7 @@ services:
       - redis
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - /opt/ocean_ctf:/opt/ocean_ctf
+      - .:/opt/ocean_ctf
       - /opt/vulnerability:/opt/vulnerability
     restart: unless-stopped
     working_dir: /opt/ocean_ctf
@@ -87,7 +86,7 @@ services:
       - "${HTTP_PORT}:80"
     container_name: nginx
     volumes:
-      - /opt/ocean_ctf/install/nginx.conf:/etc/nginx/nginx.conf
-      - /opt/ocean_ctf:/opt/ocean_ctf
+      - ./install/nginx.conf:/etc/nginx/nginx.conf
+      - .:/opt/ocean_ctf
     environment:
       TZ: ${TZ}
