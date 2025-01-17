@@ -1,7 +1,7 @@
 import logging
 
 import redis
-from flask import make_response, jsonify, Flask
+from flask import make_response, jsonify, Flask, request
 from flask_pydantic import ValidationError
 from werkzeug.exceptions import NotFound
 
@@ -29,14 +29,15 @@ def handle_pydantic_validation_error(error: ValidationError):
 
 
 def exception_handle(e):
-    logger.error('Exception occurred', exc_info=True)
     if isinstance(e, redis.exceptions.ConnectionError):
         return make_response(jsonify({"message": "缓存服务不可用"}), 503)
     if isinstance(e, RestExceptions):
         return make_response(jsonify({"message": e.msg, "code": e.code}), e.status)
     if isinstance(e, NotFound):
+        logger.warning(f"Resource not found: {request.remote_addr} {request.path} {e}")
         return make_response(jsonify({"message": "资源不存在", "code": 404}), 200)
     # 返回通用错误响应
+    logger.error('Exception occurred', exc_info=True)
     return make_response(jsonify({
         "message": "服务器内部错误",
         "code": 500,
