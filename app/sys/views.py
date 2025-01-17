@@ -523,7 +523,7 @@ def message_notice():
             "description": "",
             "type": 2
         })
-    return api_success(results=messages, total=page_query.total)
+    return response_ok(results=messages, total=page_query.total)
 
 
 @bp.post('/message/read')

@@ -25,6 +25,8 @@ def response_ok(data: typing.Union[typing.Dict, None] = None, msg="", results: t
         "code": 0,
         "message": msg
     }
+    if msg is not None:
+        response['message'] = msg
     if isinstance(data, dict) or data is None:
         response['data'] = data
     if total is not None:
