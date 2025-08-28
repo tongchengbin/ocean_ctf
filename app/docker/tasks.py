@@ -1,11 +1,12 @@
 import json
 import logging
+import os
 from io import BytesIO
 
 import docker.errors
 from docker import APIClient
 from docker.errors import DockerException
-
+from docker import errors as docker_error
 from app.core.flask_celery import ContextTask
 from app.docker.service import user_compose_down
 from app.extensions import cache, celery
@@ -30,36 +31,68 @@ def delay_compose_down(*args):
 
 
 @celery.task(base=ContextTask)
-def delay_docker_resource_build(resource_id: int):
-    """
-        资源编译  编译之后的状态可以直接运行
-    """
+def docker_build_resource(resource_id: int):
     resource = DockerResource.get_by_id(resource_id)
     try:
         client = APIClient(Config.get_config(Config.KEY_DOCKER_API))
     except DockerException as e:
         logger.exception(e)
         return
-    # 清空 cache
-    key = "DOCKER_BUILD_%s" % resource_id
-    cache.delete(key)
-    try:
-        for log_dic in client.pull(resource.image, stream=True, decode=True):
-            # 添加到日志
-            logger.info(log_dic)
-            cache.lpush(key, json.dumps(log_dic))
-    except docker.errors.ImageNotFound as e:
-        logger.exception(e)
-        logger.warning("镜像不存在:{}".format(resource.image))
-        return
-    resource.status = DockerResource.STATUS_BUILD
-    resource.save()
-    logger.info("编译完成:{}".format(resource.name))
+    if resource.docker_type == DockerResource.DOCKER_TYPE_LOCAL_IMAGE:
+        # 判断是否有docker file
+        logs = []
+        if resource.dockerfile:
+            try:
+                directory = os.path.dirname(resource.dockerfile)
+                logger.info(f"build {resource.image} images <- {directory}")
+                ret = client.build(
+                    path=directory, tag=resource.image, dockerfile=resource.dockerfile
+                )
+                for chunk in ret:
+                    log_item = json.loads(chunk)
+                    stream = log_item.get("stream")
+                    if stream:
+                        logs.append(stream)
+                    err_log = log_item.get("errorDetail")
+                    if err_log:
+                        logs.append(err_log["message"])
+                        resource.logs = "\n".join(logs)
+                        resource.status = DockerResource.STATUS_BUILD_ERROR
+                        resource.save()
+                    # save to redis
+                    cache.lpush("DOCKER_RESOURCE_%s" % resource.id, chunk)
+                    logger.info(json.loads(chunk))
+                logger.info(f"build success {resource.image}")
+            except docker_error.DockerException as e:
+                logger.exception(e)
+            logger.info(resource.image)
+            img = client.images(resource.image)
+        else:
+            img = client.images(resource.image)
+        if img:
+            resource.status = DockerResource.STATUS_BUILD
+            resource.save()
+    else:
+        # 清空 cache
+        key = "DOCKER_BUILD_%s" % resource_id
+        cache.delete(key)
+        try:
+            for log_dic in client.pull(resource.image, stream=True, decode=True):
+                # 添加到日志
+                logger.info(log_dic)
+                cache.lpush(key, json.dumps(log_dic))
+        except docker.errors.ImageNotFound as e:
+            logger.exception(e)
+            logger.warning("镜像不存在:{}".format(resource.image))
+            return
+        resource.status = DockerResource.STATUS_BUILD
+        resource.save()
+        logger.info("编译完成:{}".format(resource.name))
 
 
 def task_add_log(task: int, line: dict):
     """
-        处理日志存储
+    处理日志存储
     """
 
     if isinstance(line, bytes):
@@ -80,7 +113,7 @@ def task_add_log(task: int, line: dict):
 @celery.task(base=ContextTask)
 def build_delay(task_id: int, build_type, tag, admin, pt=None, dockerfile=None):
     """
-        编译镜像
+    编译镜像
     """
     task = TaskList.get_by_id(task_id)
     if not task:
@@ -92,18 +125,18 @@ def build_delay(task_id: int, build_type, tag, admin, pt=None, dockerfile=None):
         logger.exception(e)
         return
     try:
-        if build_type == 'tar':
-            f = open(pt, 'rb')
+        if build_type == "tar":
+            f = open(pt, "rb")
             for line in client.build(fileobj=f, rm=True, tag=tag, custom_context=True):
                 logger.info(line)
                 task_add_log(task.id, line)
             task.status = task.STATUS_DONE
-        elif build_type == 'pull':
+        elif build_type == "pull":
             for line in client.pull(tag, stream=True, decode=True):
                 task_add_log(task.id, line)
             task.status = task.STATUS_DONE
         else:
-            f = BytesIO(dockerfile.encode('utf-8'))
+            f = BytesIO(dockerfile.encode("utf-8"))
             for line in client.build(fileobj=f, rm=True, tag=tag):
                 logger.info(line)
                 task_add_log(task.id, line)

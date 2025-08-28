@@ -6,7 +6,6 @@ import docker
 import requests
 import yaml
 from docker import errors as docker_error, APIClient
-from docker.errors import DockerException
 from flask import Blueprint, request, g
 from flask_pydantic import validate
 from sqlalchemy import or_
@@ -18,16 +17,21 @@ from app.docker import tasks
 from app.extensions import cache
 from app.extensions import db
 from app.models.admin import TaskList, Config
-from app.models.docker import (ComposeDB, ComposeRunner, DockerResource, )
+from app.models.docker import (
+    ComposeDB,
+    ComposeRunner,
+    DockerResource,
+)
 from app.utils.validator import check_image_name
 from .form import PageForm, ComposeDBForm, DockerResourceForm, DockerResourceEditForm
 from ..models.ctf import Question
 
-logger = logging.getLogger('app')
+
+logger = logging.getLogger("app")
 bp = Blueprint("admin_docker", __name__, url_prefix="/api/admin/docker")
 
 
-@bp.get('/info')
+@bp.get("/info")
 def docker_info():
     api = Config.get_config(Config.KEY_DOCKER_API)
     ip = Config.get_config(Config.KEY_IP)
@@ -37,6 +41,7 @@ def docker_info():
     except docker_error.DockerException:
         info = {}
     from pprint import pprint
+
     pprint(info)
     if info:
         """数据格式化"""
@@ -48,18 +53,13 @@ def docker_info():
             "memory": round(info["MemTotal"] / 1024 / 2024 / 1024, 2),
             "cpu": info["NCPU"],
             "system": info["OperatingSystem"],
-            "system_time": info["SystemTime"]
-
+            "system_time": info["SystemTime"],
         }
-    data = {
-        "docker_api": api,
-        "ip": ip,
-        "info": info
-    }
+    data = {"docker_api": api, "ip": ip, "info": info}
     return api_success({"data": data})
 
 
-@bp.get('/images')
+@bp.get("/images")
 def docker_images():
     """
         获取镜像列表
@@ -81,15 +81,15 @@ def docker_images():
             "id": attrs["Id"][7:17],
             "size": attrs["Size"],
             "repo": attrs["RepoTags"][0].split(":")[0],
-            "tags": [i.split(":")[1] for i in attrs["RepoTags"]]
+            "tags": [i.split(":")[1] for i in attrs["RepoTags"]],
         }
         images_list.append(tmp)
     return api_success({"data": images_list})
 
 
-@bp.post('/delete_images')
+@bp.post("/delete_images")
 def image_delete():
-    tag = request.get_json().get('id')
+    tag = request.get_json().get("id")
     docker_api = Config.get_config(Config.KEY_DOCKER_API)
     try:
         client = docker.DockerClient(docker_api)
@@ -107,7 +107,7 @@ def image_delete():
     return api_success({"status": 0})
 
 
-@bp.get('/containers')
+@bp.get("/containers")
 def host_docker_container():
     """
         获取镜像列表
@@ -124,7 +124,7 @@ def host_docker_container():
     return api_success({"data": containers})
 
 
-@bp.post('/containerAction')
+@bp.post("/containerAction")
 def container_action():
     """
         容器操作
@@ -139,18 +139,18 @@ def container_action():
         action_fun = getattr(container, action)
         action_fun()
     except docker_error.DockerException as e:
-        return api_fail(msg='关闭容器失败:{container_id}')
-    return api_success({"status": 'ok'})
+        return api_fail(msg="关闭容器失败:{container_id}")
+    return api_success({"status": "ok"})
 
 
-@bp.route('/image', methods=['post'])
+@bp.route("/image", methods=["post"])
 def image_create():
     """
-        编译是一个比较耗时的任务 这里回采取延迟执行方式
+    编译是一个比较耗时的任务 这里回采取延迟执行方式
     """
-    build_type = request.args.get('build_type')
+    build_type = request.args.get("build_type")
 
-    tag = request.args.get('tag')
+    tag = request.args.get("tag")
     if len(tag.split(":")) != 2:
         return api_fail(msg="images name 格式错误请指定tag")
     name, version = tag.split(":")
@@ -159,21 +159,23 @@ def image_create():
         return api_fail(msg="images name 格式错误请指定tag")
     if not check_image_name(tag):
         return api_fail(msg="镜像名称不合法")
-    task_obj = TaskList(admin_id=g.user.id, target_id=None, title="build image for %s" % build_type)
+    task_obj = TaskList(
+        admin_id=g.user.id, target_id=None, title="build image for %s" % build_type
+    )
     db.session.add(task_obj)
     db.session.commit()
     args = (task_obj.id, build_type, tag, g.user.id)
-    if build_type == 'tar':
-        file = request.files.get('files')
-        pt = os.path.join('upload', file.filename)
+    if build_type == "tar":
+        file = request.files.get("files")
+        pt = os.path.join("upload", file.filename)
         file.save(pt)
         kwargs = {"pt": pt}
-    elif build_type == 'dockerfile':
+    elif build_type == "dockerfile":
         kwargs = {"dockerfile": request.get_json().get("dockerfile")}
     else:
         kwargs = {}
     tasks.build_delay.apply_async(args=args, kwargs=kwargs)
-    return api_success({"status": 'ok', 'data': {"task": task_obj.id}})
+    return api_success({"status": "ok", "data": {"task": task_obj.id}})
 
 
 @bp.get("/compose_db")
@@ -184,16 +186,17 @@ def compose_db_list(query: PageForm):
     data = []
     for item in page.items:
         data.append(model2dict(item))
-    return api_success({
-        "total": page.total,
-        "data": data
-    })
+    return api_success({"total": page.total, "data": data})
 
 
 @bp.post("/compose_db")
 @validate()
 def compose_db_create(body: ComposeDBForm):
-    if db.session.query(ComposeDB).filter(or_(ComposeDB.name == body.name, ComposeDB.path == body.path)).count():
+    if (
+        db.session.query(ComposeDB)
+        .filter(or_(ComposeDB.name == body.name, ComposeDB.path == body.path))
+        .count()
+    ):
         return api_fail(msg="compose已存在", code=400)
     ComposeDB.create(name=body.name, path=body.path)
     return api_success({})
@@ -221,30 +224,32 @@ def compose_runner_list(query: PageForm):
     data = []
     for item in page.items:
         data.append(model2dict(item))
-    return api_success({
-        "total": page.total,
-        "data": data
-    })
+    return api_success({"total": page.total, "data": data})
 
 
 @bp.get("/resource")
 @validate()
 def docker_resource_list(query: PageForm):
-    db_query = db.session.query(DockerResource).filter()
+    """
+    :return: 获取docker资源列表
+    """
+    search = request.args.get("search")
+    db_query = db.session.query(DockerResource)
+    if search:
+        db_query = db_query.filter(DockerResource.name.ilike("%%%s%%" % search))
     resource_type = request.args.get("type")
     if resource_type:
         db_query = db_query.filter(DockerResource.resource_type == resource_type)
-    page = db_query.order_by(DockerResource.id.desc()).paginate(page=query.page, per_page=query.page_size)
+    page = db_query.order_by(DockerResource.id.desc()).paginate(
+        page=query.page, per_page=query.page_size
+    )
     data = []
     for item in page.items:
         info = model2dict(item)
         info["docker_type_name"] = item.docker_type_name
         info["status_name"] = item.status_name
         data.append(info)
-    return api_success({
-        "total": page.total,
-        "data": data
-    })
+    return api_success({"total": page.total, "data": data})
 
 
 @bp.post("/resource")
@@ -274,67 +279,22 @@ def docker_resource_update(pk: int, body: DockerResourceEditForm):
 @bp.post("/resource/<int:pk>/build")
 def docker_resource_build(pk):
     """
-        资源编译
+    资源编译
     """
-    resource = DockerResource.get_by_id(pk)
-    if resource.docker_type == DockerResource.DOCKER_TYPE_LOCAL_IMAGE:
-        try:
-            client = APIClient(Config.get_config(Config.KEY_DOCKER_API))
-        except DockerException as e:
-            logger.exception(e)
-            return api_fail(msg="Docker初始化失败")
-        # 判断是否有docker file
-        logs = []
-        if resource.dockerfile:
-            try:
-                directory = os.path.dirname(resource.dockerfile)
-                logger.info(f"build {resource.image} images <- {directory}")
-                ret = client.build(path=directory, tag=resource.image, dockerfile=resource.dockerfile)
-                for chunk in ret:
-                    log_item = json.loads(chunk)
-                    stream = log_item.get("stream")
-                    if stream:
-                        logs.append(stream)
-                    err_log = log_item.get("errorDetail")
-                    if err_log:
-                        logs.append(err_log['message'])
-                        resource.logs = "\n".join(logs)
-                        resource.status = DockerResource.STATUS_BUILD_ERROR
-                        resource.save()
-                    # save to redis
-                    cache.lpush("DOCKER_RESOURCE_%s" % resource.id, chunk)
-                    logger.info(json.loads(chunk))
-                logger.info(f"build success {resource.image}")
-            except docker_error.DockerException as e:
-                logger.exception(e)
-                return api_fail(msg="Docker构建失败")
-            logger.info(resource.image)
-            img = client.images(resource.image)
-        else:
-            img = client.images(resource.image)
-        if img:
-            resource.status = DockerResource.STATUS_BUILD
-            resource.save()
-        else:
-            return api_fail(msg="本地镜像不存在")
-    else:
-        tasks.delay_docker_resource_build.apply_async(args=(pk,))
-    return api_success()
+    tasks.docker_build_resource.apply_async(args=(pk,))
+    return api_success(msg="任务已提交")
 
 
 @bp.get("/resource/<int:pk>/logs")
 def docker_resource_logs(pk):
     resource = DockerResource.get_by_id(pk)
-    start = int(request.args.get('start', 0))
+    start = int(request.args.get("start", 0))
     key = "DOCKER_RESOURCE_%s" % pk
     data = []
     for log in cache.lrange(key, start, -1):
         data.insert(0, json.loads(log))
-    results = {
-        "status": resource.status,
-        "data": data
-    }
-    return api_success({"data":results})
+    results = {"status": resource.status, "data": data}
+    return api_success({"data": results})
 
 
 @bp.post("/resource/sync")
@@ -361,8 +321,12 @@ def docker_resource_sync():
             continue
         if item["resource_type"] not in ("CTF", "VUL"):
             continue
-        DockerResource.create(name=item["name"], image=item["image"], resource_type=item["resource_type"],
-                              description=item["desc"])
+        DockerResource.create(
+            name=item["name"],
+            image=item["image"],
+            resource_type=item["resource_type"],
+            description=item["desc"],
+        )
         add_count += 1
     results = {
         "total": add_count,

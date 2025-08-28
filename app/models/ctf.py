@@ -96,7 +96,7 @@ class Answer(Model):
     __tablename__ = 'ctf_answer'
     status: Mapped[int] = mapped_column(default=1, comment="状态")
     user_id: Mapped[int] = mapped_column(db.ForeignKey('user.id', ondelete='CASCADE'), comment="关联用户")
-    question_id: Mapped[int] = mapped_column(db.ForeignKey('ctf_question.id'), comment="对应题目")
+    question_id: Mapped[int] = mapped_column(db.ForeignKey('ctf_question.id',ondelete='CASCADE'), comment="对应题目")
     rank: Mapped[int] = mapped_column(db.Integer, comment="解题名次", default=0)
     flag: Mapped[str] = mapped_column(db.String(64), comment="提交内容")
     score: Mapped[int] = mapped_column(db.Integer(), default=0, comment="分数")
