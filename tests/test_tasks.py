@@ -1,7 +1,5 @@
-import pytest
-
-from app.ctf.tasks import sync_ctf_question_repo
-from app.vulnerability import tasks
+from app.tasks.ctf import sync_ctf_question_repo
+from app.tasks import vulnerability
 
 
 def test_sync_vulnerability_repo(app_context):
