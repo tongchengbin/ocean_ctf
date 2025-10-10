@@ -21,7 +21,7 @@ from app.models.admin import (
 )
 from app.models.ctf import CtfResource, Question
 from app.models.user import User
-from app.sys.service import insert_operator
+from app.services.system import insert_operator
 from app.utils.security import check_password, create_token, hash_password
 
 bp = Blueprint("admin", __name__, url_prefix="/api/admin")

@@ -3,15 +3,13 @@ from urllib.parse import urljoin, urlparse
 
 import sqlalchemy.exc
 from flask import Flask, g, request, url_for
-
 from app.core.exceptions import RestExceptions
 from app.core.middlewares import before_req_cache_ip, global_admin_required
 from config import config
-
+from .api.route import register_blueprints
 from .core import error_handlers
 from .extensions import cache, celery, db, socketio
 from .utils.security import hash_password
-
 logger = logging.getLogger(__name__)
 
 
@@ -29,6 +27,9 @@ def create_app():
 
     register_extensions(flask_app)
     register_blueprints(flask_app)
+
+
+
     register_custom_helpers(flask_app)
     flask_app.before_request_funcs.setdefault(None, []).append(before_req_cache_ip)
     flask_app.before_request_funcs.setdefault(None, []).append(global_admin_required)
@@ -97,40 +98,7 @@ def register_extensions(scope_app):
     scope_app.after_request(cors)
 
 
-def register_blueprints(flask_app):
-    """
-    这里如果在开头引用回出现循环引用的问题
-        app_factory 引入了bp  bp中引入了task  task 引入了app_factory中的celery 导致无法启动celery
-    """
-    # 健康检查API
-    from app.api.health import health_bp
-    from app.ctf.views import bp as admin_ctf_bp
-    from app.docker.views import bp as admin_docker_bp
 
-    # 用户平台注册
-    from app.frontend.views import bp as view_bp
-    from app.sys.views import bp as admin_bp
-    from app.vulnerability import admin_views, user_views
-
-    from .frontend import ws
-
-    """Register Flask blueprints."""
-    flask_app.register_blueprint(view_bp)
-    flask_app.register_blueprint(admin_bp)
-    flask_app.register_blueprint(admin_ctf_bp)
-    flask_app.register_blueprint(admin_docker_bp)
-    flask_app.register_blueprint(admin_views.bp)
-    flask_app.register_blueprint(user_views.bp)
-    flask_app.register_blueprint(health_bp)
-
-    def remove_db_session(_) -> None:
-        # 需要手动删除session 不然多线程会遇到读取旧数据的问题
-        try:
-            db.session.remove()
-        except AttributeError:
-            pass
-
-    flask_app.teardown_request_funcs.setdefault(None, []).append(remove_db_session)
 
 
 def create_default_data():

@@ -15,7 +15,7 @@ from sqlalchemy.exc import IntegrityError
 
 from app.core.api import api_fail, api_success
 from app.core.tools import model2dict
-from app.docker import tasks
+from app.tasks import docker
 from app.extensions import cache, db
 from app.models.admin import Config, TaskList
 from app.models.docker import (
@@ -25,8 +25,8 @@ from app.models.docker import (
 )
 from app.utils.validator import check_image_name
 
-from ..models.ctf import Question
-from .form import ComposeDBForm, DockerResourceEditForm, DockerResourceForm, PageForm
+from app.models.ctf import Question
+from app.api.admin.schemas.docker import ComposeDBForm, DockerResourceEditForm, DockerResourceForm, PageForm
 
 logger = logging.getLogger("app")
 bp = Blueprint("admin_docker", __name__, url_prefix="/api/admin/docker")

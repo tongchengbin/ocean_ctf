@@ -8,9 +8,8 @@ from flask import Blueprint, g, request
 from flask_pydantic import validate
 
 from app.core.api import api_fail, api_success
-from app.ctf import tasks
-from app.ctf.schema import QuestionForm
-from app.docker.service import destroy_docker_runner
+from app.api.admin.schemas.ctf import QuestionForm
+from app.services.docker import destroy_docker_runner
 from app.extensions import db
 from app.models.admin import Config
 from app.models.ctf import Answer, Attachment, CtfResource, ImageResource, QType, Question

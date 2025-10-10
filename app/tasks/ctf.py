@@ -15,7 +15,7 @@ from app.extensions import cache, celery, db
 from app.models.admin import Config
 from app.models.ctf import CtfResource, ImageResource
 from app.models.docker import DockerResource
-from app.sys import service
+from app.services import system
 from app.utils.tools import find_directories_with_filename
 from config import config
 
