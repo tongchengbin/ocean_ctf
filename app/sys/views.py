@@ -4,24 +4,31 @@ import uuid
 from datetime import datetime
 from operator import or_
 
-from flask import Blueprint, jsonify, request, g, current_app
-from sqlalchemy import func, desc
+from flask import Blueprint, current_app, g, jsonify, request
+from sqlalchemy import desc, func
 
 from app.core.api import api_fail, api_success, response_ok
-from app.extensions import cache
-from app.extensions import db
-from app.models.admin import (Admin, TaskList, Operator, Config, AdminMessage)
-from app.models.admin import RequestState, Role, Notice
+from app.extensions import cache, db
+from app.models.admin import (
+    Admin,
+    AdminMessage,
+    Config,
+    Notice,
+    Operator,
+    RequestState,
+    Role,
+    TaskList,
+)
 from app.models.ctf import CtfResource, Question
 from app.models.user import User
 from app.sys.service import insert_operator
-from app.utils.security import check_password, hash_password, create_token
+from app.utils.security import check_password, create_token, hash_password
 
 bp = Blueprint("admin", __name__, url_prefix="/api/admin")
-logger = logging.getLogger('app')
+logger = logging.getLogger("app")
 
 
-@bp.route('/rest_pass', methods=['post'])
+@bp.route("/rest_pass", methods=["post"])
 def admin_rest_pass():
     data = request.get_json()
     old_pass = data.get("old_pass")
@@ -37,31 +44,28 @@ def admin_rest_pass():
         return api_fail(msg="旧密码错误")
 
 
-@bp.route('/task/<int:task>/log', methods=['get'])
+@bp.route("/task/<int:task>/log", methods=["get"])
 def task_log(task):
     """
-        任务执行日志
+    任务执行日志
     """
-    index = request.args.get('index', 0)
+    index = request.args.get("index", 0)
     lines = cache.lrange("task_%s" % task, index, -1)
     task = db.session.query(TaskList).get(task)
     data = [i.decode() for i in lines]
-    return api_success({
-        "data": data,
-        "end": False if task.status in (1, 3) else True
-    })
+    return api_success({"data": data, "end": False if task.status in (1, 3) else True})
 
 
-@bp.route('/upload', methods=['post'])
+@bp.route("/upload", methods=["post"])
 def upload_file():
     """
-        后台文件上传入口 目前存在文件覆盖  后续处理吧
+    后台文件上传入口 目前存在文件覆盖  后续处理吧
     """
 
     file = request.files["file"]
     filename = file.filename
-    ext = filename.split('.')[-1]
-    upload_dir = current_app.config.get('UPLOAD_DIR')
+    ext = filename.split(".")[-1]
+    upload_dir = current_app.config.get("UPLOAD_DIR")
     if ".." in filename:
         return jsonify({"error": "文件名非法!"})
     # 生成随机文件名
@@ -71,41 +75,42 @@ def upload_file():
     return api_success({"name": filename, "filename": filename + "|" + uuid_filename})
 
 
-@bp.get('/admin')
+@bp.get("/admin")
 def admin_list():
     """
-                    管理员列表
-                :return:
-                """
-    page = int(request.args.get('page', 1))
+        管理员列表
+    :return:
+    """
+    page = int(request.args.get("page", 1))
     page_size = int(request.args.get("page_size", 10))
     search = request.args.get("search")
-    query = db.session.query(Admin).filter(Admin.username != 'superuser')
+    query = db.session.query(Admin).filter(Admin.username != "superuser")
     if search:
         query = query.filter(Admin.username.contains(search))
     page = query.paginate(page=page, per_page=page_size)
     data = []
     for item in page.items:
-        data.append({
-            "id": item.id,
-            "login_time": item.login_time.strftime("%Y-%m-%d %H:%M:%S") if item.login_time else None,
-            "username": item.username,
-            "role": item.role_id,
-            "role_name": item.role.name if item.role else None,
-        })
-    return api_success({
-        "total": page.total,
-        "data": data
-    })
+        data.append(
+            {
+                "id": item.id,
+                "login_time": (
+                    item.login_time.strftime("%Y-%m-%d %H:%M:%S") if item.login_time else None
+                ),
+                "username": item.username,
+                "role": item.role_id,
+                "role_name": item.role.name if item.role else None,
+            }
+        )
+    return api_success({"total": page.total, "data": data})
 
 
-@bp.route('/admin/<int:pk>', methods=['put'])
+@bp.route("/admin/<int:pk>", methods=["put"])
 def admin_update(pk):
     # 修改信息
     data = request.get_json()
-    username = data.get('username')
-    password = data.get('password')
-    role = data.get('role')
+    username = data.get("username")
+    password = data.get("password")
+    role = data.get("role")
     admin = db.session.query(Admin).get(pk)
     if username:
         admin.username = username
@@ -117,12 +122,12 @@ def admin_update(pk):
     return api_success({})
 
 
-@bp.route('/admin', methods=['post'])
+@bp.route("/admin", methods=["post"])
 def admin_create():
     data = request.get_json()
-    username = data.get('username')
-    password = data.get('password')
-    role = data.get('role')
+    username = data.get("username")
+    password = data.get("password")
+    role = data.get("role")
     if db.session.query(Admin).filter(Admin.username == username).count():
         return api_fail(msg="管理员已存在")
     safe_password = hash_password(password)
@@ -132,7 +137,7 @@ def admin_create():
     return api_success({})
 
 
-@bp.delete('/admin/<int:pk>')
+@bp.delete("/admin/<int:pk>")
 def admin_delete(pk):
     admin = db.session.query(Admin).get(pk)
     db.session.delete(admin)
@@ -140,12 +145,12 @@ def admin_delete(pk):
     return api_success({})
 
 
-@bp.route('/user', methods=['get'])
+@bp.route("/user", methods=["get"])
 def user_list():
     """
-                    用户列表
-                """
-    page = int(request.args.get('page', 1))
+    用户列表
+    """
+    page = int(request.args.get("page", 1))
     page_size = int(request.args.get("page_size", 10))
     search = request.args.get("search")
     query = db.session.query(User)
@@ -154,26 +159,29 @@ def user_list():
     page = query.order_by(User.id.desc()).paginate(page=page, per_page=page_size)
     data = []
     for item in page.items:
-        data.append({
-            "id": item.id,
-            "username": item.username,
-            "date_created": item.created_at.strftime("%Y-%m-%d %H:%M:%S") if item.created_at else None,
-            "date_modified": item.updated_at.strftime("%Y-%m-%d %H:%M:%S") if item.updated_at else None,
-            "active": item.active
-        })
-    return api_success({
-        "total": page.total,
-        "data": data
-    })
+        data.append(
+            {
+                "id": item.id,
+                "username": item.username,
+                "date_created": (
+                    item.created_at.strftime("%Y-%m-%d %H:%M:%S") if item.created_at else None
+                ),
+                "date_modified": (
+                    item.updated_at.strftime("%Y-%m-%d %H:%M:%S") if item.updated_at else None
+                ),
+                "active": item.active,
+            }
+        )
+    return api_success({"total": page.total, "data": data})
 
 
-@bp.route('/user', methods=['post'])
+@bp.route("/user", methods=["post"])
 def user_create():
     """
-                    添加用户
-                """
+    添加用户
+    """
     data = request.get_json()
-    username = data.get('username')
+    username = data.get("username")
     password = data.get("password")
     if db.session.query(User).filter(User.username == username).one_or_none():
         return api_fail(msg="用户名已存在")
@@ -183,10 +191,10 @@ def user_create():
     return api_success({})
 
 
-@bp.route('/user/<int:pk>', methods=['put'])
+@bp.route("/user/<int:pk>", methods=["put"])
 def user_update(pk):
     data = request.get_json()
-    password = data.get('password')
+    password = data.get("password")
     user = db.session.query(User).get(pk)
     if password:
         user.password = hash_password(password)
@@ -194,7 +202,7 @@ def user_update(pk):
     return api_success({})
 
 
-@bp.route('/user/<int:pk>', methods=['delete'])
+@bp.route("/user/<int:pk>", methods=["delete"])
 def user_delete(pk):
     """
         删除用户
@@ -206,29 +214,29 @@ def user_delete(pk):
     return api_success({})
 
 
-@bp.route('/index/state', methods=['get'])
+@bp.route("/index/state", methods=["get"])
 def index_state():
     """
-                :return:今日容器启动数量、今日IP数量、题库数量
-                """
+    :return:今日容器启动数量、今日IP数量、题库数量
+    """
     today_query = db.session.query(CtfResource).filter(
-        func.date(CtfResource.created_at) == datetime.today().date())
+        func.date(CtfResource.created_at) == datetime.today().date()
+    )
     challenges_cnt = db.session.query(Question).count()
     user_cnt = db.session.query(User).count()
-    today_register = db.session.query(User).filter(
-        func.date(User.created_at) == datetime.today().date()).count()
+    today_register = (
+        db.session.query(User).filter(func.date(User.created_at) == datetime.today().date()).count()
+    )
     today_create_cnt = today_query.count()
     today = datetime.today().strftime("%Y%m%d")
-    ip_count = cache.scard('ip-%s' % today)
+    ip_count = cache.scard("ip-%s" % today)
     req_count = cache.get("req-%s" % today).decode() or 0
 
     # 统计半月用户访问情况
     req_state = db.session.query(RequestState).order_by(RequestState.day)
     req_data = {
         "x_data": [],
-        "lines": [
-            {"label": "活跃IP", "data": []}, {"label": "处理请求", "data": []}
-        ]
+        "lines": [{"label": "活跃IP", "data": []}, {"label": "处理请求", "data": []}],
     }
     for dy in req_state:
         req_data["x_data"].append(dy.day.strftime("%m-%d"))
@@ -237,25 +245,28 @@ def index_state():
     req_data["x_data"].append(datetime.today().strftime("%m-%d"))
     req_data["lines"][0]["data"].append(ip_count)
     req_data["lines"][1]["data"].append(req_count)
-    return api_success({
-        "data": {
-            "req_data": req_data,
-            "today_create_cnt": today_create_cnt,
-            "ip_cnt": ip_count,
-            "req_count": req_count,
-            "challenges_cnt": challenges_cnt,
-            "today_register": today_register,
-            "user_cnt": user_cnt}
-    })
+    return api_success(
+        {
+            "data": {
+                "req_data": req_data,
+                "today_create_cnt": today_create_cnt,
+                "ip_cnt": ip_count,
+                "req_count": req_count,
+                "challenges_cnt": challenges_cnt,
+                "today_register": today_register,
+                "user_cnt": user_cnt,
+            }
+        }
+    )
 
 
-@bp.route('/notice', methods=['get'])
+@bp.route("/notice", methods=["get"])
 def notice_list():
-    page = int(request.args.get('page', 1))
+    page = int(request.args.get("page", 1))
     page_size = int(request.args.get("page_size", 10))
-    search = request.args.get('search')
-    is_top = request.args.get('is_top')
-    active = request.args.get('active')
+    search = request.args.get("search")
+    is_top = request.args.get("is_top")
+    active = request.args.get("active")
     query = db.session.query(Notice)
     if is_top:
         query = query.filter(Notice.is_top == is_top)
@@ -267,20 +278,21 @@ def notice_list():
     page = query.paginate(page=page, per_page=page_size)
     data = []
     for item in page.items:
-        data.append({
-            "id": item.id,
-            "updated_at": item.updated_at.strftime("%Y-%m-%d %H:%M:%S") if item.created_at else None,
-            "content": item.content,
-            "is_top": item.is_top,
-            "active": item.active
-        })
-    return api_success({
-        "total": page.total,
-        "data": data
-    })
+        data.append(
+            {
+                "id": item.id,
+                "updated_at": (
+                    item.updated_at.strftime("%Y-%m-%d %H:%M:%S") if item.created_at else None
+                ),
+                "content": item.content,
+                "is_top": item.is_top,
+                "active": item.active,
+            }
+        )
+    return api_success({"total": page.total, "data": data})
 
 
-@bp.route('/notice', methods=['post'])
+@bp.route("/notice", methods=["post"])
 def notice_create():
     data = request.get_json()
     content = data.get("content")
@@ -292,11 +304,11 @@ def notice_create():
     return api_success({})
 
 
-@bp.route('/notice/<int:pk>', methods=['put'])
+@bp.route("/notice/<int:pk>", methods=["put"])
 def notice_update(pk):
     """
-                    update 公告
-                """
+    update 公告
+    """
     data = request.get_json()
     content = data.get("content")
     is_top = data.get("isTop")
@@ -312,18 +324,18 @@ def notice_update(pk):
     return api_success({})
 
 
-@bp.route('/notice/<int:pk>', methods=['delete'])
+@bp.route("/notice/<int:pk>", methods=["delete"])
 def notice_delete(pk):
     """
-            delete 公告
-        """
+    delete 公告
+    """
     instance = db.session.query(Notice).get(pk)
     db.session.delete(instance)
     db.session.commit()
     return api_success({})
 
 
-@bp.get('/userinfo')
+@bp.get("/userinfo")
 def login_info():
     admin = g.user
     ret = {
@@ -335,13 +347,12 @@ def login_info():
     return response_ok(ret)
 
 
-@bp.post('/login')
+@bp.post("/login")
 def login():
     data = request.get_json()
     username = data.get("username")
     password = data.get("password")
-    admin = db.session.query(Admin).filter(
-        Admin.username == username).one_or_none()
+    admin = db.session.query(Admin).filter(Admin.username == username).one_or_none()
     if admin is None:
         insert_operator(code=False, content="登录失败", username=username, role_name=None)
         return api_fail(code=403, msg="用户名或密码错误")
@@ -357,16 +368,18 @@ def login():
             "username": admin.username,
             "id": admin.id,
         }
-        insert_operator(code=True, content="登录成功", username=admin.username, role_name=admin.role_name)
+        insert_operator(
+            code=True, content="登录成功", username=admin.username, role_name=admin.role_name
+        )
         return api_success({"data": ret})
     else:
         insert_operator(code=False, content="登录失败", username=username, role_name=None)
         return api_fail(code=403, msg="用户名或密码错误")
 
 
-@bp.get('/role')
+@bp.get("/role")
 def role_list():
-    page = int(request.args.get('page', 1))
+    page = int(request.args.get("page", 1))
     page_size = int(request.args.get("page_size", 10))
     query = db.session.query(Role)
     page_query = query.paginate(page=page, per_page=page_size)
@@ -379,7 +392,7 @@ def role_list():
     return api_success({"data": data, "total": page_query.total})
 
 
-@bp.post('/role')
+@bp.post("/role")
 def role_create():
     data = request.get_json()
     name = data.get("name")
@@ -391,7 +404,7 @@ def role_create():
     return api_success({})
 
 
-@bp.put('/role')
+@bp.put("/role")
 def role_update():
     data = request.get_json()
     pk = data.get("id")
@@ -408,7 +421,7 @@ def role_update():
     return api_success({})
 
 
-@bp.delete('/role/<int:pk>')
+@bp.delete("/role/<int:pk>")
 def role_delete(pk):
     instance = db.session.query(Role).filter(Role.id == pk).first()
     if not instance:
@@ -418,20 +431,25 @@ def role_delete(pk):
     return api_success({})
 
 
-@bp.post('/logout')
+@bp.post("/logout")
 def logout():
     """
-                    登出
-                :return:
-            """
+        登出
+    :return:
+    """
     current_user = g.user
     current_user.token = None
     db.session.commit()
-    insert_operator(code=True, content="登出成功", username=current_user.username, role_name=current_user.role_name)
+    insert_operator(
+        code=True,
+        content="登出成功",
+        username=current_user.username,
+        role_name=current_user.role_name,
+    )
     return api_success({})
 
 
-@bp.post('/config')
+@bp.post("/config")
 def set_config():
     data = request.get_json()
     for k, v in data.items():
@@ -451,7 +469,7 @@ def set_config():
     return api_success()
 
 
-@bp.get('/config')
+@bp.get("/config")
 def get_config():
     config_list = db.session.query(Config).all()
     data = {}
@@ -467,13 +485,13 @@ def get_config():
     return api_success({"data": data})
 
 
-@bp.get('/operator')
+@bp.get("/operator")
 def operator_list():
     """
         审计日志
     :return:
     """
-    page = int(request.args.get('page', 1))
+    page = int(request.args.get("page", 1))
     page_size = int(request.args.get("page_size", 10))
     search = request.args.get("search")
     code = request.args.get("code")
@@ -481,8 +499,9 @@ def operator_list():
     if code:
         query = query.filter(Operator.code == code)
     if search:
-        query = query.filter(or_(Operator.username.contains(search),
-                                 Operator.content.contains(search)))
+        query = query.filter(
+            or_(Operator.username.contains(search), Operator.content.contains(search))
+        )
     query = query.order_by(desc(Operator.id))
     page_query = query.paginate(page=page, per_page=page_size)
     data = []
@@ -499,34 +518,36 @@ def operator_list():
     return api_success({"data": data, "total": page_query.total})
 
 
-@bp.get('/message')
+@bp.get("/message")
 def message_notice():
     """
-        获取管理员消息 通知  代办
+    获取管理员消息 通知  代办
     """
-    page = int(request.args.get('page', 1))
+    page = int(request.args.get("page", 1))
     page_size = int(request.args.get("page_size", 10))
     read = request.args.get("read")
     query = db.session.query(AdminMessage).filter(AdminMessage.admin_id == g.user.id)
     if read == "0":
-        query = query.filter(AdminMessage.read == False)
+        query = query.filter(AdminMessage.read.is_(False))
     query = query.order_by(desc(AdminMessage.id))
     page_query = query.paginate(page=page, per_page=page_size)
     messages = []
     for item in page_query.items:
-        messages.append({
-            "id": item.id,
-            "read": item.read,
-            "avatar": "https://gw.alipayobjects.com/zos/rmsportal/kISTdvpyTAhtGxpovNWd.png",
-            "title": item.content,
-            "datetime": item.created_at.strftime("%Y-%m-%d %H:%M"),
-            "description": "",
-            "type": 2
-        })
+        messages.append(
+            {
+                "id": item.id,
+                "read": item.read,
+                "avatar": "https://gw.alipayobjects.com/zos/rmsportal/kISTdvpyTAhtGxpovNWd.png",
+                "title": item.content,
+                "datetime": item.created_at.strftime("%Y-%m-%d %H:%M"),
+                "description": "",
+                "type": 2,
+            }
+        )
     return response_ok(results=messages, total=page_query.total)
 
 
-@bp.post('/message/read')
+@bp.post("/message/read")
 def message_read():
     """
         消息已读
@@ -538,7 +559,7 @@ def message_read():
     return api_success()
 
 
-@bp.delete('/message/<int:pk>')
+@bp.delete("/message/<int:pk>")
 def message_delete(pk: int):
     """
         消息删除
@@ -549,7 +570,7 @@ def message_delete(pk: int):
     return api_success()
 
 
-@bp.post('/message/read_all')
+@bp.post("/message/read_all")
 def message_read_all():
     """
         消息删除

@@ -5,29 +5,15 @@ from io import BytesIO
 
 import docker.errors
 from docker import APIClient
-from docker.errors import DockerException
 from docker import errors as docker_error
+from docker.errors import DockerException
+
 from app.core.flask_celery import ContextTask
-from app.docker.service import user_compose_down
 from app.extensions import cache, celery
 from app.models.admin import Config, TaskList
-from app.models.docker import ComposeDB, DockerResource
+from app.models.docker import DockerResource
 
 logger = logging.getLogger(__name__)
-
-
-def compose_build(compose_id):
-    instance = ComposeDB.get_by_id(compose_id)
-    project_dir = instance.path
-    project = project_from_options(project_dir, {})
-    project.build()
-    instance.status = ComposeDB.STATUS_BUILD
-    instance.save()
-
-
-@celery.task(base=ContextTask)
-def delay_compose_down(*args):
-    user_compose_down(*args)
 
 
 @celery.task(base=ContextTask)

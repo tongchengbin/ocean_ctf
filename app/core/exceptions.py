@@ -1,6 +1,3 @@
-from flask import make_response, jsonify
-
-
 class RestExceptions(Exception):
     default_msg = "error message"
     default_code = 400
@@ -10,5 +7,3 @@ class RestExceptions(Exception):
         self.msg = msg or self.default_msg
         self.code = code or self.default_code
         self.status = status or self.default_status or self.default_code
-
-

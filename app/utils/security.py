@@ -9,9 +9,9 @@ def hash_password(password: str) -> str:
     # Create a new salt
     salt = os.urandom(16)
     # Hash the password with the salt
-    pwd_hash = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt, 100000)
+    pwd_hash = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt, 100000)
     # Return the salt and hash
-    return base64.b64encode(salt + pwd_hash).decode('utf-8')
+    return base64.b64encode(salt + pwd_hash).decode("utf-8")
 
 
 def check_password(stored_password: str, provided_password: str) -> bool:
@@ -22,18 +22,18 @@ def check_password(stored_password: str, provided_password: str) -> bool:
     # Extract the hash from the stored password
     stored_hash = stored_password_bytes[16:]
     # Hash the provided password with the extracted salt
-    pwd_hash = hashlib.pbkdf2_hmac('sha256', provided_password.encode('utf-8'), salt, 100000)
+    pwd_hash = hashlib.pbkdf2_hmac("sha256", provided_password.encode("utf-8"), salt, 100000)
     # Compare the hashes
     return pwd_hash == stored_hash
 
 
 def create_token():
     """
-        生成token
-        :return: token
+    生成token
+    :return: token
     """
     length_r = 32
-    token = ''
+    token = ""
     random = Random()
     for i in range(length_r):
         token += random.choice("abcdefghijklmnopqrstuvwxyz0123456789")

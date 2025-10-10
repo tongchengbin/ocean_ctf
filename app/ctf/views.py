@@ -1,26 +1,27 @@
 import logging
 import os
 import uuid
+
 import docker
 from docker import errors as docker_error
-from flask import Blueprint, request, g
+from flask import Blueprint, g, request
 from flask_pydantic import validate
+
+from app.core.api import api_fail, api_success
 from app.ctf import tasks
 from app.ctf.schema import QuestionForm
 from app.docker.service import destroy_docker_runner
 from app.extensions import db
-from app.core.api import api_fail, api_success
 from app.models.admin import Config
-from app.models.ctf import QType, ImageResource, CtfResource, Answer, Attachment
-from app.models.ctf import Question
+from app.models.ctf import Answer, Attachment, CtfResource, ImageResource, QType, Question
 from app.models.user import User
 from config import config
 
-logger = logging.getLogger('app')
+logger = logging.getLogger("app")
 bp = Blueprint("admin_ctf", __name__, url_prefix="/api/admin/ctf")
 
 
-@bp.get('/question/type')
+@bp.get("/question/type")
 def question_type():
     """
         题库列表
@@ -30,17 +31,20 @@ def question_type():
     return api_success({"data": data})
 
 
-@bp.get('/resource')
+@bp.get("/resource")
 def resource_list():
     """
     :return : 已生成题目容器
     """
-    page = int(request.args.get('page', 1))
+    page = int(request.args.get("page", 1))
     page_size = int(request.args.get("page_size", 10))
     username = request.args.get("username")
     question_name = request.args.get("question")
-    query = db.session.query(CtfResource, Question, User).join(User, CtfResource.user_id == User.id).join(
-        Question, Question.id == CtfResource.question_id)
+    query = (
+        db.session.query(CtfResource, Question, User)
+        .join(User, CtfResource.user_id == User.id)
+        .join(Question, Question.id == CtfResource.question_id)
+    )
     if username:
         query = query.filter(User.username.ilike("%{}%".format(username)))
     if question_name:
@@ -49,29 +53,35 @@ def resource_list():
     data = []
     for item in page.items:
         resource, question, user_obj = item
-        data.append({
-            "id": resource.id,
-            "name": resource.docker_runner.name,
-            "date_created": resource.created_at.strftime(
-                "%Y-%m-%d %H:%M:%S") if resource.created_at else None,
-            "date_modified": resource.updated_at.strftime(
-                "%Y-%m-%d %H:%M:%S") if resource.updated_at else None,
-            "container_port": resource.docker_runner.port_info,
-            "flag": resource.flag,
-            "destroy_time": resource.destroy_time.strftime(
-                "%Y-%m-%d %H:%M") if resource.destroy_time else None,
-            "username": user_obj.username,
-            "question": {
-                "name": question.name
+        data.append(
+            {
+                "id": resource.id,
+                "name": resource.docker_runner.name,
+                "date_created": (
+                    resource.created_at.strftime("%Y-%m-%d %H:%M:%S")
+                    if resource.created_at
+                    else None
+                ),
+                "date_modified": (
+                    resource.updated_at.strftime("%Y-%m-%d %H:%M:%S")
+                    if resource.updated_at
+                    else None
+                ),
+                "container_port": resource.docker_runner.port_info,
+                "flag": resource.flag,
+                "destroy_time": (
+                    resource.destroy_time.strftime("%Y-%m-%d %H:%M")
+                    if resource.destroy_time
+                    else None
+                ),
+                "username": user_obj.username,
+                "question": {"name": question.name},
             }
-        })
-    return api_success({
-        "total": page.total,
-        "data": data
-    })
+        )
+    return api_success({"total": page.total, "data": data})
 
 
-@bp.post('/question/<int:pk>/set_active')
+@bp.post("/question/<int:pk>/set_active")
 def question_set_active(pk):
     """
         设置题目是否可用
@@ -84,14 +94,14 @@ def question_set_active(pk):
     return api_success()
 
 
-@bp.put('/question/<int:pk>')
+@bp.put("/question/<int:pk>")
 def question_update(pk):
     """
-                    修改题目
-                :param question: 题目ID
-                :return:
-                @param pk:
-                """
+        修改题目
+    :param question: 题目ID
+    :return:
+    @param pk:
+    """
     data = request.get_json()
     instance = db.session.query(Question).get(pk)
     name = data.get("name")
@@ -111,7 +121,7 @@ def question_update(pk):
         instance.type = _type
     if desc is not None:
         instance.desc = desc
-    attachment = data.get('attachment', [])
+    attachment = data.get("attachment", [])
     active = data.get("active")
     if active is not None:
         instance.active = active
@@ -127,12 +137,12 @@ def question_update(pk):
     return api_success()
 
 
-@bp.post('/containers/<int:container_resource>/refresh')
+@bp.post("/containers/<int:container_resource>/refresh")
 def ctf_containers_refresh(container_resource):
     """
-        刷新容器状态 数据库和实际容器状态同步
-        :param :container_resource :题目容器
-        :return
+    刷新容器状态 数据库和实际容器状态同步
+    :param :container_resource :题目容器
+    :return
     """
     container = db.session.query(CtfResource).get(container_resource)
     question = container.question
@@ -148,12 +158,12 @@ def ctf_containers_refresh(container_resource):
     return api_success()
 
 
-@bp.post('/resource/<int:pk>/remove')
+@bp.post("/resource/<int:pk>/remove")
 def resource_remove(pk):
     """
-        删除题目容器 如果容器不在线需要自己手动删除
-        :param :container_resource 题目容器id
-        :return
+    删除题目容器 如果容器不在线需要自己手动删除
+    :param :container_resource 题目容器id
+    :return
     """
     ctf_resource = db.session.query(CtfResource).get(pk)
     destroy_docker_runner(ctf_resource.docker_runner_id)
@@ -161,21 +171,23 @@ def resource_remove(pk):
     return api_success(msg="删除成功")
 
 
-@bp.route('/answers', methods=['get'])
+@bp.route("/answers", methods=["get"])
 def answers_list():
     """
         答题记录
     :return:
     """
-    page = int(request.args.get('page', 1))
+    page = int(request.args.get("page", 1))
     page_size = int(request.args.get("page_size", 10))
     _type = request.args.get("q_type")
     status = request.args.get("status")
     question_name = request.args.get("question")
-    username = request.args.get('username')
-    query = db.session.query(Answer, Question, User) \
-        .join(Question, Question.id == Answer.question_id) \
+    username = request.args.get("username")
+    query = (
+        db.session.query(Answer, Question, User)
+        .join(Question, Question.id == Answer.question_id)
         .join(User, User.id == Answer.user_id)
+    )
     if _type:
         query = query.filter(Question.type == _type)
     if status:
@@ -188,46 +200,46 @@ def answers_list():
     data = []
     for item in page.items:
         answer, question, user = item
-        data.append({
-            "id": answer.id,
-            "date_created": answer.created_at.strftime("%Y-%m-%d %H:%M:%S") if answer.created_at else None,
-            "date_modified": answer.updated_at.strftime("%Y-%m-%d %H:%M:%S") if answer.updated_at else None,
-            "status": answer.status,
-            "status_name": answer.status_name,
-            "question": {
-                "type": question.type,
-                "name": question.name
-            },
-            "score": answer.score,
-            "flag": answer.flag,
-            "username": user.username,
-            "ip": answer.ip
-        })
-    return api_success({
-        "total": page.total,
-        "data": data
-    })
+        data.append(
+            {
+                "id": answer.id,
+                "date_created": (
+                    answer.created_at.strftime("%Y-%m-%d %H:%M:%S") if answer.created_at else None
+                ),
+                "date_modified": (
+                    answer.updated_at.strftime("%Y-%m-%d %H:%M:%S") if answer.updated_at else None
+                ),
+                "status": answer.status,
+                "status_name": answer.status_name,
+                "question": {"type": question.type, "name": question.name},
+                "score": answer.score,
+                "flag": answer.flag,
+                "username": user.username,
+                "ip": answer.ip,
+            }
+        )
+    return api_success({"total": page.total, "data": data})
 
 
-@bp.route('/answers/status_list', methods=['get'])
+@bp.route("/answers/status_list", methods=["get"])
 def answer_status_list():
     """
-        回答题目的类别
+    回答题目的类别
     """
     return api_success({"data": list(Answer.status_choices)})
 
 
-@bp.get('/question')
+@bp.get("/question")
 def question_list():
     """
         题库列表 和题库添加
         :data :subject 题目分类
     :return:
     """
-    page = int(request.args.get('page', 1))
+    page = int(request.args.get("page", 1))
     page_size = int(request.args.get("page_size", 10))
     subject = request.args.get("subject")
-    search = request.args.get('search')
+    search = request.args.get("search")
     query = db.session.query(Question).filter()
     if subject:
         query = query.filter(Question.type == subject)
@@ -240,52 +252,59 @@ def question_list():
         if item.attachment:
             attachment = item.attachment.split(",")
             if attachment:
-                attachment_query = db.session.query(Attachment).filter(Attachment.id.in_(attachment))
+                attachment_query = db.session.query(Attachment).filter(
+                    Attachment.id.in_(attachment)
+                )
                 attachment_info = [{"filename": i.filename, "uuid": i.id} for i in attachment_query]
-        data.append({
-            "resource_id": item.resource_id,
-            "resource_name": item.resource.name if item.resource_id else None,
-            "attachment": attachment_info,
-            "id": item.id,
-            "date_created": item.created_at.strftime("%Y-%m-%d %H:%M:%S") if item.created_at else None,
-            "date_modified": item.updated_at.strftime("%Y-%m-%d %H:%M:%S") if item.updated_at else None,
-            "name": item.name,
-            'type': item.type,
-            "active": item.active,
-            "flag": item.flag,
-            "active_flag": item.active_flag,
-            "score": item.score,
-            "desc": item.desc
-        })
-    return api_success({
-        "total": page.total,
-        "results": data
-    })
+        data.append(
+            {
+                "resource_id": item.resource_id,
+                "resource_name": item.resource.name if item.resource_id else None,
+                "attachment": attachment_info,
+                "id": item.id,
+                "date_created": (
+                    item.created_at.strftime("%Y-%m-%d %H:%M:%S") if item.created_at else None
+                ),
+                "date_modified": (
+                    item.updated_at.strftime("%Y-%m-%d %H:%M:%S") if item.updated_at else None
+                ),
+                "name": item.name,
+                "type": item.type,
+                "active": item.active,
+                "flag": item.flag,
+                "active_flag": item.active_flag,
+                "score": item.score,
+                "desc": item.desc,
+            }
+        )
+    return api_success({"total": page.total, "results": data})
 
 
-@bp.post('/question')
+@bp.post("/question")
 @validate()
 def question_create(body: QuestionForm):
     data = request.get_json()
-    attachment = data.get('attachment', [])
-    Question.create(name=body.name,
-                    active=body.active,
-                    active_flag=body.active_flag,
-                    desc=body.desc,
-                    flag=body.flag,
-                    type=body.type,
-                    score=body.score,
-                    resource_id=body.resource_id,
-                    attachment=",".join([str(i) for i in attachment]))
+    attachment = data.get("attachment", [])
+    Question.create(
+        name=body.name,
+        active=body.active,
+        active_flag=body.active_flag,
+        desc=body.desc,
+        flag=body.flag,
+        type=body.type,
+        score=body.score,
+        resource_id=body.resource_id,
+        attachment=",".join([str(i) for i in attachment]),
+    )
     return api_success({})
 
 
-@bp.delete('/question/<int:pk>')
+@bp.delete("/question/<int:pk>")
 def question_delete(pk):
     """
-                    删除题库  判断是否是动态题库 动态题库删除容器  实体容器 镜像
-                    :param : question 题目ID
-                """
+    删除题库  判断是否是动态题库 动态题库删除容器  实体容器 镜像
+    :param : question 题目ID
+    """
     # 使用逻辑删除
     instance: Question = db.session.query(Question).get(pk)
     if instance.active_flag:
@@ -302,21 +321,21 @@ def question_delete(pk):
     return api_success({})
 
 
-@bp.get('/images')
+@bp.get("/images")
 def images_list():
-    page = int(request.args.get('page', 1))
+    page = int(request.args.get("page", 1))
     page_size = int(request.args.get("page_size", 10))
-    host_id = request.args.get('host')
-    status = request.args.get('status')
-    name = request.args.get('name')
-    file = request.args.get('file')
+    host_id = request.args.get("host")
+    status = request.args.get("status")
+    name = request.args.get("name")
+    file = request.args.get("file")
     query = db.session.query(ImageResource)
     if host_id:
         query = query.filter(ImageResource.host_id == host_id)
     if status:
         query = query.filter(ImageResource.status == status)
     if name:
-        query = query.filter(ImageResource.name.ilike('%%%s%%' % name))
+        query = query.filter(ImageResource.name.ilike("%%%s%%" % name))
     if file:
         query = query.filter(ImageResource.file.filename.ilike(file))
     page = query.order_by(ImageResource.id.desc()).paginate(page=page, per_page=page_size)
@@ -333,10 +352,10 @@ def images_list():
     return api_success(data={"data": data})
 
 
-@bp.delete('/images/<int:pk>')
+@bp.delete("/images/<int:pk>")
 def images_delete(pk):
     """
-        删除镜像 目前仅仅删除数据库数据 判断是否有容器在运行 否则不允许删除
+    删除镜像 目前仅仅删除数据库数据 判断是否有容器在运行 否则不允许删除
     """
     if db.session.query(CtfResource).filter(CtfResource.image_resource_id == pk).count():
         return api_fail(msg="无法删除当前镜像、因为相关容器正在运行中!", code=400)
@@ -346,7 +365,7 @@ def images_delete(pk):
     return api_success()
 
 
-@bp.post('/images')
+@bp.post("/images")
 def images_create():
     # Deprecated
     _data = request.get_json()
@@ -357,14 +376,18 @@ def images_create():
     cpu = _data.get("cpu")
     instance = ImageResource(
         host_id=host_id,
-        name=name, version=version, memory=memory, cpu=cpu, file_id=_data["file_id"]
+        name=name,
+        version=version,
+        memory=memory,
+        cpu=cpu,
+        file_id=_data["file_id"],
     )
     db.session.add(instance)
     db.session.commit()
     return api_success()
 
 
-@bp.put('/images/<int:pk>')
+@bp.put("/images/<int:pk>")
 def image_update(pk):
     # Deprecated
     _data = request.get_json()
@@ -385,14 +408,14 @@ def image_update(pk):
     return api_success()
 
 
-@bp.post('/upload')
+@bp.post("/upload")
 def ctf_upload_attachment():
     """
-        题目附件上传
+    题目附件上传
     """
     file = request.files["file"]
     filename = file.filename
-    ext = filename.split('.')[-1]
+    ext = filename.split(".")[-1]
     upload_dir = config.UPLOAD_DIR
     if ".." in filename:
         return api_fail(msg="文件名非法!")
@@ -407,7 +430,7 @@ def ctf_upload_attachment():
     return api_success({"filename": filename, "uuid": at.id})
 
 
-@bp.post('/sync_repo')
+@bp.post("/sync_repo")
 def ctf_sync_repo():
     remote_repo = Config.get_config(Config.KEY_CTF_REPOSITORY)
     if not remote_repo:

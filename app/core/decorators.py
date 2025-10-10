@@ -1,13 +1,13 @@
 import logging
 from functools import wraps
 
-from flask import request, g
+from flask import g, request
 
-from app.extensions import db
 from app.core.api import api_fail
+from app.extensions import db
 from app.models.user import User
 
-logger = logging.getLogger('app')
+logger = logging.getLogger("app")
 
 
 def user_required(required=True):

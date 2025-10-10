@@ -5,9 +5,9 @@ import typing
 import docker
 from docker.models.containers import Container
 from flask import request
-from flask_socketio import emit, disconnect
+from flask_socketio import disconnect, emit
 
-from app.extensions import socketio, db
+from app.extensions import db, socketio
 from app.models.admin import Config
 from app.models.docker import DockerRunner
 from app.models.user import User
@@ -49,13 +49,13 @@ class LogsSession(SocketClient):
                 if self.stop_thread:
                     break
                 # 发送日志到前端
-                socketio.emit('message', {"logs": {"output": log.decode('utf-8')}}, room=self.sid)
-        except Exception as e:
+                socketio.emit("message", {"logs": {"output": log.decode("utf-8")}}, room=self.sid)
+        except Exception:
             logger.exception("Error in log streaming")
 
     def close(self):
         self.stop_thread = True
-        if hasattr(self, 'log_thread'):
+        if hasattr(self, "log_thread"):
             self.log_thread.join()
 
 
@@ -77,18 +77,11 @@ class TerminalSession(SocketClient):
                 stdin=True,
                 stdout=True,
                 stderr=True,
-                environment={
-                    "TERM": "xterm",
-                    "COLUMNS": "80",
-                    "LINES": "24"
-                }
+                environment={"TERM": "xterm", "COLUMNS": "80", "LINES": "24"},
             )
-            self.exec_id = exec_create['Id']
+            self.exec_id = exec_create["Id"]
             self.socket = self.container.client.api.exec_start(
-                self.exec_id,
-                tty=True,
-                socket=True,
-                demux=False
+                self.exec_id, tty=True, socket=True, demux=False
             )._sock
         except Exception as e:
             logger.exception("Failed to create exec instance")
@@ -100,10 +93,10 @@ class TerminalSession(SocketClient):
 
         try:
             # Send input to container
-            self.socket.send(input_data.encode('utf-8'))
+            self.socket.send(input_data.encode("utf-8"))
 
             # Read response with timeout
-            output = b''
+            output = b""
             self.socket.settimeout(0.1)
 
             try:
@@ -117,14 +110,15 @@ class TerminalSession(SocketClient):
                 pass
 
             # 处理输出，移除可能的控制字符
-            text = output.decode('utf-8', errors='replace')
+            text = output.decode("utf-8", errors="replace")
             # 移除 ANSI 转义序列
             import re
-            text = re.sub(r'\x1b\[[0-9;]*[mGKHF]', '', text)
+
+            text = re.sub(r"\x1b\[[0-9;]*[mGKHF]", "", text)
             # 确保每行左对齐
             lines = text.splitlines()
             cleaned_lines = [line.lstrip() for line in lines]
-            return '\n'.join(cleaned_lines)
+            return "\n".join(cleaned_lines)
 
         except Exception as e:
             logger.exception("Error handling terminal input")
@@ -134,7 +128,7 @@ class TerminalSession(SocketClient):
         try:
             if self.socket:
                 self.socket.close()
-        except Exception as e:
+        except Exception:
             logger.exception("Error closing terminal session")
 
 
@@ -144,10 +138,10 @@ session_clients: typing.Dict[str, typing.Union[LogsSession, TerminalSession]] = 
 @socketio.on("connect")
 def handle_connect(auth):
     # 身份绑定
-    namespace = request.args.get('namespace')
-    runner_id = request.args.get('container_id')
-    sid = getattr(request, 'sid', None)
-    token = auth.get('token')
+    namespace = request.args.get("namespace")
+    runner_id = request.args.get("container_id")
+    sid = getattr(request, "sid", None)
+    token = auth.get("token")
     logger.info(f"Client connected: {token}")
     if not token:
         disconnect()
@@ -176,21 +170,24 @@ def handle_connect(auth):
                 disconnect()
                 return False
             container = client.containers.get(runner.container_id)
-            if namespace == 'logs':
+            if namespace == "logs":
                 s = LogsSession(sid, user, container)
                 s.init_socket()
                 session_clients[sid] = s
                 out = None
             else:
                 logger.info(
-                    f"Initializing terminal session for user: {user.username}, container: {runner.container_id}")
+                    f"Initializing terminal session for user: {user.username}, container: {runner.container_id}"
+                )
                 # 创建新的终端会话
                 session_clients[sid] = TerminalSession(sid, user, container)
                 # send black command
-                out = session_clients[sid].handle_input('')
+                out = session_clients[sid].handle_input("")
             if out:
-                emit('message', {"terminal": {"output": out}})
-            logger.info(f"Terminal session created for user: {user.username}, container: {runner.container_id}")
+                emit("message", {"terminal": {"output": out}})
+            logger.info(
+                f"Terminal session created for user: {user.username}, container: {runner.container_id}"
+            )
             return True
         except Exception as e:
             logger.exception(f"Failed to initialize terminal session: {str(e)}")
@@ -201,7 +198,7 @@ def handle_connect(auth):
 
 @socketio.on("disconnect")
 def handle_disconnect():
-    sid = getattr(request, 'sid', None)
+    sid = getattr(request, "sid", None)
     if sid and sid in session_clients:
         session = session_clients[sid]
         logger.info(f"Client disconnected: {session.user.username}")
@@ -211,7 +208,7 @@ def handle_disconnect():
 
 @socketio.on("terminal")
 def handle_message(message):
-    sid = getattr(request, 'sid', None)
+    sid = getattr(request, "sid", None)
     session = session_clients.get(sid)
 
     if not session:
@@ -221,10 +218,10 @@ def handle_message(message):
     try:
         out = session.handle_input(message)
         if out:
-            emit('message', {"terminal": {"output": out}})
+            emit("message", {"terminal": {"output": out}})
     except Exception as e:
         logger.exception("Error processing terminal message")
-        emit('message', {"terminal": {"error": str(e)}})
+        emit("message", {"terminal": {"error": str(e)}})
         session.close()
         del session_clients[sid]
         disconnect()

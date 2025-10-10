@@ -1,7 +1,6 @@
 import click
-import os
-import hashlib
 from flask.cli import with_appcontext
+
 from app.extensions import db
 from app.utils.security import hash_password
 
@@ -13,28 +12,30 @@ def init_db_command():
     click.echo("Initialized the database.")
 
 
-@click.command('init-app')
+@click.command("init-app")
 @with_appcontext
 def init_superuser():
     """
-        初始化管理员账号 admin:superuser/admin
+    初始化管理员账号 admin:superuser/admin
     """
     from app.models.admin import Admin
-    admin = db.session.query(Admin).filter(Admin.username == 'superuser').one_or_none()
+
+    admin = db.session.query(Admin).filter(Admin.username == "superuser").one_or_none()
     if admin:
-        admin.password = hash_password('admin')
+        admin.password = hash_password("admin")
         db.session.commit()
     else:
         pass
 
 
-@click.command('init-data')
+@click.command("init-data")
 @with_appcontext
 def init_data():
     """
-        初始化数据  删除表数据 重新创建
+    初始化数据  删除表数据 重新创建
     """
     from app.models.admin import Admin, Role
+
     db.drop_all()
     db.create_all()
     db.session.commit()
@@ -42,9 +43,8 @@ def init_data():
     for name in ("超级管理员", "运维管理员"):
         db.session.add(Role(name=name))
     # 添加超级管理员
-    db.session.add(Admin(username='superuser', role_id=1, password=hash_password('admin')))
+    db.session.add(Admin(username="superuser", role_id=1, password=hash_password("admin")))
     db.session.commit()
-
 
 
 def init_app(app):

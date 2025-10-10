@@ -1,0 +1,112 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ocean_ctf"
+version = "0.1.0"
+description = "一个动态flag练习靶场平台"
+readme = "README.md"
+requires-python = ">=3.9"
+license = "MIT"
+
+dependencies = [
+    "Flask==3.1.0",
+    "SQLAlchemy==2.0.36",
+    "Flask-SQLAlchemy==3.1.1",
+    "Flask-Cors==5.0.0",
+    "Flask-Pydantic==0.12.0",
+    "Flask-SocketIO==5.5.1",
+    "python-dotenv==0.21.0",
+    "pymysql",
+    "redis==4.5.4",
+    "docker==7.1.0",
+    "pydantic==2.10.4",
+    "click~=8.1.3",
+    "requests~=2.32.0",
+    "flask-redis",
+    "PyYAML",
+    "celery>=5.3.6",
+    "importlib-metadata>=6.0.0",
+    "pytz",
+    "cryptography>=42.0.0",
+    "GitPython"
+]
+
+[project.optional-dependencies]
+prod =[
+    "Gunicorn",
+    "eventlet>=0.33.0"
+    ]
+dev = [
+    "flake8==7.0.0",
+    "pylint==3.1.0",
+    "black==24.3.0",
+    "isort==5.13.2",
+]
+test = [
+    "pytest==8.0.0",
+    "pytest-cov==4.1.0",
+]
+
+[tool.setuptools.packages.find]
+include = ["app*", "config*"]  # 包含的包
+exclude = ["install*", "tests*", "upload*"]  # 排除的包
+
+[tool.black]
+line-length = 100
+target-version = ['py39']
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+  | env
+  | venv
+)/
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 100
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+ensure_newline_before_comments = true
+skip_gitignore = true
+skip = [".git", "__pycache__", "venv", "env"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"
+pythonpath = ["."]
+
+[tool.pylint.messages_control]
+disable = [
+    "C0111", # missing-docstring
+    "C0103", # invalid-name
+    "C0303", # trailing-whitespace
+    "C0330", # bad-continuation
+    "C1801", # len-as-condition
+    "W0511", # fixme
+    "W1202", # logging-format-interpolation
+    "W0212", # protected-access
+    "W0703", # broad-except
+    "R0903", # too-few-public-methods
+    "R0913", # too-many-arguments
+    "R0914", # too-many-locals
+    "R0915", # too-many-statements
+]
+
+[tool.pylint.format]
+max-line-length = 100

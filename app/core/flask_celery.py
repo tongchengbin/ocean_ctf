@@ -8,7 +8,6 @@ class ContextTask(TaskBase):
     abstract = True
     """
         celery 默认使用的是进程 所以这里可以使用全局变量db
-    
     """
 
     def after_return(self, status, retval, task_id, args, kwargs, info):

@@ -1,0 +1,53 @@
+[MASTER]
+# Python version
+py-version = 3.9
+
+# Ignore specific directories
+ignore=.git,__pycache__,venv,env
+
+# Add files or directories matching the regex patterns to the ignore-list
+ignore-patterns=
+
+# Specify a score threshold to be exceeded before program exits with error
+fail-under=7.0
+
+[MESSAGES CONTROL]
+# Disable specific messages, warnings, errors or refactors
+disable=
+    C0111, # missing-docstring
+    C0103, # invalid-name
+    C0303, # trailing-whitespace
+    C0330, # bad-continuation
+    C1801, # len-as-condition
+    W0511, # fixme
+    W1202, # logging-format-interpolation
+    W0212, # protected-access
+    W0703, # broad-except
+    R0903, # too-few-public-methods
+    R0913, # too-many-arguments
+    R0914, # too-many-locals
+    R0915, # too-many-statements
+
+[FORMAT]
+# Maximum number of characters on a single line
+max-line-length=100
+
+[DESIGN]
+# Maximum number of arguments for function / method
+max-args=8
+# Maximum number of locals for function / method body
+max-locals=15
+# Maximum number of return / yield for function / method body
+max-returns=6
+# Maximum number of branch for function / method body
+max-branches=12
+# Maximum number of statements in function / method body
+max-statements=50
+# Maximum number of parents for a class (see R0901)
+max-parents=7
+# Maximum number of attributes for a class (see R0902)
+max-attributes=11
+# Minimum number of public methods for a class (see R0903)
+min-public-methods=1
+# Maximum number of public methods for a class (see R0904)
+max-public-methods=20
