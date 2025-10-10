@@ -5,18 +5,18 @@ import docker
 from docker.errors import DockerException
 
 from app.core.flask_celery import ContextTask
-from app.extensions import db, celery
+from app.extensions import celery, db
 from app.models.admin import Config
 from app.models.ctf import CtfResource
 
-logger = logging.getLogger('app')
+logger = logging.getLogger("app")
 
 
 @celery.task(base=ContextTask)
 def ctf_finish_container(container_id, current=False):
     """
-        启动题目后自动销毁
-        定时任务 定时结束容器
+    启动题目后自动销毁
+    定时任务 定时结束容器
     """
     logger.info("Start CTF Container finish:%s" % container_id)
     resource = db.session.query(CtfResource).get(container_id)

@@ -9,14 +9,14 @@ import requests
 import yaml
 from docker.errors import NotFound
 
-from app.core.flask_celery import ContextTask
-from app.extensions import celery, db, cache
 from app.core.const import ConstCacheKey
-from app.utils.tools import find_directories_with_filename
+from app.core.flask_celery import ContextTask
+from app.extensions import cache, celery, db
 from app.models.admin import Config
 from app.models.ctf import CtfResource, ImageResource
 from app.models.docker import DockerResource
 from app.sys import service
+from app.utils.tools import find_directories_with_filename
 from config import config
 
 logger = logging.getLogger()
@@ -25,9 +25,11 @@ logger = logging.getLogger()
 @celery.task(base=ContextTask)
 def beat_destroy_container():
     """
-        清楚过期容器  容错
+    清楚过期容器  容错
     """
-    for ctf_resource in db.session.query(CtfResource).filter(CtfResource.destroy_time < datetime.now()):
+    for ctf_resource in db.session.query(CtfResource).filter(
+        CtfResource.destroy_time < datetime.now()
+    ):
         client = docker.DockerClient(Config.get_config(Config.KEY_DOCKER_API))
         # 默认一个docker run 只能绑定一个用户吧 所以直接删除docker run  采用数据库的连表删除自动删除其他索引
         try:
@@ -47,9 +49,9 @@ def beat_destroy_container():
 @celery.task(base=ContextTask)
 def build_question_tar(image_id):
     """
-        编译上传的tar包为image
+    编译上传的tar包为image
     """
-    logger.info('start build image | {}'.format(image_id))
+    logger.info("start build image | {}".format(image_id))
     image = db.session.query(ImageResource).get(image_id)
     if not image:
         logger.info("image not found")
@@ -59,11 +61,14 @@ def build_question_tar(image_id):
     else:
         address = image.host.docker_api
     cli = docker.DockerClient(base_url=address)
-    dist_file_path = os.path.join(config.BASE_DIR, 'upload', image.file.file_path)
+    dist_file_path = os.path.join(config.BASE_DIR, "upload", image.file.file_path)
     try:
-        for line in cli.build(fileobj=open(dist_file_path, 'rb'), rm=True,
-                              tag=f"{image.name}:{image.version}",
-                              custom_context=True):
+        for line in cli.build(
+            fileobj=open(dist_file_path, "rb"),
+            rm=True,
+            tag=f"{image.name}:{image.version}",
+            custom_context=True,
+        ):
             logger.info(line)
             cache.lpush(ConstCacheKey.TASK_BUILD_LOG % image.id, line)
         image.status = ImageResource.STATUS_SUCCESS
@@ -100,21 +105,26 @@ def sync_ctf_question_repo(repo, admin_id=None):
         service.create_admin_message(admin_id, f"同步远程CTF仓库失败\n{e}")
         logger.error(e)
         return
-    docker_api= Config.get_config(Config.KEY_DOCKER_API)
+    docker_api = Config.get_config(Config.KEY_DOCKER_API)
     client = docker.DockerClient(docker_api)
-    vulnerabilities = find_directories_with_filename(local_repo, filename='metadata.yml')
+    vulnerabilities = find_directories_with_filename(local_repo, filename="metadata.yml")
     for directory in vulnerabilities:
-        with open(os.path.join(directory, 'metadata.yml')) as f:
+        with open(os.path.join(directory, "metadata.yml")) as f:
             yaml_data = yaml.safe_load(f)
-        image = yaml_data['image']
+        image = yaml_data["image"]
         name = yaml_data["name"]
-        docker_file = os.path.join(directory, 'Dockerfile')
+        docker_file = os.path.join(directory, "Dockerfile")
         # 判断镜像是否已经存在
         obj = db.session.query(DockerResource).filter(DockerResource.image == image).first()
         if not obj:
-            obj = DockerResource(name=name, resource_type="CTF", image=image,
-                                 description=yaml_data['description'],
-                                 cve=yaml_data.get("cve", []), app=yaml_data.get("app"))
+            obj = DockerResource(
+                name=name,
+                resource_type="CTF",
+                image=image,
+                description=yaml_data["description"],
+                cve=yaml_data.get("cve", []),
+                app=yaml_data.get("app"),
+            )
         if os.path.exists(docker_file):
             # 本地编译
             obj.dockerfile = docker_file
@@ -135,7 +145,8 @@ def sync_ctf_question_repo(repo, admin_id=None):
             db.session.add(obj)
             db.session.commit()
         except Exception as e:
+            db.session.rollback()
             logger.error(e)
             continue
-        logger.info('Add Image:{}'.format(image))
-    service.create_admin_message(admin_id, f"同步远程CTF仓库完成")
+        logger.info("Add Image:{}".format(image))
+    service.create_admin_message(admin_id, "同步远程CTF仓库完成")

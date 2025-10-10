@@ -1,14 +1,13 @@
 import datetime
 
 from sqlalchemy import ForeignKey
-from sqlalchemy.orm import relationship, Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from . import Model
-from . import db
+from . import Model, db
 
 
 class Role(Model):
-    __tablename__ = 'role'
+    __tablename__ = "role"
     """
         角色  后面会关联权限
     """
@@ -17,11 +16,13 @@ class Role(Model):
 
 
 class Admin(Model):
-    __tablename__ = 'admin'
-    username: Mapped[str] = mapped_column(db.String(256), unique=True, nullable=False, comment='用户名')
-    password: Mapped[str] = mapped_column(db.String(512), nullable=False, comment='密码')
-    role_id: Mapped[int] = mapped_column(db.Integer, db.ForeignKey('role.id'))
-    role: Mapped['Role'] = relationship('Role')
+    __tablename__ = "admin"
+    username: Mapped[str] = mapped_column(
+        db.String(256), unique=True, nullable=False, comment="用户名"
+    )
+    password: Mapped[str] = mapped_column(db.String(512), nullable=False, comment="密码")
+    role_id: Mapped[int] = mapped_column(db.Integer, db.ForeignKey("role.id"))
+    role: Mapped["Role"] = relationship("Role")
     active: Mapped[bool] = mapped_column(db.Boolean(), comment="是否启用", default=True)
     login_time: Mapped[datetime.datetime] = mapped_column(db.DateTime, default=None, nullable=True)
     token: Mapped[str] = mapped_column(db.String(64), comment="token", nullable=True, unique=True)
@@ -30,22 +31,24 @@ class Admin(Model):
 
     @property
     def role_name(self):
-        return self.role.name if self.role else ''
+        return self.role.name if self.role else ""
 
 
 class TaskList(Model):
-    __tablename__ = 'task_list'
+    __tablename__ = "task_list"
     STATUS_WAIT = 1  # 排队
     STATUS_CANCEL = 2  # 取消
     STATUS_RUN = 3  # 执行中
     STATUS_ERROR = 4  # 执行错误
     STATUS_DONE = 5  # 执行完成
-    STATUS_CHOICES = ((STATUS_WAIT, "排队"),
-                      (STATUS_CANCEL, "取消"),
-                      (STATUS_RUN, "执行中"),
-                      (STATUS_ERROR, "执行错误"),
-                      (STATUS_DONE, "执行完成"))
-    admin_id = mapped_column(db.Integer, ForeignKey('admin.id'), comment="操作用户")
+    STATUS_CHOICES = (
+        (STATUS_WAIT, "排队"),
+        (STATUS_CANCEL, "取消"),
+        (STATUS_RUN, "执行中"),
+        (STATUS_ERROR, "执行错误"),
+        (STATUS_DONE, "执行完成"),
+    )
+    admin_id = mapped_column(db.Integer, ForeignKey("admin.id"), comment="操作用户")
     status = mapped_column(db.Integer, default=STATUS_WAIT, comment="任务状况")
     title = mapped_column(db.String(64), comment="任务标题")
     target_id = mapped_column(db.String(32), comment="操作对象ID 可以是主机 容器 镜像 题库等")
@@ -57,23 +60,24 @@ class TaskList(Model):
 
 
 class TaskLog(Model):
-    __tablename__ = 'task_log'
-    task_id = mapped_column(db.Integer, ForeignKey('task_list.id'))
+    __tablename__ = "task_log"
+    task_id = mapped_column(db.Integer, ForeignKey("task_list.id"))
     content = mapped_column(db.String(1024), comment="内容")
 
 
 class RequestState(Model):
     """
-        每日请求统计
+    每日请求统计
     """
-    __tablename__ = 'request_state'
+
+    __tablename__ = "request_state"
     ip_count: Mapped[int] = mapped_column(db.Integer)
     req_count: Mapped[int] = mapped_column(db.Integer)
     day: Mapped[datetime.date] = mapped_column(db.Date, comment="日期")
 
 
 class Notice(Model):
-    __tablename__ = 'notice'
+    __tablename__ = "notice"
     active: Mapped[bool] = mapped_column(db.Boolean(), default=True)
     is_top: Mapped[bool] = mapped_column(db.Boolean(), default=False)
     content: Mapped[str] = mapped_column(db.String(1024), comment="内容")
@@ -81,9 +85,10 @@ class Notice(Model):
 
 class Operator(Model):
     """
-        行为审计日志
+    行为审计日志
     """
-    __tablename__ = 'operator'
+
+    __tablename__ = "operator"
     username: Mapped[str] = mapped_column(db.String(255), comment="操作人用户名")
     code: Mapped[bool] = mapped_column(db.Boolean(), default=True, comment="操作结果")
     ip: Mapped[str] = mapped_column(db.String(15), comment="操作IP")
@@ -106,10 +111,10 @@ class Config(Model):
         KEY_CTF_TIMEOUT: (int, 180),
         KEY_VULNERABILITY_TIMEOUT: (int, 1800),
         KEY_REMOTE_VULNERABILITY_REPOSITORY: (str, "https://github.com/tongchengbin/vuldb.git"),
-        KEY_CTF_REPOSITORY: (str, "https://github.com/tongchengbin/ctfdb.git")
+        KEY_CTF_REPOSITORY: (str, "https://github.com/tongchengbin/ctfdb.git"),
     }
 
-    __tablename__ = 'config'
+    __tablename__ = "config"
     key: Mapped[str] = mapped_column(db.String(255), comment="键")
     val: Mapped[str] = mapped_column(db.String(255), comment="值")
 
@@ -140,11 +145,14 @@ class MessageLevel:
 
 class AdminMessage(Model):
     """
-        管理员消息
+    管理员消息
     """
-    __tablename__ = 'admin_message'
-    mtype: Mapped[int] = mapped_column(db.Integer, comment="消息类型", default=MessageType.TYPE_ADMIN)
-    admin_id: Mapped[int] = mapped_column(db.Integer, ForeignKey('admin.id'), comment="关联管理员")
+
+    __tablename__ = "admin_message"
+    mtype: Mapped[int] = mapped_column(
+        db.Integer, comment="消息类型", default=MessageType.TYPE_ADMIN
+    )
+    admin_id: Mapped[int] = mapped_column(db.Integer, ForeignKey("admin.id"), comment="关联管理员")
     content: Mapped[str] = mapped_column(db.String(1024))
     read: Mapped[bool] = mapped_column(db.Boolean(), default=False, comment="是否已读")
     level: Mapped[int] = mapped_column(db.Integer, comment="重要级别")

@@ -1,17 +1,14 @@
-import unittest
+import pytest
 
-from app import create_app
-from app.vulnerability import tasks
 from app.ctf.tasks import sync_ctf_question_repo
+from app.vulnerability import tasks
 
 
-class TestValidator(unittest.TestCase):
+def test_sync_vulnerability_repo(app_context):
+    """测试同步漏洞库"""
+    tasks.sync_remote_vulnerability_repo("https://gitee.com/tong1995/vuldb.git", admin_id=1)
 
-    def setUp(self) -> None:
-        create_app().app_context().push()
 
-    def test_sync_vulnerability_repo(self):
-        tasks.sync_remote_vulnerability_repo("https://gitee.com/tong1995/vuldb.git")
-
-    def test_sync_ctf_repo(self):
-        sync_ctf_question_repo("https://gitee.com/tong1995/ctfdb.git")
+def test_sync_ctf_repo(app_context):
+    """测试同步CTF题库"""
+    sync_ctf_question_repo("https://gitee.com/tong1995/ctfdb.git", admin_id=1)

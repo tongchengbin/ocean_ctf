@@ -1,13 +1,54 @@
+# IDE
 /.idea/
-__pycache__
+.vscode
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# 日志和临时文件
 *.log
 *.pid
-/upload/*
-config/local_config.py
 celerybeat-schedule
 *.db
 *.pyc
-venv
-.env
-.vscode
 *.py~
+
+# 环境变量文件 - 不提交实际的环境变量文件
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# 上传目录
+/upload/*
+
+# 本地配置
+config/local_config.py
+
+# 虚拟环境
+venv/
+env/
+.venv/
+.env/
+
+# 其他
+.DS_Store

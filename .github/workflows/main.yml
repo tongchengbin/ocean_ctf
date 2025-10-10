@@ -1,0 +1,52 @@
+name: Ocean CTF CI/CD
+
+on:
+  push:
+    branches: [main, test-cicd]
+  pull_request:
+    branches: [main, test-cicd]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Compose
+        uses: docker/setup-buildx-action@v2
+
+      - name: Create .env file (exactly like user would do)
+        run: |
+          cp .env_example .env
+
+          # 添加CI测试特定的配置
+          cat >> .env <<EOL
+
+      - name: Run docker compose (like user deployment)
+        run: |
+          # 显示当前配置
+          echo "Current environment configuration:"
+          cat .env
+
+          # 启动服务（与用户部署步骤相同）
+          docker compose build
+          echo "Build completed"
+          docker compose up -d
+
+          # 等待服务准备就绪
+          echo "Waiting for services to be ready..."
+          sleep 30  # 增加等待时间到 30 秒
+          # 检查服务状态
+          docker compose ps
+          # 检查服务状态
+          docker compose logs --tail 100
+
+      - name: Run tests
+        run: |
+          # 在 Docker 容器内运行测试
+          docker compose exec -T web sh -c "uv pip install pytest pytest-cov --system && pytest tests/ -v"
+
+          # 检查测试运行状态
+          echo "Tests completed with exit code: $?"

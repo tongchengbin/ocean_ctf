@@ -5,27 +5,28 @@ import os
 import docker
 import requests
 import yaml
-from docker import errors as docker_error, APIClient
-from flask import Blueprint, request, g
+from docker import APIClient
+from docker import errors as docker_error
+from docker.errors import ImageNotFound
+from flask import Blueprint, g, request
 from flask_pydantic import validate
 from sqlalchemy import or_
 from sqlalchemy.exc import IntegrityError
 
-from app.core.api import api_success, api_fail
+from app.core.api import api_fail, api_success
 from app.core.tools import model2dict
 from app.docker import tasks
-from app.extensions import cache
-from app.extensions import db
-from app.models.admin import TaskList, Config
+from app.extensions import cache, db
+from app.models.admin import Config, TaskList
 from app.models.docker import (
     ComposeDB,
     ComposeRunner,
     DockerResource,
 )
 from app.utils.validator import check_image_name
-from .form import PageForm, ComposeDBForm, DockerResourceForm, DockerResourceEditForm
-from ..models.ctf import Question
 
+from ..models.ctf import Question
+from .form import ComposeDBForm, DockerResourceEditForm, DockerResourceForm, PageForm
 
 logger = logging.getLogger("app")
 bp = Blueprint("admin_docker", __name__, url_prefix="/api/admin/docker")
@@ -93,7 +94,7 @@ def image_delete():
     docker_api = Config.get_config(Config.KEY_DOCKER_API)
     try:
         client = docker.DockerClient(docker_api)
-        res = client.images.remove(tag)
+        client.images.remove(tag)
     except docker_error.DockerException as e:
         error_str = str(e)
         logger.info("ERROR %s" % error_str)
@@ -113,7 +114,6 @@ def host_docker_container():
         获取镜像列表
     :return:
     """
-    pk = request.args.get("id")
     docker_api = Config.get_config(Config.KEY_DOCKER_API)
     try:
         client = docker.DockerClient(docker_api)
@@ -139,7 +139,7 @@ def container_action():
         action_fun = getattr(container, action)
         action_fun()
     except docker_error.DockerException as e:
-        return api_fail(msg="关闭容器失败:{container_id}")
+        return api_fail(msg=f"关闭容器失败:{container_id}:{e}")
     return api_success({"status": "ok"})
 
 
@@ -159,9 +159,7 @@ def image_create():
         return api_fail(msg="images name 格式错误请指定tag")
     if not check_image_name(tag):
         return api_fail(msg="镜像名称不合法")
-    task_obj = TaskList(
-        admin_id=g.user.id, target_id=None, title="build image for %s" % build_type
-    )
+    task_obj = TaskList(admin_id=g.user.id, target_id=None, title="build image for %s" % build_type)
     db.session.add(task_obj)
     db.session.commit()
     args = (task_obj.id, build_type, tag, g.user.id)
@@ -205,14 +203,6 @@ def compose_db_create(body: ComposeDBForm):
 @bp.delete("/compose_db/<int:pk>")
 def compose_db_delete(pk):
     ComposeDB.get_by_id(pk).delete()
-    return api_success({})
-
-
-@bp.post("/compose_db/<int:pk>/build")
-def compose_db_build(pk):
-    # todo
-    instance = ComposeDB.get_by_id(pk)
-    # scheduler.add_job(f"build_compose", task.compose_build, args=(instance.id,))
     return api_success({})
 
 
@@ -346,8 +336,11 @@ def resource_delete(pk):
         db.session.rollback()
         return api_fail(msg="资源占用中、当前状态无法删除,请检查引用对象!", code=400)
     # 删除docker images
-    client = APIClient(Config.get_config(Config.KEY_DOCKER_API))
-    logger.info("删除镜像：%s" % image)
-    client.remove_image(image)
+    try:
+        client = APIClient(Config.get_config(Config.KEY_DOCKER_API))
+        logger.info("删除镜像：%s" % image)
+        client.remove_image(image)
+    except ImageNotFound:
+        pass
     db.session.commit()
     return api_success({})

@@ -2,9 +2,9 @@
 import logging
 from datetime import datetime
 from typing import Optional, Type, TypeVar
+
 from flask_sqlalchemy import SQLAlchemy as SQLAlchemyBase  # type: ignore
-from sqlalchemy.orm import DeclarativeBase
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 T = TypeVar("T", bound="PkModel")
 
@@ -24,6 +24,7 @@ relationship = db.relationship
 
 class CRUDMixin(db.Model):
     """Mixin that adds convenience methods for CRUD (create, read, update, delete) operations."""
+
     __abstract__ = True
 
     @classmethod
@@ -49,8 +50,8 @@ class CRUDMixin(db.Model):
 
     def delete(self, commit: bool = True) -> None:
         """Remove the record from the database."""
-        if hasattr(self, 'deleted'):
-            setattr(self, 'deleted', True)
+        if hasattr(self, "deleted"):
+            setattr(self, "deleted", True)
             self.save()
             return
         db.session.delete(self)
@@ -78,17 +79,17 @@ class Model(CRUDMixin):
     def get_by_id(cls: Type[T], record_id) -> Optional[T]:
         """Get record by ID."""
         if any(
-                (
-                        isinstance(record_id, str) and record_id.isdigit(),
-                        isinstance(record_id, (int, float)),
-                )
+            (
+                isinstance(record_id, str) and record_id.isdigit(),
+                isinstance(record_id, (int, float)),
+            )
         ):
             return db.session.get(cls, int(record_id))
         return None
 
     @property
     def create_time_format(self):
-        return self.updated_at.strftime('%Y-%m-%d %H:%M')
+        return self.updated_at.strftime("%Y-%m-%d %H:%M")
 
     # 把SQLAlchemy查询对象转换成字典
     def to_dict(self):

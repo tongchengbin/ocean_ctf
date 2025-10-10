@@ -1,11 +1,13 @@
 from flask import g, request
 
 from app.extensions import db
-from app.models.admin import Operator, Config, AdminMessage, MessageType, MessageLevel
+from app.models.admin import AdminMessage, Config, MessageLevel, MessageType, Operator
 
 
 def create_admin_message(admin_id, content, level=MessageLevel.ERROR):
-    db.session.add(AdminMessage(admin_id=admin_id, content=content, mtype=MessageType.TYPE_ADMIN, level=level))
+    db.session.add(
+        AdminMessage(admin_id=admin_id, content=content, mtype=MessageType.TYPE_ADMIN, level=level)
+    )
     db.session.commit()
 
 

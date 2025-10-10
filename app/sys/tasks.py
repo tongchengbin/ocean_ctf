@@ -3,20 +3,19 @@ from __future__ import absolute_import
 import logging
 from datetime import datetime, timedelta
 
-from app.core.flask_celery import ContextTask
-from app.extensions import db, cache
-from app.models.admin import RequestState
 from app.core.const import ConstCacheKey
-from app.extensions import celery
+from app.core.flask_celery import ContextTask
+from app.extensions import cache, celery, db
+from app.models.admin import RequestState
 
-logger = logging.getLogger('app')
+logger = logging.getLogger("app")
 
 
 @celery.task(base=ContextTask)
 def day_upload_req():
     """
 
-        定时任务 每天执行一次    将redis内的数据写入db
+    定时任务 每天执行一次    将redis内的数据写入db
     """
     logger.info("start upload requests data")
     day = (datetime.today() - timedelta(days=1)).strftime("%Y%m%d")
