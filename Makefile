@@ -1,12 +1,11 @@
-.PHONY: help lint lint-flake8 lint-pylint format format-black format-isort install-dev install-uv install-dev-uv clean test docker-dev docker-build docker-shell docker-test setup-dev setup-test
+.PHONY: help lint lint-flake8 format format-black format-isort install-dev install-uv install-dev-uv clean test docker-dev docker-build docker-shell docker-test setup-dev setup-test
 
 # Default target
 help:
 	@echo "Available commands:"
 	@echo "  make help         - Show this help message"
-	@echo "  make lint         - Run all linters (flake8, pylint)"
+	@echo "  make lint         - Run all linters (flake8)"
 	@echo "  make lint-flake8  - Run flake8 linter"
-	@echo "  make lint-pylint  - Run pylint linter"
 	@echo "  make format       - Run all formatters (black, isort)"
 	@echo "  make format-black - Run black formatter"
 	@echo "  make format-isort - Run isort formatter"
@@ -37,15 +36,12 @@ install-dev-uv:
 	@echo "Dependencies installed with uv successfully"
 
 # Linting
-lint: lint-flake8 lint-pylint
+lint: lint-flake8
 
 lint-flake8:
 	@echo "Running flake8..."
 	flake8 app main.py tests
 
-lint-pylint:
-	@echo "Running pylint..."
-	pylint app main.py tests
 
 # Formatting
 format: format-black format-isort

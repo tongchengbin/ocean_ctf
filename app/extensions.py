@@ -3,7 +3,7 @@ from flask_redis import FlaskRedis
 from flask_socketio import SocketIO
 
 # noinspection PyUnresolvedReferences
-from app.models import db
+from app.models import db  # noqa
 from config import config
 
 cache = FlaskRedis()

@@ -7,13 +7,14 @@ from docker import errors as docker_error
 from flask import Blueprint, g, request
 from flask_pydantic import validate
 
-from app.core.api import api_fail, api_success
 from app.api.admin.schemas.ctf import QuestionForm
-from app.services.docker import destroy_docker_runner
+from app.core.api import api_fail, api_success
 from app.extensions import db
 from app.models.admin import Config
 from app.models.ctf import Answer, Attachment, CtfResource, ImageResource, QType, Question
 from app.models.user import User
+from app.services.docker import destroy_docker_runner
+from app.tasks.ctf import sync_ctf_question_repo
 from config import config
 
 logger = logging.getLogger("app")
@@ -434,5 +435,5 @@ def ctf_sync_repo():
     remote_repo = Config.get_config(Config.KEY_CTF_REPOSITORY)
     if not remote_repo:
         return api_fail(msg="未配置远程漏洞仓库")
-    tasks.sync_ctf_question_repo.apply_async(args=(remote_repo,), kwargs={"admin_id": g.user.id})
+    sync_ctf_question_repo.apply_async(args=(remote_repo,), kwargs={"admin_id": g.user.id})
     return api_success(msg="任务已提交")
