@@ -2,20 +2,18 @@ import logging
 import os
 from datetime import datetime
 from urllib.parse import urlparse
-
 import docker
 import git
 import requests
 import yaml
 from docker.errors import NotFound
-
 from app.core.const import ConstCacheKey
 from app.core.flask_celery import ContextTask
 from app.extensions import cache, celery, db
 from app.models.admin import Config
 from app.models.ctf import CtfResource, ImageResource
 from app.models.docker import DockerResource
-from app.services import system
+from app.services.system import create_admin_message
 from app.utils.tools import find_directories_with_filename
 from config import config
 
@@ -102,7 +100,7 @@ def sync_ctf_question_repo(repo, admin_id=None):
             logger.info(f"Clone {repo} to {local_repo}")
             git.Repo.clone_from(repo, local_repo)
     except git.exc.GitCommandError as e:
-        service.create_admin_message(admin_id, f"同步远程CTF仓库失败\n{e}")
+        create_admin_message(admin_id, f"同步远程CTF仓库失败\n{e}")
         logger.error(e)
         return
     docker_api = Config.get_config(Config.KEY_DOCKER_API)
@@ -149,4 +147,4 @@ def sync_ctf_question_repo(repo, admin_id=None):
             logger.error(e)
             continue
         logger.info("Add Image:{}".format(image))
-    service.create_admin_message(admin_id, "同步远程CTF仓库完成")
+    create_admin_message(admin_id, "同步远程CTF仓库完成")
