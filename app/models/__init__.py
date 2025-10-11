@@ -6,7 +6,7 @@ from typing import Optional, Type, TypeVar
 from flask_sqlalchemy import SQLAlchemy as SQLAlchemyBase  # type: ignore
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
-T = TypeVar("T", bound="PkModel")
+T = TypeVar("T", bound="Model")
 
 log = logging.getLogger(__name__)
 

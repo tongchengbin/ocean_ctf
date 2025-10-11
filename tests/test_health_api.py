@@ -1,7 +1,5 @@
 import json
 
-import pytest
-
 
 def test_ping_endpoint(client):
     """测试 ping 接口是否正常工作"""

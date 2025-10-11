@@ -17,6 +17,8 @@ from app.models.admin import Config, Notice
 from app.models.ctf import Answer, Attachment, CtfResource, Question
 from app.models.user import User
 from app.utils.security import check_password, create_token, hash_password
+from app.tasks.player import ctf_finish_container
+from app.services import player as player_service
 
 bp = Blueprint("view", __name__, url_prefix="/api")
 
@@ -298,7 +300,7 @@ def question_start(question):
     db.session.flush()
     db.session.commit()
     # 延迟清除
-    tasks.ctf_finish_container.apply_async(args=(obj.id,), countdown=sec + 1)
+    ctf_finish_container.apply_async(args=(obj.id,), countdown=sec + 1)
     return api_success({})
 
 
@@ -434,7 +436,7 @@ def challenge_submit():
         )
         if current_ctf_resource:
             # 停止容器
-            tasks.ctf_finish_container.apply_async(
+            ctf_finish_container.apply_async(
                 args=(current_ctf_resource.id,), kwargs={"current": True}
             )
 
@@ -474,5 +476,5 @@ def score_rank():
     积分排行
     """
     # 公告
-    code, data = services.score_rank(**request.args)
+    code, data = player_service.score_rank(**request.args)
     return api_success(data=data)

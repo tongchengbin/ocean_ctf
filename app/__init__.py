@@ -1,15 +1,14 @@
 import logging
 from urllib.parse import urljoin, urlparse
-
 import sqlalchemy.exc
 from flask import Flask, g, request, url_for
-from app.core.exceptions import RestExceptions
 from app.core.middlewares import before_req_cache_ip, global_admin_required
 from config import config
 from .api.route import register_blueprints
 from .core import error_handlers
-from .extensions import cache, celery, db, socketio
+from .extensions import cache, db, socketio
 from .utils.security import hash_password
+
 logger = logging.getLogger(__name__)
 
 
@@ -27,8 +26,6 @@ def create_app():
 
     register_extensions(flask_app)
     register_blueprints(flask_app)
-
-
 
     register_custom_helpers(flask_app)
     flask_app.before_request_funcs.setdefault(None, []).append(before_req_cache_ip)
@@ -96,9 +93,6 @@ def register_extensions(scope_app):
         return environ
 
     scope_app.after_request(cors)
-
-
-
 
 
 def create_default_data():

@@ -13,20 +13,24 @@ from flask_pydantic import validate
 from sqlalchemy import or_
 from sqlalchemy.exc import IntegrityError
 
+from app.api.admin.schemas.docker import (
+    ComposeDBForm,
+    DockerResourceEditForm,
+    DockerResourceForm,
+    PageForm,
+)
 from app.core.api import api_fail, api_success
 from app.core.tools import model2dict
-from app.tasks import docker
 from app.extensions import cache, db
 from app.models.admin import Config, TaskList
+from app.models.ctf import Question
 from app.models.docker import (
     ComposeDB,
     ComposeRunner,
     DockerResource,
 )
+from app.tasks.docker import build_delay, docker_build_resource
 from app.utils.validator import check_image_name
-
-from app.models.ctf import Question
-from app.api.admin.schemas.docker import ComposeDBForm, DockerResourceEditForm, DockerResourceForm, PageForm
 
 logger = logging.getLogger("app")
 bp = Blueprint("admin_docker", __name__, url_prefix="/api/admin/docker")
@@ -172,7 +176,7 @@ def image_create():
         kwargs = {"dockerfile": request.get_json().get("dockerfile")}
     else:
         kwargs = {}
-    tasks.build_delay.apply_async(args=args, kwargs=kwargs)
+    build_delay.apply_async(args=args, kwargs=kwargs)
     return api_success({"status": "ok", "data": {"task": task_obj.id}})
 
 
@@ -271,7 +275,7 @@ def docker_resource_build(pk):
     """
     资源编译
     """
-    tasks.docker_build_resource.apply_async(args=(pk,))
+    docker_build_resource.apply_async(args=(pk,))
     return api_success(msg="任务已提交")
 
 
