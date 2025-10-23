@@ -51,7 +51,7 @@ git clone https://github.com/tongchengbin/ocean_ctf.git /opt/ocean_ctf
 
 ```
 cd /opt/ocean_ctf
-cp .env.example .env
+cp .env_example .env
 docker-compose up -d
 ```
 
