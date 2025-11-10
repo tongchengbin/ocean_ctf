@@ -35,7 +35,7 @@
 
 ## SASS
 
-赛事版 http://ocean.lostpeach.cn/
+赛事版 http://ocean.lostpeach.cn
 
 ## 📖 安装
 
