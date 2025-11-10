@@ -27,8 +27,8 @@ class Attachment(Model):
     """
 
     __tablename__ = "attachment"
-    filename: Mapped[str] = mapped_column(db.String(32), comment="文件名")
-    file_path: Mapped[str] = mapped_column(db.String(128), comment="文件相对路径")
+    filename: Mapped[str] = mapped_column(db.String(256), comment="文件名")
+    file_path: Mapped[str] = mapped_column(db.String(256), comment="文件相对路径")
 
 
 class ImageResource(Model):
