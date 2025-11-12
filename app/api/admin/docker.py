@@ -275,15 +275,24 @@ def docker_resource_build(pk):
     """
     资源编译
     """
-    docker_build_resource.apply_async(args=(pk,))
-    return api_success(msg="任务已提交")
+    result = docker_build_resource.apply_async(args=(pk,))
+    return api_success(msg="任务已提交", data={"task_id": result.id})
 
 
 @bp.get("/resource/<int:pk>/logs")
 def docker_resource_logs(pk):
     resource = DockerResource.get_by_id(pk)
     start = int(request.args.get("start", 0))
-    key = "DOCKER_RESOURCE_%s" % pk
+    # 支持通过task_id参数获取日志
+    task_id = request.args.get("task_id")
+    
+    if task_id:
+        # 使用任务ID获取日志
+        key = "DOCKER_BUILD_LOG_%s" % task_id
+    else:
+        # 兼容旧的方式
+        key = "DOCKER_RESOURCE_%s" % pk
+    
     data = []
     for log in cache.lrange(key, start, -1):
         data.insert(0, json.loads(log))

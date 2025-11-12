@@ -85,7 +85,7 @@ class DockerResource(Model):
     image = mapped_column(db.String(256), comment="镜像名称:tag")
     dockerfile = mapped_column(db.Text, comment="Dockerfile", nullable=True)
     ports: Mapped[str] = mapped_column(db.String(256), comment="开放端口", nullable=True)
-    description: Mapped[str] = mapped_column(db.Text, comment="描述信息")
+    description: Mapped[str] = mapped_column(db.Text, comment="描述信息",nullable=True)
     cve: Mapped[str] = mapped_column(db.JSON, comment="关联CVE", nullable=True)
     app: Mapped[str] = mapped_column(db.String(128), comment="相关组件", nullable=True)
     logs = Column(db.Text, comment="构建过程信息", nullable=True)

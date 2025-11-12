@@ -94,11 +94,11 @@ broker_url = REDIS_URL
 
 beat_schedule = {
     "day_upload_req": {
-        "task": "app.sys.tasks.day_upload_req",
+        "task": "app.tasks.sys.day_upload_req",
         "schedule": crontab(hour="2", minute="4"),
     },
     "beat_destroy_container": {
-        "task": "app.ctf.tasks.beat_destroy_container",
+        "task": "app.tasks.ctf.beat_destroy_container",
         "schedule": crontab(minute="*/10"),
 
     },
@@ -108,6 +108,7 @@ beat_schedule = {
     # }
 
 }
+
 timezone = 'Asia/Shanghai'
 CELERY_ENABLE_UTC = True
 

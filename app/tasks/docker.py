@@ -1,12 +1,14 @@
 import json
 import logging
 import os
+from datetime import datetime
 from io import BytesIO
 
 import docker.errors
 from docker import APIClient
 from docker import errors as docker_error
 from docker.errors import DockerException
+from requests import delete
 
 from app.core.flask_celery import ContextTask
 from app.extensions import cache, celery
@@ -16,14 +18,23 @@ from app.models.docker import DockerResource
 logger = logging.getLogger(__name__)
 
 
-@celery.task(base=ContextTask)
-def docker_build_resource(resource_id: int):
+@celery.task(base=ContextTask, bind=True)
+def docker_build_resource(self, resource_id: int):
+    # 获取当前任务ID
+    task_id = self.request.id
+    logger.info(f"docker_build_resource:{resource_id}, task_id:{task_id}")
     resource = DockerResource.get_by_id(resource_id)
+    
+    # 使用任务ID作为日志键
+    log_key = "DOCKER_BUILD_LOG_%s" % task_id
+    
     try:
         client = APIClient(Config.get_config(Config.KEY_DOCKER_API))
     except DockerException as e:
         logger.exception(e)
         return
+    # 删除key
+    cache.delete(log_key)
     if resource.docker_type == DockerResource.DOCKER_TYPE_LOCAL_IMAGE:
         # 判断是否有docker file
         logs = []
@@ -45,8 +56,10 @@ def docker_build_resource(resource_id: int):
                         resource.logs = "\n".join(logs)
                         resource.status = DockerResource.STATUS_BUILD_ERROR
                         resource.save()
-                    # save to redis
-                    cache.lpush("DOCKER_RESOURCE_%s" % resource.id, chunk)
+                    # save to redis 使用任务ID作为键
+                    cache.lpush(log_key, chunk)
+                    # 设置过期时间 1小时
+                    cache.expire(log_key, 3600)
                     logger.info(json.loads(chunk))
                 logger.info(f"build success {resource.image}")
             except docker_error.DockerException as e:
@@ -54,10 +67,28 @@ def docker_build_resource(resource_id: int):
             logger.info(resource.image)
             img = client.images(resource.image)
         else:
+            # 本地镜像但没有 Dockerfile,直接检查镜像是否存在
             img = client.images(resource.image)
+            if not img:
+                error_msg = f"镜像 {resource.image} 不存在,请先构建或拉取镜像"
+                logger.error(error_msg)
+                resource.logs = error_msg
+                resource.status = DockerResource.STATUS_BUILD_ERROR
+                resource.save()
+                # 保存错误信息到 Redis,使用任务ID作为键
+                cache.lpush(log_key, json.dumps({
+                    "error": error_msg,
+                    "timestamp": str(datetime.now())
+                }))
+                # 设置过期时间 1小时
+                cache.expire(log_key, 3600)
+                return
+        
         if img:
             resource.status = DockerResource.STATUS_BUILD
             resource.save()
+            logger.info(f"镜像 {resource.image} 验证成功")
+        
     else:
         # 清空 cache
         key = "DOCKER_BUILD_%s" % resource_id
