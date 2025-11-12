@@ -1,0 +1,1 @@
+import{q as s,u as c,k as p,m as u,n as m}from"./index-pPDUazPi.js";const l=s({name:"Redirect",__name:"redirect",setup(_){const{currentRoute:r,replace:t}=c(),{params:a,query:n}=p(r),{path:e}=a,o=Array.isArray(e)?e.join("/"):e;return t({path:"/"+o,query:n}),(i,d)=>(m(),u("div"))}});export{l as default};
