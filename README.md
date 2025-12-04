@@ -95,18 +95,37 @@ admin/admin`
 
 ### 依赖管理与代码质量
 
-项目使用 `pyproject.toml` 来管理依赖和配置代码质量工具，并使用 Makefile 来简化常用命令。
+项目使用 `requirements.txt` 来管理依赖，使用 `pyproject.toml` 配置代码质量工具，并使用 Makefile 来简化常用命令。
+
+#### 依赖文件结构
+
+```
+requirements/
+├── base.txt     # 基础运行时依赖
+├── dev.txt      # 开发环境依赖
+├── prod.txt     # 生产环境依赖
+└── test.txt     # 测试环境依赖
+
+requirements.txt # 生产部署用（指向 prod.txt）
+```
 
 #### 安装依赖
 
 ```bash
-# 安装基本依赖
-pip install -e .
-
-# 安装开发依赖（包括代码质量工具和测试工具）
-pip install -e ".[dev,test]"
-# 或者使用 Makefile
+# 安装开发依赖
 make install-dev
+# 或者直接使用 pip
+pip install -r requirements/dev.txt
+
+# 安装生产依赖
+make install-prod
+# 或者直接使用 pip
+pip install -r requirements/prod.txt
+
+# 安装测试依赖
+make install-test
+# 或者直接使用 pip
+pip install -r requirements/test.txt
 ```
 
 #### 代码质量工具
@@ -118,9 +137,6 @@ make lint
 # 只运行 flake8
 make lint-flake8
 
-# 只运行 pylint
-make lint-pylint
-
 # 格式化代码（使用 black 和 isort）
 make format
 
@@ -129,6 +145,18 @@ make clean
 
 # 运行测试
 make test
+```
+
+#### Docker 构建优化
+
+项目 Dockerfile 已配置使用清华大学 PyPI 镜像源，加速依赖安装：
+
+```bash
+# 构建镜像（自动使用清华源）
+docker-compose build
+
+# 或者单独构建 web 服务
+docker build -f install/docker/ocean_web.Dockerfile -t ocean_web .
 ```
 
 要查看所有可用命令，请运行：
