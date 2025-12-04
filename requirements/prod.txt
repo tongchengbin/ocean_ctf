@@ -1,0 +1,5 @@
+-r base.txt
+
+# Production dependencies
+Gunicorn
+eventlet>=0.33.0

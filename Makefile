@@ -1,4 +1,4 @@
-.PHONY: help lint lint-flake8 format format-black format-isort install-dev install-uv install-dev-uv clean test docker-dev docker-build docker-shell docker-test setup-dev setup-test
+.PHONY: help lint lint-flake8 format format-black format-isort install-dev install-prod install-test clean test docker-dev docker-build docker-shell docker-test setup-dev setup-test
 
 # Default target
 help:
@@ -9,9 +9,9 @@ help:
 	@echo "  make format       - Run all formatters (black, isort)"
 	@echo "  make format-black - Run black formatter"
 	@echo "  make format-isort - Run isort formatter"
-	@echo "  make install-dev   - Install development dependencies with pip"
-	@echo "  make install-uv    - Install uv package manager"
-	@echo "  make install-dev-uv - Install development dependencies with uv (faster)"
+	@echo "  make install-dev   - Install development dependencies"
+	@echo "  make install-prod  - Install production dependencies"
+	@echo "  make install-test  - Install test dependencies"
 	@echo "  make clean         - Remove Python cache files"
 	@echo "  make test          - Run tests"
 	@echo "  make docker-dev    - Start development environment with Docker"
@@ -23,17 +23,18 @@ help:
 
 # Install development dependencies
 install-dev:
-	pip install -e ".[dev,test]"
+	pip install -r requirements/dev.txt
+	@echo "Development dependencies installed successfully"
 
-# Install uv package manager
-install-uv:
-	pip install uv
-	@echo "uv installed successfully"
+# Install production dependencies
+install-prod:
+	pip install -r requirements/prod.txt
+	@echo "Production dependencies installed successfully"
 
-# Install development dependencies with uv
-install-dev-uv:
-	uv pip install -e ".[dev,test]"
-	@echo "Dependencies installed with uv successfully"
+# Install test dependencies
+install-test:
+	pip install -r requirements/test.txt
+	@echo "Test dependencies installed successfully"
 
 # Linting
 lint: lint-flake8
