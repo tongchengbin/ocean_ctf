@@ -1,0 +1,22 @@
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+  word-break: break-word;
+
+}
+
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  font-variant: tabular-nums;
+  font-feature-settings: "tnum", "tnum";
+
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+}
+
+#app {
+  height: 100%;
+}

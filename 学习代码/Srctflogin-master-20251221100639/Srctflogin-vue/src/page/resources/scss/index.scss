@@ -1,0 +1,339 @@
+// 页面所有元素的公共样式
+.layer-wrap {
+    position: absolute;
+    left: 0;
+    top: 0;
+    user-select: none;
+    transform: matrix(1, 0, 0, 1, 0, 0);
+    pointer-events: none;
+
+    .layer-main {
+        width: 100%;
+        height: 100%;
+
+        .layer {
+            width: 100%;
+            height: 100%;
+            background-size: 100% 100%;
+            background-repeat: no-repeat;
+            display: flex;
+            &>* {
+                width: 100%;
+            }
+        }
+        .group {
+            position: absolute;
+            left: 0;
+            top: 0;
+
+            .group-event {
+                position: absolute;
+                left: 0;
+                top: 0;
+                z-index: 9999;
+                pointer-events: all;
+            }
+        }
+    }
+}
+
+// 页面所有元素的独立样式
+         .layer-wrap.layer-wrap_cjdXBI {
+                transform: matrix(1, 0, 0, 1, 1217.0000,  779.5000);
+            width: 135px;
+            height: 49px;
+            visibility: visible;
+            display: block;
+            z-index:  2;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: all;
+                    border-radius: 0px;
+                    .text-ThZJ {
+                    width: 100%;
+                    height: 100%;
+                    display: flex;
+                    font-weight: normal;
+                    -webkit-text-stroke: 0px #FFFFFF;
+                        color: #D9D9D9;
+                    align-items: center;
+                    text-align: center;
+                    letter-spacing: 1px;
+                    font-size: 34px;
+                    line-height: 1;
+                    font-style: normal;
+                    justify-content: center;
+                        font-family: AlimamaShuHeiTi-Bold;
+
+                    }
+
+                }
+
+            }
+            }
+         .layer-wrap.layer-wrap_IAtzeh {
+                transform: matrix(1, 0, 0, 1, 839.0000,  399.0000);
+            width: 900px;
+            height: 758px;
+            visibility: visible;
+            display: block;
+            z-index:  1;
+            mix-blend-mode: screen ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+                    .group {
+                        transform: matrix(1, 0, 0, 1, -839, -399)
+                    }
+
+
+         .layer-wrap.layer-wrap_oGpDhU {
+                transform: matrix(1, 0, 0, 1, 1041.0000,  773.0000);
+            width: 496px;
+            height: 62px;
+            visibility: visible;
+            display: block;
+            z-index:  4;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: all;
+                    border-radius: 0px  0px 0px 0px;
+                    background: #2A82E4;
+
+                }
+
+            }
+            }
+         .layer-wrap.layer-wrap_cUtCPX {
+                transform: matrix(1, 0, 0, 1, 1041.0000,  641.0000);
+            width: 496px;
+            height: 64px;
+            visibility: visible;
+            display: block;
+            z-index:  3;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: all;
+                    border-radius: 0px;
+
+                }
+
+            }
+            }
+         .layer-wrap.layer-wrap_zPNOux {
+                transform: matrix(1, 0, 0, 1, 1041.0000,  531.0000);
+            width: 496px;
+            height: 64px;
+            visibility: visible;
+            display: block;
+            z-index:  2;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: all;
+                    border-radius: 0px;
+
+                }
+
+            }
+            }
+         .layer-wrap.layer-wrap_laUPGp {
+                transform: matrix(1, 0, 0, 1, 839.0000,  399.0000);
+            width: 900px;
+            height: 600px;
+            visibility: visible;
+            display: block;
+            z-index:  1;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: none;
+                    border-radius: 0px;
+                    .img-GCSJ {
+                    width: 100%;
+                    height: 100%;
+                    background-image: url('/images/登录框动图-20240924154351943.png');
+                    background-position: center;
+                        background-size: contain;
+                        background-repeat: no-repeat;
+                    }
+
+                }
+
+            }
+            }
+         .layer-wrap.layer-wrap_sARrGT {
+                transform: matrix(1, 0, 0, 1, 1068.0000,  894.0000);
+            width: 442px;
+            height: 263px;
+            visibility: visible;
+            display: block;
+            z-index:  0;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: none;
+                    border-radius: 0px;
+                    .img-XCmo {
+                    width: 100%;
+                    height: 100%;
+                    background-image: url('/images/小球-20240924153137997.png');
+                    background-position: center;
+                        background-size: contain;
+                        background-repeat: no-repeat;
+                    }
+
+                }
+
+            }
+            }
+            }
+            }
+         .layer-wrap.layer-wrap_mvrHPb {
+                transform: matrix(1, 0, 0, 1, 9.0000,  7.0000);
+            width: 2591px;
+            height: 1462px;
+            visibility: visible;
+            display: block;
+            z-index:  0;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+                    .group {
+                        transform: matrix(1, 0, 0, 1, -9, -7)
+                    }
+
+
+         .layer-wrap.layer-wrap_jdmfPo {
+                transform: matrix(1, 0, 0, 1, 291.5000,  922.0000);
+            width: 1995px;
+            height: 537px;
+            visibility: visible;
+            display: block;
+            z-index:  2;
+            mix-blend-mode: screen ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: none;
+                    border-radius: 0px;
+                    .img-uoVy {
+                    width: 100%;
+                    height: 100%;
+                    background-image: url('/images/圆底素材-20240924152154007.png');
+                    background-position: center;
+                        background-size: contain;
+                        background-repeat: no-repeat;
+                    }
+
+                }
+
+            }
+            }
+         .layer-wrap.layer-wrap_QGRhor {
+                transform: matrix(1, 0, 0, 1, 912.5000,  203.0000);
+            width: 753px;
+            height: 151px;
+            visibility: visible;
+            display: block;
+            z-index:  1;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: all;
+                    border-radius: 0px;
+
+                }
+
+            }
+            }
+         .layer-wrap.layer-wrap_jRdsbj {
+                transform: matrix(1, 0, 0, 1, 9.0000,  7.0000);
+            width: 2591px;
+            height: 1462px;
+            visibility: visible;
+            display: block;
+            z-index:  0;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: none;
+                    border-radius: 0px;
+                    .img-zAJV {
+                    width: 100%;
+                    height: 100%;
+                    background-image: url('/images/WechatIMG284997-20251221180030134.jpg');
+                    background-position: center;
+                        background-size: contain;
+                        background-repeat: no-repeat;
+                    }
+
+                }
+
+            }
+            }
+            }
+            }

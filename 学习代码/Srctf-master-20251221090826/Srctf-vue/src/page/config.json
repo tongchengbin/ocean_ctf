@@ -1,0 +1,26 @@
+{
+  "defaultView" : "jd0eo6ozhWJtY0sYmLVM",
+  "environments" : [ {
+    "color" : "#2b7fff",
+    "envName" : "开发环境",
+    "id" : "nLfTyHyO4ldpp4uuUTo9",
+    "resourceId" : "Qk5cm0t4RjfRo17P5Wa8",
+    "selected" : true,
+    "type" : 1
+  }, {
+    "color" : "#ff7d00",
+    "envName" : "正式环境",
+    "id" : "UFTux7bqCiJPK0UCwRe5",
+    "resourceId" : "Qk5cm0t4RjfRo17P5Wa8",
+    "selected" : false,
+    "type" : 1
+  }, {
+    "color" : "#00b42a",
+    "envName" : "测试环境",
+    "id" : "zfZdFkkxWj2rqj7PhGx1",
+    "resourceId" : "Qk5cm0t4RjfRo17P5Wa8",
+    "selected" : false,
+    "type" : 1
+  } ],
+  "variableData" : [ ]
+}

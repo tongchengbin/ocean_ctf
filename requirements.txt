@@ -1,2 +1,0 @@
-# 生产环境依赖 - 用于部署
--r requirements/prod.txt

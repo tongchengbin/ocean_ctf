@@ -1,0 +1,3204 @@
+// 页面所有元素的公共样式
+.layer-wrap {
+    position: absolute;
+    left: 0;
+    top: 0;
+    user-select: none;
+    transform: matrix(1, 0, 0, 1, 0, 0);
+    pointer-events: none;
+
+    .layer-main {
+        width: 100%;
+        height: 100%;
+
+        .layer {
+            width: 100%;
+            height: 100%;
+            background-size: 100% 100%;
+            background-repeat: no-repeat;
+            display: flex;
+            &>* {
+                width: 100%;
+            }
+        }
+        .group {
+            position: absolute;
+            left: 0;
+            top: 0;
+
+            .group-event {
+                position: absolute;
+                left: 0;
+                top: 0;
+                z-index: 9999;
+                pointer-events: all;
+            }
+        }
+    }
+}
+
+// 页面所有元素的独立样式
+         .layer-wrap.layer-wrap_ozfekz {
+                transform: matrix(1, 0, 0, 1, 1325.0000,  1042.0000);
+            width: 520px;
+            height: 277px;
+            visibility: visible;
+            display: block;
+            z-index:  17;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+                    .group {
+                        transform: matrix(1, 0, 0, 1, -1325, -1042)
+                    }
+
+
+         .layer-wrap.layer-wrap_UaYxJu {
+                transform: matrix(1, 0, 0, 1, 1396.0000,  1103.0000);
+            width: 380px;
+            height: 146px;
+            visibility: visible;
+            display: block;
+            z-index:  2;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+                    .group {
+                        transform: matrix(1, 0, 0, 1, -1396, -1103)
+                    }
+
+
+         .layer-wrap.layer-wrap_ForXTd {
+                transform: matrix(1, 0, 0, 1, 1475.0000,  1171.0000);
+            width: 249px;
+            height: 44px;
+            visibility: visible;
+            display: block;
+            z-index:  3;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: all;
+                    border-radius: 0px;
+
+                }
+
+            }
+            }
+         .layer-wrap.layer-wrap_gDcUuS {
+                transform: matrix(1, 0, 0, 1, 1476.0000,  1171.0000);
+            width: 220px;
+            height: 49px;
+            visibility: visible;
+            display: block;
+            z-index:  2;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: none;
+                    border-radius: 0px;
+                    .img-WhKl {
+                    width: 100%;
+                    height: 100%;
+                    background-image: url('/images/数字-20240607172714616.svg');
+                    background-position: center;
+                        background-size: contain;
+                        background-repeat: no-repeat;
+                    }
+
+                }
+
+            }
+            }
+         .layer-wrap.layer-wrap_WQBXFM {
+                transform: matrix(1, 0, 0, 1, 1531.5000,  1103.0000);
+            width: 107px;
+            height: 17px;
+            visibility: visible;
+            display: block;
+            z-index:  1;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: all;
+                    border-radius: 0px;
+                    .text-bKbC {
+                    width: 100%;
+                    height: 100%;
+                    display: flex;
+                    font-weight: normal;
+                    -webkit-text-stroke: 0px #FFFFFF;
+                        color: #A8C5FF;
+                    align-items: center;
+                    text-align: center;
+                    letter-spacing: 1px;
+                    font-size: 14px;
+                    line-height: 1;
+                    font-style: normal;
+                    justify-content: center;
+                        font-family: SourceHanSansSC-Regular;
+
+                    }
+
+                }
+
+            }
+            }
+         .layer-wrap.layer-wrap_sLUNWz {
+                transform: matrix(1, 0, 0, 1, 1396.0000,  1112.0000);
+            width: 380px;
+            height: 137px;
+            visibility: visible;
+            display: block;
+            z-index:  0;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: none;
+                    border-radius: 0px;
+                    .img-olxw {
+                    width: 100%;
+                    height: 100%;
+                    background-image: url('/images/in-20240607172716506.svg');
+                    background-position: center;
+                        background-size: contain;
+                        background-repeat: no-repeat;
+                    }
+
+                }
+
+            }
+            }
+            }
+            }
+         .layer-wrap.layer-wrap_VMakTh {
+                transform: matrix(1, 0, 0, 1, 1411.0000,  1042.0000);
+            width: 348px;
+            height: 24px;
+            visibility: visible;
+            display: block;
+            z-index:  1;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+                    .group {
+                        transform: matrix(1, 0, 0, 1, -1411, -1042)
+                    }
+
+
+         .layer-wrap.layer-wrap_JIwhqp {
+                transform: matrix(1, 0, 0, 1, 1519.0000,  1043.5000);
+            width: 120px;
+            height: 21px;
+            visibility: visible;
+            display: block;
+            z-index:  1;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: all;
+                    border-radius: 0px;
+
+                }
+
+            }
+            }
+         .layer-wrap.layer-wrap_riJTVo {
+                transform: matrix(1, 0, 0, 1, 1411.0000,  1042.0000);
+            width: 348px;
+            height: 24px;
+            visibility: visible;
+            display: block;
+            z-index:  0;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: none;
+                    border-radius: 0px;
+                    .img-npwv {
+                    width: 100%;
+                    height: 100%;
+                    background-image: url('/images/Group 7-20240607172653681.svg');
+                    background-position: center;
+                        background-size: contain;
+                        background-repeat: no-repeat;
+                    }
+
+                }
+
+            }
+            }
+            }
+            }
+         .layer-wrap.layer-wrap_FqQAEN {
+                transform: matrix(1, 0, 0, 1, 1325.0000,  1042.0000);
+            width: 520px;
+            height: 277px;
+            visibility: visible;
+            display: block;
+            z-index:  0;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: none;
+                    border-radius: 0px;
+                    .img-uHPx {
+                    width: 100%;
+                    height: 100%;
+                    background-image: url('/images/bg2-20240607173054175.png');
+                    background-position: center;
+                        background-size: contain;
+                        background-repeat: no-repeat;
+                    }
+
+                }
+
+            }
+            }
+            }
+            }
+         .layer-wrap.layer-wrap_iBNQkI {
+                transform: matrix(1, 0, 0, 1, 712.0000,  1036.0000);
+            width: 520px;
+            height: 283px;
+            visibility: visible;
+            display: block;
+            z-index:  16;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+                    .group {
+                        transform: matrix(1, 0, 0, 1, -712, -1036)
+                    }
+
+
+         .layer-wrap.layer-wrap_hDDoet {
+                transform: matrix(1, 0, 0, 1, 783.0000,  1103.0000);
+            width: 380px;
+            height: 146px;
+            visibility: visible;
+            display: block;
+            z-index:  2;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+                    .group {
+                        transform: matrix(1, 0, 0, 1, -783, -1103)
+                    }
+
+
+         .layer-wrap.layer-wrap_aiYLZb {
+                transform: matrix(1, 0, 0, 1, 862.0000,  1171.0000);
+            width: 249px;
+            height: 44px;
+            visibility: visible;
+            display: block;
+            z-index:  3;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: all;
+                    border-radius: 0px;
+
+                }
+
+            }
+            }
+         .layer-wrap.layer-wrap_bnhXqO {
+                transform: matrix(1, 0, 0, 1, 863.0000,  1171.0000);
+            width: 220px;
+            height: 49px;
+            visibility: visible;
+            display: block;
+            z-index:  2;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: none;
+                    border-radius: 0px;
+                    .img-mefJ {
+                    width: 100%;
+                    height: 100%;
+                    background-image: url('/images/数字-20240607172714616.svg');
+                    background-position: center;
+                        background-size: contain;
+                        background-repeat: no-repeat;
+                    }
+
+                }
+
+            }
+            }
+         .layer-wrap.layer-wrap_GInhHe {
+                transform: matrix(1, 0, 0, 1, 918.5000,  1103.0000);
+            width: 107px;
+            height: 17px;
+            visibility: visible;
+            display: block;
+            z-index:  1;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: all;
+                    border-radius: 0px;
+                    .text-HfrS {
+                    width: 100%;
+                    height: 100%;
+                    display: flex;
+                    font-weight: normal;
+                    -webkit-text-stroke: 0px #FFFFFF;
+                        color: #A8C5FF;
+                    align-items: center;
+                    text-align: center;
+                    letter-spacing: 1px;
+                    font-size: 14px;
+                    line-height: 1;
+                    font-style: normal;
+                    justify-content: center;
+                        font-family: SourceHanSansSC-Regular;
+
+                    }
+
+                }
+
+            }
+            }
+         .layer-wrap.layer-wrap_UwxRUs {
+                transform: matrix(1, 0, 0, 1, 783.0000,  1112.0000);
+            width: 380px;
+            height: 137px;
+            visibility: visible;
+            display: block;
+            z-index:  0;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: none;
+                    border-radius: 0px;
+                    .img-NXOv {
+                    width: 100%;
+                    height: 100%;
+                    background-image: url('/images/in-20240607172716506.svg');
+                    background-position: center;
+                        background-size: contain;
+                        background-repeat: no-repeat;
+                    }
+
+                }
+
+            }
+            }
+            }
+            }
+         .layer-wrap.layer-wrap_jnGzuU {
+                transform: matrix(1, 0, 0, 1, 798.0000,  1036.0000);
+            width: 348px;
+            height: 24px;
+            visibility: visible;
+            display: block;
+            z-index:  1;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+                    .group {
+                        transform: matrix(1, 0, 0, 1, -798, -1036)
+                    }
+
+
+         .layer-wrap.layer-wrap_Kriygx {
+                transform: matrix(1, 0, 0, 1, 906.0000,  1043.5000);
+            width: 120px;
+            height: 21px;
+            visibility: visible;
+            display: block;
+            z-index:  1;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: all;
+                    border-radius: 0px;
+
+                }
+
+            }
+            }
+         .layer-wrap.layer-wrap_RZUZMv {
+                transform: matrix(1, 0, 0, 1, 798.0000,  1042.0000);
+            width: 348px;
+            height: 24px;
+            visibility: visible;
+            display: block;
+            z-index:  0;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: none;
+                    border-radius: 0px;
+                    .img-hOIt {
+                    width: 100%;
+                    height: 100%;
+                    background-image: url('/images/Group 7-20240607172653681.svg');
+                    background-position: center;
+                        background-size: contain;
+                        background-repeat: no-repeat;
+                    }
+
+                }
+
+            }
+            }
+            }
+            }
+         .layer-wrap.layer-wrap_FpciVX {
+                transform: matrix(1, 0, 0, 1, 712.0000,  1042.0000);
+            width: 520px;
+            height: 277px;
+            visibility: visible;
+            display: block;
+            z-index:  0;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: none;
+                    border-radius: 0px;
+                    .img-hAgF {
+                    width: 100%;
+                    height: 100%;
+                    background-image: url('/images/bg2-20240607173054175.png');
+                    background-position: center;
+                        background-size: contain;
+                        background-repeat: no-repeat;
+                    }
+
+                }
+
+            }
+            }
+            }
+            }
+         .layer-wrap.layer-wrap_KIodXx {
+                transform: matrix(1, 0, 0, 1, 102.0000,  1049.0000);
+            width: 520px;
+            height: 277px;
+            visibility: visible;
+            display: block;
+            z-index:  15;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+                    .group {
+                        transform: matrix(1, 0, 0, 1, -102, -1049)
+                    }
+
+
+         .layer-wrap.layer-wrap_mQSLTm {
+                transform: matrix(1, 0, 0, 1, 173.0000,  1110.0000);
+            width: 380px;
+            height: 146px;
+            visibility: visible;
+            display: block;
+            z-index:  2;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+                    .group {
+                        transform: matrix(1, 0, 0, 1, -173, -1110)
+                    }
+
+
+         .layer-wrap.layer-wrap_DGOcHZ {
+                transform: matrix(1, 0, 0, 1, 252.0000,  1178.0000);
+            width: 249px;
+            height: 44px;
+            visibility: visible;
+            display: block;
+            z-index:  3;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: all;
+                    border-radius: 0px;
+
+                }
+
+            }
+            }
+         .layer-wrap.layer-wrap_InLULc {
+                transform: matrix(1, 0, 0, 1, 253.0000,  1178.0000);
+            width: 220px;
+            height: 49px;
+            visibility: visible;
+            display: block;
+            z-index:  2;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: none;
+                    border-radius: 0px;
+                    .img-xbqT {
+                    width: 100%;
+                    height: 100%;
+                    background-image: url('/images/数字-20240607172714616.svg');
+                    background-position: center;
+                        background-size: contain;
+                        background-repeat: no-repeat;
+                    }
+
+                }
+
+            }
+            }
+         .layer-wrap.layer-wrap_XJDjnH {
+                transform: matrix(1, 0, 0, 1, 308.5000,  1110.0000);
+            width: 107px;
+            height: 17px;
+            visibility: visible;
+            display: block;
+            z-index:  1;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: all;
+                    border-radius: 0px;
+                    .text-QxiU {
+                    width: 100%;
+                    height: 100%;
+                    display: flex;
+                    font-weight: normal;
+                    -webkit-text-stroke: 0px #FFFFFF;
+                        color: #A8C5FF;
+                    align-items: center;
+                    text-align: center;
+                    letter-spacing: 1px;
+                    font-size: 14px;
+                    line-height: 1;
+                    font-style: normal;
+                    justify-content: center;
+                        font-family: SourceHanSansSC-Regular;
+
+                    }
+
+                }
+
+            }
+            }
+         .layer-wrap.layer-wrap_orvtqp {
+                transform: matrix(1, 0, 0, 1, 173.0000,  1119.0000);
+            width: 380px;
+            height: 137px;
+            visibility: visible;
+            display: block;
+            z-index:  0;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: none;
+                    border-radius: 0px;
+                    .img-SZTX {
+                    width: 100%;
+                    height: 100%;
+                    background-image: url('/images/in-20240607172716506.svg');
+                    background-position: center;
+                        background-size: contain;
+                        background-repeat: no-repeat;
+                    }
+
+                }
+
+            }
+            }
+            }
+            }
+         .layer-wrap.layer-wrap_wdsUml {
+                transform: matrix(1, 0, 0, 1, 188.0000,  1049.0000);
+            width: 348px;
+            height: 24px;
+            visibility: visible;
+            display: block;
+            z-index:  1;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+                    .group {
+                        transform: matrix(1, 0, 0, 1, -188, -1049)
+                    }
+
+
+         .layer-wrap.layer-wrap_cmuJgl {
+                transform: matrix(1, 0, 0, 1, 296.0000,  1050.5000);
+            width: 120px;
+            height: 21px;
+            visibility: visible;
+            display: block;
+            z-index:  1;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: all;
+                    border-radius: 0px;
+
+                }
+
+            }
+            }
+         .layer-wrap.layer-wrap_KFFJST {
+                transform: matrix(1, 0, 0, 1, 188.0000,  1049.0000);
+            width: 348px;
+            height: 24px;
+            visibility: visible;
+            display: block;
+            z-index:  0;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: none;
+                    border-radius: 0px;
+                    .img-HBtg {
+                    width: 100%;
+                    height: 100%;
+                    background-image: url('/images/Group 7-20240607172653681.svg');
+                    background-position: center;
+                        background-size: contain;
+                        background-repeat: no-repeat;
+                    }
+
+                }
+
+            }
+            }
+            }
+            }
+         .layer-wrap.layer-wrap_hQtMCQ {
+                transform: matrix(1, 0, 0, 1, 102.0000,  1049.0000);
+            width: 520px;
+            height: 277px;
+            visibility: visible;
+            display: block;
+            z-index:  0;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: none;
+                    border-radius: 0px;
+                    .img-Rltg {
+                    width: 100%;
+                    height: 100%;
+                    background-image: url('/images/bg2-20240607173054175.png');
+                    background-position: center;
+                        background-size: contain;
+                        background-repeat: no-repeat;
+                    }
+
+                }
+
+            }
+            }
+            }
+            }
+         .layer-wrap.layer-wrap_NMSyTS {
+                transform: matrix(1, 0, 0, 1, 1319.0000,  296.9108);
+            width: 520px;
+            height: 277px;
+            visibility: visible;
+            display: block;
+            z-index:  14;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+                    .group {
+                        transform: matrix(1, 0, 0, 1, -1319, -297)
+                    }
+
+
+         .layer-wrap.layer-wrap_sehrMf {
+                transform: matrix(1, 0, 0, 1, 1390.0000,  357.9108);
+            width: 380px;
+            height: 146px;
+            visibility: visible;
+            display: block;
+            z-index:  2;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+                    .group {
+                        transform: matrix(1, 0, 0, 1, -1390, -358)
+                    }
+
+
+         .layer-wrap.layer-wrap_OcmAMd {
+                transform: matrix(1, 0, 0, 1, 1469.0000,  425.9108);
+            width: 249px;
+            height: 44px;
+            visibility: visible;
+            display: block;
+            z-index:  3;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: all;
+                    border-radius: 0px;
+
+                }
+
+            }
+            }
+         .layer-wrap.layer-wrap_cyrkZg {
+                transform: matrix(1, 0, 0, 1, 1470.0000,  425.9108);
+            width: 220px;
+            height: 49px;
+            visibility: visible;
+            display: block;
+            z-index:  2;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: none;
+                    border-radius: 0px;
+                    .img-usop {
+                    width: 100%;
+                    height: 100%;
+                    background-image: url('/images/数字-20240607172714616.svg');
+                    background-position: center;
+                        background-size: contain;
+                        background-repeat: no-repeat;
+                    }
+
+                }
+
+            }
+            }
+         .layer-wrap.layer-wrap_tKAlXx {
+                transform: matrix(1, 0, 0, 1, 1525.5000,  357.9108);
+            width: 107px;
+            height: 17px;
+            visibility: visible;
+            display: block;
+            z-index:  1;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: all;
+                    border-radius: 0px;
+                    .text-jptX {
+                    width: 100%;
+                    height: 100%;
+                    display: flex;
+                    font-weight: normal;
+                    -webkit-text-stroke: 0px #FFFFFF;
+                        color: #A8C5FF;
+                    align-items: center;
+                    text-align: center;
+                    letter-spacing: 1px;
+                    font-size: 14px;
+                    line-height: 1;
+                    font-style: normal;
+                    justify-content: center;
+                        font-family: SourceHanSansSC-Regular;
+
+                    }
+
+                }
+
+            }
+            }
+         .layer-wrap.layer-wrap_oPQDdV {
+                transform: matrix(1, 0, 0, 1, 1390.0000,  366.9108);
+            width: 380px;
+            height: 137px;
+            visibility: visible;
+            display: block;
+            z-index:  0;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: none;
+                    border-radius: 0px;
+                    .img-zaTr {
+                    width: 100%;
+                    height: 100%;
+                    background-image: url('/images/in-20240607172716506.svg');
+                    background-position: center;
+                        background-size: contain;
+                        background-repeat: no-repeat;
+                    }
+
+                }
+
+            }
+            }
+            }
+            }
+         .layer-wrap.layer-wrap_XZXkFC {
+                transform: matrix(1, 0, 0, 1, 1405.0000,  296.9108);
+            width: 348px;
+            height: 24px;
+            visibility: visible;
+            display: block;
+            z-index:  1;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+                    .group {
+                        transform: matrix(1, 0, 0, 1, -1405, -297)
+                    }
+
+
+         .layer-wrap.layer-wrap_qSGZHo {
+                transform: matrix(1, 0, 0, 1, 1513.0000,  298.4108);
+            width: 120px;
+            height: 21px;
+            visibility: visible;
+            display: block;
+            z-index:  1;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: all;
+                    border-radius: 0px;
+
+                }
+
+            }
+            }
+         .layer-wrap.layer-wrap_PzEDhe {
+                transform: matrix(1, 0, 0, 1, 1405.0000,  296.9108);
+            width: 348px;
+            height: 24px;
+            visibility: visible;
+            display: block;
+            z-index:  0;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: none;
+                    border-radius: 0px;
+                    .img-rziR {
+                    width: 100%;
+                    height: 100%;
+                    background-image: url('/images/Group 7-20240607172653681.svg');
+                    background-position: center;
+                        background-size: contain;
+                        background-repeat: no-repeat;
+                    }
+
+                }
+
+            }
+            }
+            }
+            }
+         .layer-wrap.layer-wrap_ayHpmK {
+                transform: matrix(1, 0, 0, 1, 1319.0000,  296.9108);
+            width: 520px;
+            height: 277px;
+            visibility: visible;
+            display: block;
+            z-index:  0;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: none;
+                    border-radius: 0px;
+                    .img-mbWL {
+                    width: 100%;
+                    height: 100%;
+                    background-image: url('/images/bg2-20240607173054175.png');
+                    background-position: center;
+                        background-size: contain;
+                        background-repeat: no-repeat;
+                    }
+
+                }
+
+            }
+            }
+            }
+            }
+         .layer-wrap.layer-wrap_VcJkxf {
+                transform: matrix(1, 0, 0, 1, 706.5000,  268.0000);
+            width: 520px;
+            height: 309px;
+            visibility: visible;
+            display: block;
+            z-index:  13;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+                    .group {
+                        transform: matrix(1, 0, 0, 1, -706, -268)
+                    }
+
+
+         .layer-wrap.layer-wrap_oSPImx {
+                transform: matrix(1, 0, 0, 1, 777.5000,  361.0000);
+            width: 380px;
+            height: 146px;
+            visibility: visible;
+            display: block;
+            z-index:  2;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+                    .group {
+                        transform: matrix(1, 0, 0, 1, -778, -361)
+                    }
+
+
+         .layer-wrap.layer-wrap_vrdDVO {
+                transform: matrix(1, 0, 0, 1, 856.5000,  429.0000);
+            width: 249px;
+            height: 44px;
+            visibility: visible;
+            display: block;
+            z-index:  3;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: all;
+                    border-radius: 0px;
+
+                }
+
+            }
+            }
+         .layer-wrap.layer-wrap_kmpSdS {
+                transform: matrix(1, 0, 0, 1, 857.5000,  429.0000);
+            width: 220px;
+            height: 49px;
+            visibility: visible;
+            display: block;
+            z-index:  2;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: none;
+                    border-radius: 0px;
+                    .img-PoVm {
+                    width: 100%;
+                    height: 100%;
+                    background-image: url('/images/数字-20240607172714616.svg');
+                    background-position: center;
+                        background-size: contain;
+                        background-repeat: no-repeat;
+                    }
+
+                }
+
+            }
+            }
+         .layer-wrap.layer-wrap_rXIMzZ {
+                transform: matrix(1, 0, 0, 1, 913.0000,  361.0000);
+            width: 107px;
+            height: 17px;
+            visibility: visible;
+            display: block;
+            z-index:  1;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: all;
+                    border-radius: 0px;
+                    .text-WNzQ {
+                    width: 100%;
+                    height: 100%;
+                    display: flex;
+                    font-weight: normal;
+                    -webkit-text-stroke: 0px #FFFFFF;
+                        color: #A8C5FF;
+                    align-items: center;
+                    text-align: center;
+                    letter-spacing: 1px;
+                    font-size: 14px;
+                    line-height: 1;
+                    font-style: normal;
+                    justify-content: center;
+                        font-family: SourceHanSansSC-Regular;
+
+                    }
+
+                }
+
+            }
+            }
+         .layer-wrap.layer-wrap_exEkar {
+                transform: matrix(1, 0, 0, 1, 777.5000,  370.0000);
+            width: 380px;
+            height: 137px;
+            visibility: visible;
+            display: block;
+            z-index:  0;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: none;
+                    border-radius: 0px;
+                    .img-tiXV {
+                    width: 100%;
+                    height: 100%;
+                    background-image: url('/images/in-20240607172716506.svg');
+                    background-position: center;
+                        background-size: contain;
+                        background-repeat: no-repeat;
+                    }
+
+                }
+
+            }
+            }
+            }
+            }
+         .layer-wrap.layer-wrap_vadfQC {
+                transform: matrix(1, 0, 0, 1, 792.5000,  268.0000);
+            width: 348px;
+            height: 24px;
+            visibility: visible;
+            display: block;
+            z-index:  1;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+                    .group {
+                        transform: matrix(1, 0, 0, 1, -792, -268)
+                    }
+
+
+         .layer-wrap.layer-wrap_bCSyDA {
+                transform: matrix(1, 0, 0, 1, 900.5000,  301.5000);
+            width: 120px;
+            height: 21px;
+            visibility: visible;
+            display: block;
+            z-index:  1;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: all;
+                    border-radius: 0px;
+
+                }
+
+            }
+            }
+         .layer-wrap.layer-wrap_NKcCyX {
+                transform: matrix(1, 0, 0, 1, 792.5000,  300.0000);
+            width: 348px;
+            height: 24px;
+            visibility: visible;
+            display: block;
+            z-index:  0;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: none;
+                    border-radius: 0px;
+                    .img-EYGA {
+                    width: 100%;
+                    height: 100%;
+                    background-image: url('/images/Group 7-20240607172653681.svg');
+                    background-position: center;
+                        background-size: contain;
+                        background-repeat: no-repeat;
+                    }
+
+                }
+
+            }
+            }
+            }
+            }
+         .layer-wrap.layer-wrap_HPOuyy {
+                transform: matrix(1, 0, 0, 1, 706.5000,  300.0000);
+            width: 520px;
+            height: 277px;
+            visibility: visible;
+            display: block;
+            z-index:  0;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: none;
+                    border-radius: 0px;
+                    .img-MFhp {
+                    width: 100%;
+                    height: 100%;
+                    background-image: url('/images/bg2-20240607173054175.png');
+                    background-position: center;
+                        background-size: contain;
+                        background-repeat: no-repeat;
+                    }
+
+                }
+
+            }
+            }
+            }
+            }
+         .layer-wrap.layer-wrap_pfNxfB {
+                transform: matrix(1, 0, 0, 1, 1319.0000,  660.0000);
+            width: 520px;
+            height: 277px;
+            visibility: visible;
+            display: block;
+            z-index:  12;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+                    .group {
+                        transform: matrix(1, 0, 0, 1, -1319, -660)
+                    }
+
+
+         .layer-wrap.layer-wrap_XZuIEg {
+                transform: matrix(1, 0, 0, 1, 1390.0000,  721.0000);
+            width: 380px;
+            height: 146px;
+            visibility: visible;
+            display: block;
+            z-index:  2;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+                    .group {
+                        transform: matrix(1, 0, 0, 1, -1390, -721)
+                    }
+
+
+         .layer-wrap.layer-wrap_UqgUan {
+                transform: matrix(1, 0, 0, 1, 1469.0000,  789.0000);
+            width: 249px;
+            height: 44px;
+            visibility: visible;
+            display: block;
+            z-index:  3;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: all;
+                    border-radius: 0px;
+
+                }
+
+            }
+            }
+         .layer-wrap.layer-wrap_SSMDkO {
+                transform: matrix(1, 0, 0, 1, 1470.0000,  789.0000);
+            width: 220px;
+            height: 49px;
+            visibility: visible;
+            display: block;
+            z-index:  2;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: none;
+                    border-radius: 0px;
+                    .img-VfsT {
+                    width: 100%;
+                    height: 100%;
+                    background-image: url('/images/数字-20240607172714616.svg');
+                    background-position: center;
+                        background-size: contain;
+                        background-repeat: no-repeat;
+                    }
+
+                }
+
+            }
+            }
+         .layer-wrap.layer-wrap_ueBeWk {
+                transform: matrix(1, 0, 0, 1, 1525.5000,  721.0000);
+            width: 107px;
+            height: 17px;
+            visibility: visible;
+            display: block;
+            z-index:  1;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: all;
+                    border-radius: 0px;
+                    .text-useb {
+                    width: 100%;
+                    height: 100%;
+                    display: flex;
+                    font-weight: normal;
+                    -webkit-text-stroke: 0px #FFFFFF;
+                        color: #A8C5FF;
+                    align-items: center;
+                    text-align: center;
+                    letter-spacing: 1px;
+                    font-size: 14px;
+                    line-height: 1;
+                    font-style: normal;
+                    justify-content: center;
+                        font-family: SourceHanSansSC-Regular;
+
+                    }
+
+                }
+
+            }
+            }
+         .layer-wrap.layer-wrap_EaBxGP {
+                transform: matrix(1, 0, 0, 1, 1390.0000,  730.0000);
+            width: 380px;
+            height: 137px;
+            visibility: visible;
+            display: block;
+            z-index:  0;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: none;
+                    border-radius: 0px;
+                    .img-OCjg {
+                    width: 100%;
+                    height: 100%;
+                    background-image: url('/images/in-20240607172716506.svg');
+                    background-position: center;
+                        background-size: contain;
+                        background-repeat: no-repeat;
+                    }
+
+                }
+
+            }
+            }
+            }
+            }
+         .layer-wrap.layer-wrap_tIePwb {
+                transform: matrix(1, 0, 0, 1, 1405.0000,  660.0000);
+            width: 348px;
+            height: 24px;
+            visibility: visible;
+            display: block;
+            z-index:  1;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+                    .group {
+                        transform: matrix(1, 0, 0, 1, -1405, -660)
+                    }
+
+
+         .layer-wrap.layer-wrap_pAGkcW {
+                transform: matrix(1, 0, 0, 1, 1513.0000,  661.5000);
+            width: 120px;
+            height: 21px;
+            visibility: visible;
+            display: block;
+            z-index:  1;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: all;
+                    border-radius: 0px;
+
+                }
+
+            }
+            }
+         .layer-wrap.layer-wrap_ocAjaT {
+                transform: matrix(1, 0, 0, 1, 1405.0000,  660.0000);
+            width: 348px;
+            height: 24px;
+            visibility: visible;
+            display: block;
+            z-index:  0;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: none;
+                    border-radius: 0px;
+                    .img-NQWQ {
+                    width: 100%;
+                    height: 100%;
+                    background-image: url('/images/Group 7-20240607172653681.svg');
+                    background-position: center;
+                        background-size: contain;
+                        background-repeat: no-repeat;
+                    }
+
+                }
+
+            }
+            }
+            }
+            }
+         .layer-wrap.layer-wrap_KOdLNo {
+                transform: matrix(1, 0, 0, 1, 1319.0000,  660.0000);
+            width: 520px;
+            height: 277px;
+            visibility: visible;
+            display: block;
+            z-index:  0;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: none;
+                    border-radius: 0px;
+                    .img-GiFx {
+                    width: 100%;
+                    height: 100%;
+                    background-image: url('/images/bg2-20240607173054175.png');
+                    background-position: center;
+                        background-size: contain;
+                        background-repeat: no-repeat;
+                    }
+
+                }
+
+            }
+            }
+            }
+            }
+         .layer-wrap.layer-wrap_qiiJwY {
+                transform: matrix(1, 0, 0, 1, 707.5000,  666.0000);
+            width: 520px;
+            height: 277px;
+            visibility: visible;
+            display: block;
+            z-index:  11;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+                    .group {
+                        transform: matrix(1, 0, 0, 1, -708, -666)
+                    }
+
+
+         .layer-wrap.layer-wrap_TIluiG {
+                transform: matrix(1, 0, 0, 1, 778.5000,  727.0000);
+            width: 380px;
+            height: 146px;
+            visibility: visible;
+            display: block;
+            z-index:  2;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+                    .group {
+                        transform: matrix(1, 0, 0, 1, -778, -727)
+                    }
+
+
+         .layer-wrap.layer-wrap_rarPif {
+                transform: matrix(1, 0, 0, 1, 857.5000,  795.0000);
+            width: 249px;
+            height: 44px;
+            visibility: visible;
+            display: block;
+            z-index:  3;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: all;
+                    border-radius: 0px;
+
+                }
+
+            }
+            }
+         .layer-wrap.layer-wrap_zXeYIw {
+                transform: matrix(1, 0, 0, 1, 858.5000,  795.0000);
+            width: 220px;
+            height: 49px;
+            visibility: visible;
+            display: block;
+            z-index:  2;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: none;
+                    border-radius: 0px;
+                    .img-ZUaK {
+                    width: 100%;
+                    height: 100%;
+                    background-image: url('/images/数字-20240607172714616.svg');
+                    background-position: center;
+                        background-size: contain;
+                        background-repeat: no-repeat;
+                    }
+
+                }
+
+            }
+            }
+         .layer-wrap.layer-wrap_wSYHBF {
+                transform: matrix(1, 0, 0, 1, 914.0000,  727.0000);
+            width: 107px;
+            height: 17px;
+            visibility: visible;
+            display: block;
+            z-index:  1;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: all;
+                    border-radius: 0px;
+                    .text-afmA {
+                    width: 100%;
+                    height: 100%;
+                    display: flex;
+                    font-weight: normal;
+                    -webkit-text-stroke: 0px #FFFFFF;
+                        color: #A8C5FF;
+                    align-items: center;
+                    text-align: center;
+                    letter-spacing: 1px;
+                    font-size: 14px;
+                    line-height: 1;
+                    font-style: normal;
+                    justify-content: center;
+                        font-family: SourceHanSansSC-Regular;
+
+                    }
+
+                }
+
+            }
+            }
+         .layer-wrap.layer-wrap_Nncugp {
+                transform: matrix(1, 0, 0, 1, 778.5000,  736.0000);
+            width: 380px;
+            height: 137px;
+            visibility: visible;
+            display: block;
+            z-index:  0;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: none;
+                    border-radius: 0px;
+                    .img-JDjB {
+                    width: 100%;
+                    height: 100%;
+                    background-image: url('/images/in-20240607172716506.svg');
+                    background-position: center;
+                        background-size: contain;
+                        background-repeat: no-repeat;
+                    }
+
+                }
+
+            }
+            }
+            }
+            }
+         .layer-wrap.layer-wrap_ZYvGMd {
+                transform: matrix(1, 0, 0, 1, 795.5000,  666.0000);
+            width: 348px;
+            height: 24px;
+            visibility: visible;
+            display: block;
+            z-index:  1;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+                    .group {
+                        transform: matrix(1, 0, 0, 1, -796, -666)
+                    }
+
+
+         .layer-wrap.layer-wrap_oKDeZD {
+                transform: matrix(1, 0, 0, 1, 901.5000,  667.5000);
+            width: 120px;
+            height: 21px;
+            visibility: visible;
+            display: block;
+            z-index:  1;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: all;
+                    border-radius: 0px;
+
+                }
+
+            }
+            }
+         .layer-wrap.layer-wrap_HtjsSk {
+                transform: matrix(1, 0, 0, 1, 793.5000,  666.0000);
+            width: 348px;
+            height: 24px;
+            visibility: visible;
+            display: block;
+            z-index:  0;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: none;
+                    border-radius: 0px;
+                    .img-SLvE {
+                    width: 100%;
+                    height: 100%;
+                    background-image: url('/images/Group 7-20240607172653681.svg');
+                    background-position: center;
+                        background-size: contain;
+                        background-repeat: no-repeat;
+                    }
+
+                }
+
+            }
+            }
+            }
+            }
+         .layer-wrap.layer-wrap_MQKgXk {
+                transform: matrix(1, 0, 0, 1, 707.5000,  666.0000);
+            width: 520px;
+            height: 277px;
+            visibility: visible;
+            display: block;
+            z-index:  0;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: none;
+                    border-radius: 0px;
+                    .img-JUzG {
+                    width: 100%;
+                    height: 100%;
+                    background-image: url('/images/bg2-20240607173054175.png');
+                    background-position: center;
+                        background-size: contain;
+                        background-repeat: no-repeat;
+                    }
+
+                }
+
+            }
+            }
+            }
+            }
+         .layer-wrap.layer-wrap_mCPMVT {
+                transform: matrix(1, 0, 0, 1, 97.0000,  666.0000);
+            width: 520px;
+            height: 277px;
+            visibility: visible;
+            display: block;
+            z-index:  10;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+                    .group {
+                        transform: matrix(1, 0, 0, 1, -97, -666)
+                    }
+
+
+         .layer-wrap.layer-wrap_DmPAAH {
+                transform: matrix(1, 0, 0, 1, 168.0000,  727.0000);
+            width: 380px;
+            height: 146px;
+            visibility: visible;
+            display: block;
+            z-index:  2;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+                    .group {
+                        transform: matrix(1, 0, 0, 1, -168, -727)
+                    }
+
+
+         .layer-wrap.layer-wrap_SBYymB {
+                transform: matrix(1, 0, 0, 1, 247.0000,  795.0000);
+            width: 249px;
+            height: 44px;
+            visibility: visible;
+            display: block;
+            z-index:  3;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: all;
+                    border-radius: 0px;
+
+                }
+
+            }
+            }
+         .layer-wrap.layer-wrap_EBoKOX {
+                transform: matrix(1, 0, 0, 1, 248.0000,  795.0000);
+            width: 220px;
+            height: 49px;
+            visibility: visible;
+            display: block;
+            z-index:  2;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: none;
+                    border-radius: 0px;
+                    .img-GvqR {
+                    width: 100%;
+                    height: 100%;
+                    background-image: url('/images/数字-20240607172714616.svg');
+                    background-position: center;
+                        background-size: contain;
+                        background-repeat: no-repeat;
+                    }
+
+                }
+
+            }
+            }
+         .layer-wrap.layer-wrap_wTixVA {
+                transform: matrix(1, 0, 0, 1, 303.5000,  727.0000);
+            width: 107px;
+            height: 17px;
+            visibility: visible;
+            display: block;
+            z-index:  1;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: all;
+                    border-radius: 0px;
+                    .text-iTfm {
+                    width: 100%;
+                    height: 100%;
+                    display: flex;
+                    font-weight: normal;
+                    -webkit-text-stroke: 0px #FFFFFF;
+                        color: #A8C5FF;
+                    align-items: center;
+                    text-align: center;
+                    letter-spacing: 1px;
+                    font-size: 14px;
+                    line-height: 1;
+                    font-style: normal;
+                    justify-content: center;
+                        font-family: SourceHanSansSC-Regular;
+
+                    }
+
+                }
+
+            }
+            }
+         .layer-wrap.layer-wrap_fEufbn {
+                transform: matrix(1, 0, 0, 1, 168.0000,  736.0000);
+            width: 380px;
+            height: 137px;
+            visibility: visible;
+            display: block;
+            z-index:  0;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: none;
+                    border-radius: 0px;
+                    .img-QVzF {
+                    width: 100%;
+                    height: 100%;
+                    background-image: url('/images/in-20240607172716506.svg');
+                    background-position: center;
+                        background-size: contain;
+                        background-repeat: no-repeat;
+                    }
+
+                }
+
+            }
+            }
+            }
+            }
+         .layer-wrap.layer-wrap_aqHJRj {
+                transform: matrix(1, 0, 0, 1, 183.0000,  666.0000);
+            width: 348px;
+            height: 24px;
+            visibility: visible;
+            display: block;
+            z-index:  1;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+                    .group {
+                        transform: matrix(1, 0, 0, 1, -183, -666)
+                    }
+
+
+         .layer-wrap.layer-wrap_UUlXwE {
+                transform: matrix(1, 0, 0, 1, 291.0000,  667.5000);
+            width: 120px;
+            height: 21px;
+            visibility: visible;
+            display: block;
+            z-index:  1;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: all;
+                    border-radius: 0px;
+
+                }
+
+            }
+            }
+         .layer-wrap.layer-wrap_AOGaKy {
+                transform: matrix(1, 0, 0, 1, 183.0000,  666.0000);
+            width: 348px;
+            height: 24px;
+            visibility: visible;
+            display: block;
+            z-index:  0;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: none;
+                    border-radius: 0px;
+                    .img-LkSI {
+                    width: 100%;
+                    height: 100%;
+                    background-image: url('/images/Group 7-20240607172653681.svg');
+                    background-position: center;
+                        background-size: contain;
+                        background-repeat: no-repeat;
+                    }
+
+                }
+
+            }
+            }
+            }
+            }
+         .layer-wrap.layer-wrap_yJJoJx {
+                transform: matrix(1, 0, 0, 1, 97.0000,  666.0000);
+            width: 520px;
+            height: 277px;
+            visibility: visible;
+            display: block;
+            z-index:  0;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: none;
+                    border-radius: 0px;
+                    .img-pLyM {
+                    width: 100%;
+                    height: 100%;
+                    background-image: url('/images/bg2-20240607173054175.png');
+                    background-position: center;
+                        background-size: contain;
+                        background-repeat: no-repeat;
+                    }
+
+                }
+
+            }
+            }
+            }
+            }
+         .layer-wrap.layer-wrap_TfAIqe {
+                transform: matrix(1, 0, 0, 1, 1879.0000,  2.3721);
+            width: 529px;
+            height: 100px;
+            visibility: visible;
+            display: block;
+            z-index:  9;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: all;
+                    border-radius: 0px;
+
+                }
+
+            }
+            }
+         .layer-wrap.layer-wrap_cHfJlT {
+                transform: matrix(1, 0, 0, 1, 97.0000,  301.0000);
+            width: 520px;
+            height: 277px;
+            visibility: visible;
+            display: block;
+            z-index:  8;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+                    .group {
+                        transform: matrix(1, 0, 0, 1, -97, -301)
+                    }
+
+
+         .layer-wrap.layer-wrap_arFXID {
+                transform: matrix(1, 0, 0, 1, 168.0000,  362.0000);
+            width: 380px;
+            height: 146px;
+            visibility: visible;
+            display: block;
+            z-index:  2;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+                    .group {
+                        transform: matrix(1, 0, 0, 1, -168, -362)
+                    }
+
+
+         .layer-wrap.layer-wrap_PvjUfx {
+                transform: matrix(1, 0, 0, 1, 247.0000,  430.0000);
+            width: 249px;
+            height: 44px;
+            visibility: visible;
+            display: block;
+            z-index:  3;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: all;
+                    border-radius: 0px;
+
+                }
+
+            }
+            }
+         .layer-wrap.layer-wrap_jdpMnY {
+                transform: matrix(1, 0, 0, 1, 248.0000,  430.0000);
+            width: 220px;
+            height: 49px;
+            visibility: visible;
+            display: block;
+            z-index:  2;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: none;
+                    border-radius: 0px;
+                    .img-twHI {
+                    width: 100%;
+                    height: 100%;
+                    background-image: url('/images/数字-20240607172714616.svg');
+                    background-position: center;
+                        background-size: contain;
+                        background-repeat: no-repeat;
+                    }
+
+                }
+
+            }
+            }
+         .layer-wrap.layer-wrap_VdaFNY {
+                transform: matrix(1, 0, 0, 1, 303.5000,  362.0000);
+            width: 107px;
+            height: 17px;
+            visibility: visible;
+            display: block;
+            z-index:  1;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: all;
+                    border-radius: 0px;
+                    .text-zZmg {
+                    width: 100%;
+                    height: 100%;
+                    display: flex;
+                    font-weight: normal;
+                    -webkit-text-stroke: 0px #FFFFFF;
+                        color: #A8C5FF;
+                    align-items: center;
+                    text-align: center;
+                    letter-spacing: 1px;
+                    font-size: 14px;
+                    line-height: 1;
+                    font-style: normal;
+                    justify-content: center;
+                        font-family: SourceHanSansSC-Regular;
+
+                    }
+
+                }
+
+            }
+            }
+         .layer-wrap.layer-wrap_nqoCRn {
+                transform: matrix(1, 0, 0, 1, 168.0000,  371.0000);
+            width: 380px;
+            height: 137px;
+            visibility: visible;
+            display: block;
+            z-index:  0;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: none;
+                    border-radius: 0px;
+                    .img-TYpD {
+                    width: 100%;
+                    height: 100%;
+                    background-image: url('/images/in-20240607172716506.svg');
+                    background-position: center;
+                        background-size: contain;
+                        background-repeat: no-repeat;
+                    }
+
+                }
+
+            }
+            }
+            }
+            }
+         .layer-wrap.layer-wrap_iwgNBH {
+                transform: matrix(1, 0, 0, 1, 183.0000,  301.0000);
+            width: 348px;
+            height: 24px;
+            visibility: visible;
+            display: block;
+            z-index:  1;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+                    .group {
+                        transform: matrix(1, 0, 0, 1, -183, -301)
+                    }
+
+
+         .layer-wrap.layer-wrap_xbRaxj {
+                transform: matrix(1, 0, 0, 1, 291.0000,  302.5000);
+            width: 120px;
+            height: 21px;
+            visibility: visible;
+            display: block;
+            z-index:  1;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: all;
+                    border-radius: 0px;
+
+                }
+
+            }
+            }
+         .layer-wrap.layer-wrap_cdCSat {
+                transform: matrix(1, 0, 0, 1, 183.0000,  301.0000);
+            width: 348px;
+            height: 24px;
+            visibility: visible;
+            display: block;
+            z-index:  0;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: none;
+                    border-radius: 0px;
+                    .img-qzzT {
+                    width: 100%;
+                    height: 100%;
+                    background-image: url('/images/Group 7-20240607172653681.svg');
+                    background-position: center;
+                        background-size: contain;
+                        background-repeat: no-repeat;
+                    }
+
+                }
+
+            }
+            }
+            }
+            }
+         .layer-wrap.layer-wrap_foVWaT {
+                transform: matrix(1, 0, 0, 1, 97.0000,  301.0000);
+            width: 520px;
+            height: 277px;
+            visibility: visible;
+            display: block;
+            z-index:  0;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: none;
+                    border-radius: 0px;
+                    .img-dyuG {
+                    width: 100%;
+                    height: 100%;
+                    background-image: url('/images/bg2-20240607173054175.png');
+                    background-position: center;
+                        background-size: contain;
+                        background-repeat: no-repeat;
+                    }
+
+                }
+
+            }
+            }
+            }
+            }
+         .layer-wrap.layer-wrap_HSPLSX {
+                transform: matrix(1, 0, 0, 1, 1935.0000,  563.0000);
+            width: 580px;
+            height: 497px;
+            visibility: visible;
+            display: block;
+            z-index:  7;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+                    .group {
+                        transform: matrix(1, 0, 0, 1, -1935, -563)
+                    }
+
+
+         .layer-wrap.layer-wrap_vDAIZg {
+                transform: matrix(1, 0, 0, 1, 1935.0000,  563.0000);
+            width: 577px;
+            height: 53px;
+            visibility: visible;
+            display: block;
+            z-index:  0;
+            mix-blend-mode: color-burn ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+                    .group {
+                        transform: matrix(1, 0, 0, 1, -1935, -563)
+                    }
+
+
+         .layer-wrap.layer-wrap_aXtEIa {
+                transform: matrix(1, 0, 0, 1, 1958.0000,  574.0000);
+            width: 149px;
+            height: 31px;
+            visibility: visible;
+            display: block;
+            z-index:  1;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: all;
+                    border-radius: 0px;
+                    .text-Qwij {
+                    width: 100%;
+                    height: 100%;
+                    display: flex;
+                    font-weight: normal;
+                    -webkit-text-stroke: 0px #FFFFFF;
+                        color: #FFFFFF;
+                    align-items: center;
+                    text-align: center;
+                    letter-spacing: 1px;
+                    font-size: 18px;
+                    line-height: 1;
+                    font-style: normal;
+                    justify-content: center;
+                        font-family: Alibaba-PuHuiTi-Medium;
+
+                    }
+
+                }
+
+            }
+            }
+         .layer-wrap.layer-wrap_XaqTRi {
+                transform: matrix(1, 0, 0, 1, 1935.0000,  563.0000);
+            width: 577px;
+            height: 53px;
+            visibility: visible;
+            display: block;
+            z-index:  0;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: none;
+                    border-radius: 0px;
+                    .img-oVHw {
+                    width: 100%;
+                    height: 100%;
+                    background-image: url('/images/小标题2-20250208164439725.png');
+                    background-position: center;
+                        background-size: contain;
+                        background-repeat: no-repeat;
+                    }
+
+                }
+
+            }
+            }
+            }
+            }
+            }
+            }
+         .layer-wrap.layer-wrap_azKQnt {
+                transform: matrix(1, 0, 0, 1, 68.0000,  -15.0000);
+            width: 1720px;
+            height: 353px;
+            visibility: visible;
+            display: block;
+            z-index:  6;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 5.0ms  normal both running 1.0 fadeInDown;
+                    .group {
+                        transform: matrix(1, 0, 0, 1, -68, 15)
+                    }
+
+
+         .layer-wrap.layer-wrap_tJpMXM {
+                transform: matrix(1, 0, 0, 1, 589.0000,  -15.0000);
+            width: 710px;
+            height: 103px;
+            visibility: visible;
+            display: block;
+            z-index:  1;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: all;
+                    border-radius: 0px;
+
+                }
+
+            }
+            }
+         .layer-wrap.layer-wrap_adINHt {
+                transform: matrix(1, 0, 0, 1, 68.0000,  -15.0000);
+            width: 1720px;
+            height: 353px;
+            visibility: visible;
+            display: block;
+            z-index:  0;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: none;
+                    border-radius: 0px;
+                    .img-ONty {
+                    width: 100%;
+                    height: 100%;
+                    background-image: url('/images/标题-20240526000321839.png');
+                    background-position: center;
+                        background-size: contain;
+                        background-repeat: no-repeat;
+                    }
+
+                }
+
+            }
+            }
+            }
+            }
+         .layer-wrap.layer-wrap_HpIbWa {
+                transform: matrix(1, 0, 0, 1, 1939.0000,  115.0000);
+            width: 580px;
+            height: 448px;
+            visibility: visible;
+            display: block;
+            z-index:  5;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+                    .group {
+                        transform: matrix(1, 0, 0, 1, -1939, -115)
+                    }
+
+
+         .layer-wrap.layer-wrap_GxMNzI {
+                transform: matrix(1, 0, 0, 1, 1939.0000,  115.0000);
+            width: 576px;
+            height: 51px;
+            visibility: visible;
+            display: block;
+            z-index:  1;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+                    .group {
+                        transform: matrix(1, 0, 0, 1, -1939, -115)
+                    }
+
+
+         .layer-wrap.layer-wrap_DBEtNa {
+                transform: matrix(1, 0, 0, 1, 1963.0000,  127.0000);
+            width: 148px;
+            height: 28px;
+            visibility: visible;
+            display: block;
+            z-index:  1;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: all;
+                    border-radius: 0px;
+                    .text-uqLV {
+                    width: 100%;
+                    height: 100%;
+                    display: flex;
+                    font-weight: normal;
+                    -webkit-text-stroke: 0px #FFFFFF;
+                        color: #FFFFFF;
+                    align-items: center;
+                    text-align: center;
+                    letter-spacing: 1px;
+                    font-size: 18px;
+                    line-height: 1;
+                    font-style: normal;
+                    justify-content: center;
+                        font-family: Alibaba-PuHuiTi-Medium;
+
+                    }
+
+                }
+
+            }
+            }
+         .layer-wrap.layer-wrap_EXkhRT {
+                transform: matrix(1, 0, 0, 1, 1939.0000,  115.0000);
+            width: 576px;
+            height: 51px;
+            visibility: visible;
+            display: block;
+            z-index:  0;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: none;
+                    border-radius: 0px;
+                    .img-SIZA {
+                    width: 100%;
+                    height: 100%;
+                    background-image: url('/images/小标题2-20250208164439725.png');
+                    background-position: center;
+                        background-size: contain;
+                        background-repeat: no-repeat;
+                    }
+
+                }
+
+            }
+            }
+            }
+            }
+         .layer-wrap.layer-wrap_SpGAqM {
+                transform: matrix(1, 0, 0, 1, 1940.0000,  185.0000);
+            width: 579px;
+            height: 378px;
+            visibility: visible;
+            display: block;
+            z-index:  0;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: all;
+                    border-radius: 0px;
+
+                }
+
+            }
+            }
+            }
+            }
+         .layer-wrap.layer-wrap_XXZlwz {
+                transform: matrix(1, 0, 0, 1, 1935.0000,  115.0000);
+            width: 625px;
+            height: 1325px;
+            visibility: visible;
+            display: block;
+            z-index:  4;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+                    .group {
+                        transform: matrix(1, 0, 0, 1, -1935, -115)
+                    }
+
+
+         .layer-wrap.layer-wrap_NFwCEB {
+                transform: matrix(1, 0, 0, 1, 1935.0000,  115.0000);
+            width: 625px;
+            height: 1325px;
+            visibility: visible;
+            display: block;
+            z-index:  0;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: none;
+                    border-width: 1px;
+                    border-top-width: 1px;
+                    border-left-width: 1px;
+                    border-right-width: 1px;
+                    border-bottom-width: 1px;
+                    border-style: solid;
+                    border-color: #304875;
+                    border-radius: 0px;
+                    background: #071022;
+
+                }
+
+            }
+            }
+            }
+            }
+         .layer-wrap.layer-wrap_qoKwub {
+                transform: matrix(1, 0, 0, 1, 679.0000,  1364.0000);
+            width: 659px;
+            height: 81px;
+            visibility: visible;
+            display: block;
+            z-index:  3;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+                    .group {
+                        transform: matrix(1, 0, 0, 1, -679, -1364)
+                    }
+
+
+         .layer-wrap.layer-wrap_AzpofR {
+                transform: matrix(1, 0, 0, 1, 740.0000,  1392.0000);
+            width: 535px;
+            height: 45px;
+            visibility: visible;
+            display: block;
+            z-index:  1;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: all;
+                    border-radius: 0px;
+
+                }
+
+            }
+            }
+         .layer-wrap.layer-wrap_xGFDYN {
+                transform: matrix(1, 0, 0, 1, 679.0000,  1364.0000);
+            width: 659px;
+            height: 81px;
+            visibility: visible;
+            display: block;
+            z-index:  0;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: none;
+                    border-radius: 0px;
+                    .img-YYRS {
+                    width: 100%;
+                    height: 100%;
+                    background-image: url('/images/底部边框2-20250210095528575.png');
+                    background-position: center;
+                        background-size: contain;
+                        background-repeat: no-repeat;
+                    }
+
+                }
+
+            }
+            }
+            }
+            }
+         .layer-wrap.layer-wrap_gOwcVj {
+                transform: matrix(1, 0, 0, 1, 46.5000,  -88.0000);
+            width: 1865px;
+            height: 1755px;
+            visibility: visible;
+            display: block;
+            z-index:  2;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+                    .group {
+                        transform: matrix(1, 0, 0, 1, -46, 88)
+                    }
+
+
+         .layer-wrap.layer-wrap_eqIIjf {
+                transform: matrix(1, 0, 0, 1, 147.0000,  168.0000);
+            width: 449px;
+            height: 56px;
+            visibility: visible;
+            display: block;
+            z-index:  3;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: all;
+                    border-radius: 0px;
+
+                }
+
+            }
+            }
+         .layer-wrap.layer-wrap_lmLfKK {
+                transform: matrix(1, 0, 0, 1, 1339.0000,  166.0000);
+            width: 449px;
+            height: 56px;
+            visibility: visible;
+            display: block;
+            z-index:  2;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: all;
+                    border-radius: 0px;
+
+                }
+
+            }
+            }
+         .layer-wrap.layer-wrap_yUaVqz {
+                transform: matrix(1, 0, 0, 1, 46.5000,  5.0000);
+            width: 867px;
+            height: 1570px;
+            visibility: visible;
+            display: block;
+            z-index:  1;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: none;
+                    border-radius: 0px;
+                    .img-lmaA {
+                    width: 100%;
+                    height: 100%;
+                    background-image: url('/images/左标题2-20250210095111142.png');
+                    background-position: center;
+                        background-size: contain;
+                        background-repeat: no-repeat;
+                    }
+
+                }
+
+            }
+            }
+         .layer-wrap.layer-wrap_txtwBK {
+                transform: matrix(1, 0, 0, 1, 1045.5000,  -88.0000);
+            width: 866px;
+            height: 1755px;
+            visibility: visible;
+            display: block;
+            z-index:  0;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: none;
+                    border-radius: 0px;
+                    .img-DTvS {
+                    width: 100%;
+                    height: 100%;
+                    background-image: url('/images/右标题2-20250213103053046.png');
+                    background-position: center;
+                        background-size: contain;
+                        background-repeat: no-repeat;
+                    }
+
+                }
+
+            }
+            }
+            }
+            }
+         .layer-wrap.layer-wrap_MLmTwH {
+                transform: matrix(1, 0, 0, 1, 0.0000,  100.0000);
+            width: 1872px;
+            height: 1340px;
+            visibility: visible;
+            display: block;
+            z-index:  1;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+                    .group {
+                        transform: matrix(1, 0, 0, 1, 0, -100)
+                    }
+
+
+         .layer-wrap.layer-wrap_xYrlxz {
+                transform: matrix(1, 0, 0, 1, 0.0000,  100.0000);
+            width: 1872px;
+            height: 1340px;
+            visibility: visible;
+            display: block;
+            z-index:  0;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: none;
+                    border-width: 1px;
+                    border-top-width: 1px;
+                    border-left-width: 1px;
+                    border-right-width: 1px;
+                    border-bottom-width: 1px;
+                    border-style: solid;
+                    border-color: #304875;
+                    border-radius: 0px;
+                    background: #071022;
+
+                }
+
+            }
+            }
+            }
+            }
+         .layer-wrap.layer-wrap_SRqODh {
+                transform: matrix(1, 0, 0, 1, 0.0000,  0.0000);
+            width: 2560px;
+            height: 1440px;
+            visibility: visible;
+            display: block;
+            z-index:  0;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+                    .group {
+                        transform: matrix(1, 0, 0, 1, 0, 0)
+                    }
+
+
+         .layer-wrap.layer-wrap_hzTRBx {
+                transform: matrix(1, 0, 0, 1, 0.0000,  0.0000);
+            width: 2560px;
+            height: 1440px;
+            visibility: visible;
+            display: block;
+            z-index:  0;
+            mix-blend-mode: normal ;
+            cursor:  default ;
+
+            .layer-main {
+               transform: rotate(0deg) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+               transform-origin: 50% 50%;
+               animation: 1000.0ms ease 0.0ms  normal both running 1.0 ;
+
+                .layer {
+                    pointer-events: none;
+                    border-radius: 0px;
+                    .img-odTB {
+                    width: 100%;
+                    height: 100%;
+                    background-image: url('/images/背景2-20250210172948895.jpg');
+                    background-position: center;
+                        background-size: contain;
+                        background-repeat: no-repeat;
+                    }
+
+                }
+
+            }
+            }
+            }
+            }

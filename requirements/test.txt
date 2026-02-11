@@ -1,5 +1,0 @@
--r base.txt
-
-# Test dependencies
-pytest==8.0.0
-pytest-cov==4.1.0
