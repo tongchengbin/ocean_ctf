@@ -105,6 +105,23 @@ def logout():
     return api_success()
 
 
+@bp.get("/announcement")
+def announcement():
+    """用户端首页顶部公告（由后台配置控制）"""
+    enabled = Config.get_config(Config.KEY_HOME_ANNOUNCEMENT_ENABLED)
+    content = Config.get_config(Config.KEY_HOME_ANNOUNCEMENT_CONTENT)
+    link = Config.get_config(Config.KEY_HOME_ANNOUNCEMENT_LINK)
+    return api_success(
+        {
+            "data": {
+                "enabled": int(enabled),
+                "content": content,
+                "link": link,
+            }
+        }
+    )
+
+
 @bp.post("/rest_pass")
 @user_required()
 def rest_pass():

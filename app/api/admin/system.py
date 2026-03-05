@@ -454,11 +454,14 @@ def set_config():
     data = request.get_json()
     for k, v in data.items():
         if k not in Config.CONFIG_MAP:
+            logger.warning(f"未知配置键: {k}")
             continue
         # 校验数据
         val_type = Config.CONFIG_MAP[k][0]
         if not isinstance(v, val_type):
             return api_fail(msg="数据格式错误")
+        if isinstance(v, str) and len(v) > 2000:
+            return api_fail(msg="配置内容过长")
         old = db.session.query(Config).filter(Config.key == k).first()
         if old:
             old.val = v

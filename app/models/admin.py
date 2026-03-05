@@ -12,7 +12,11 @@ class Role(Model):
         角色  后面会关联权限
     """
     id: Mapped[int] = mapped_column(db.Integer, primary_key=True)
-    name: Mapped[str] = mapped_column(db.String(256), nullable=False, unique=True)
+    name: Mapped[str] = mapped_column(
+        db.String(256),
+        nullable=False,
+        unique=True,
+    )
 
 
 class Admin(Model):
@@ -20,14 +24,33 @@ class Admin(Model):
     username: Mapped[str] = mapped_column(
         db.String(256), unique=True, nullable=False, comment="用户名"
     )
-    password: Mapped[str] = mapped_column(db.String(512), nullable=False, comment="密码")
+    password: Mapped[str] = mapped_column(
+        db.String(512),
+        nullable=False,
+        comment="密码",
+    )
     role_id: Mapped[int] = mapped_column(db.Integer, db.ForeignKey("role.id"))
     role: Mapped["Role"] = relationship("Role")
-    active: Mapped[bool] = mapped_column(db.Boolean(), comment="是否启用", default=True)
-    login_time: Mapped[datetime.datetime] = mapped_column(db.DateTime, default=None, nullable=True)
-    token: Mapped[str] = mapped_column(db.String(64), comment="token", nullable=True, unique=True)
+    active: Mapped[bool] = mapped_column(
+        db.Boolean(),
+        comment="是否启用",
+        default=True,
+    )
+    login_time: Mapped[datetime.datetime] = mapped_column(
+        db.DateTime,
+        default=None,
+        nullable=True,
+    )
+    token: Mapped[str] = mapped_column(
+        db.String(64),
+        comment="token",
+        nullable=True,
+        unique=True,
+    )
 
-    # task_list: Mapped['TaskList'] = relationship('TaskList', backref='admin')
+    # task_list: Mapped['TaskList']
+    # = relationship('TaskList')
+    # backref='admin'
 
     @property
     def role_name(self):
@@ -48,10 +71,17 @@ class TaskList(Model):
         (STATUS_ERROR, "执行错误"),
         (STATUS_DONE, "执行完成"),
     )
-    admin_id = mapped_column(db.Integer, ForeignKey("admin.id"), comment="操作用户")
+    admin_id = mapped_column(
+        db.Integer,
+        ForeignKey("admin.id"),
+        comment="操作用户",
+    )
     status = mapped_column(db.Integer, default=STATUS_WAIT, comment="任务状况")
     title = mapped_column(db.String(64), comment="任务标题")
-    target_id = mapped_column(db.String(32), comment="操作对象ID 可以是主机 容器 镜像 题库等")
+    target_id = mapped_column(
+        db.String(32),
+        comment="操作对象ID 可以是主机 容器 镜像 题库等",
+    )
     remark = mapped_column(db.Text, comment="备注 报错错误信息记录")
 
     @property
@@ -90,10 +120,18 @@ class Operator(Model):
 
     __tablename__ = "operator"
     username: Mapped[str] = mapped_column(db.String(255), comment="操作人用户名")
-    code: Mapped[bool] = mapped_column(db.Boolean(), default=True, comment="操作结果")
+    code: Mapped[bool] = mapped_column(
+        db.Boolean(),
+        default=True,
+        comment="操作结果",
+    )
     ip: Mapped[str] = mapped_column(db.String(15), comment="操作IP")
     content: Mapped[str] = mapped_column(db.String(128), comment="操作内容")
-    role: Mapped[str] = mapped_column(db.String(10), comment="操作人角色", nullable=True)
+    role: Mapped[str] = mapped_column(
+        db.String(10),
+        comment="操作人角色",
+        nullable=True,
+    )
 
 
 class Config(Model):
@@ -104,19 +142,28 @@ class Config(Model):
     KEY_VULNERABILITY_TIMEOUT = "vulnerability_timeout"
     KEY_REMOTE_VULNERABILITY_REPOSITORY = "remote_vulnerability_repository"
     KEY_CTF_REPOSITORY = "ctf_repository"
+    KEY_HOME_ANNOUNCEMENT_ENABLED = "home_announcement_enabled"
+    KEY_HOME_ANNOUNCEMENT_CONTENT = "home_announcement_content"
+    KEY_HOME_ANNOUNCEMENT_LINK = "home_announcement_link"
     CONFIG_MAP = {
         KEY_IP: (str, "127.0.0.1"),
         KEY_DOCKER_API: (str, "unix:///var/run/docker.sock"),
         KEY_PORT_RANGE: (str, "40000-50000"),
         KEY_CTF_TIMEOUT: (int, 180),
         KEY_VULNERABILITY_TIMEOUT: (int, 1800),
-        KEY_REMOTE_VULNERABILITY_REPOSITORY: (str, "https://github.com/tongchengbin/vuldb.git"),
+        KEY_REMOTE_VULNERABILITY_REPOSITORY: (
+            str,
+            "https://github.com/tongchengbin/vuldb.git",
+        ),
         KEY_CTF_REPOSITORY: (str, "https://github.com/tongchengbin/ctfdb.git"),
+        KEY_HOME_ANNOUNCEMENT_ENABLED: (int, 0),
+        KEY_HOME_ANNOUNCEMENT_CONTENT: (str, ""),
+        KEY_HOME_ANNOUNCEMENT_LINK: (str, ""),
     }
 
     __tablename__ = "config"
     key: Mapped[str] = mapped_column(db.String(255), comment="键")
-    val: Mapped[str] = mapped_column(db.String(255), comment="值")
+    val: Mapped[str] = mapped_column(db.Text, comment="值")
 
     @staticmethod
     def get_config(key):
@@ -152,7 +199,15 @@ class AdminMessage(Model):
     mtype: Mapped[int] = mapped_column(
         db.Integer, comment="消息类型", default=MessageType.TYPE_ADMIN
     )
-    admin_id: Mapped[int] = mapped_column(db.Integer, ForeignKey("admin.id"), comment="关联管理员")
+    admin_id: Mapped[int] = mapped_column(
+        db.Integer,
+        ForeignKey("admin.id"),
+        comment="关联管理员",
+    )
     content: Mapped[str] = mapped_column(db.String(1024))
-    read: Mapped[bool] = mapped_column(db.Boolean(), default=False, comment="是否已读")
+    read: Mapped[bool] = mapped_column(
+        db.Boolean(),
+        default=False,
+        comment="是否已读",
+    )
     level: Mapped[int] = mapped_column(db.Integer, comment="重要级别")
