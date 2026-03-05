@@ -21,9 +21,6 @@ jobs:
         run: |
           cp .env_example .env
 
-          # 添加CI测试特定的配置
-          cat >> .env <<EOL
-
       - name: Run docker compose (like user deployment)
         run: |
           # 显示当前配置
@@ -46,7 +43,7 @@ jobs:
       - name: Run tests
         run: |
           # 在 Docker 容器内运行测试
-          docker compose exec -T web sh -c "uv pip install pytest pytest-cov --system && pytest tests/ -v"
+          docker compose exec -T web sh -c "pip install -r requirements/test.txt && pytest tests/ -v"
 
           # 检查测试运行状态
           echo "Tests completed with exit code: $?"

@@ -7,7 +7,7 @@ from docker import errors as docker_error
 from flask import Blueprint, g, request
 from flask_pydantic import validate
 
-from app.api.admin.schemas.ctf import QuestionForm
+from app.api.admin.schemas import QuestionForm
 from app.core.api import api_fail, api_success
 from app.extensions import db
 from app.models.admin import Config
