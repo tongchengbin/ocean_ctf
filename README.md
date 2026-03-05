@@ -1,74 +1,88 @@
 # 🌊 Ocean CTF
 
-一个动态 flag 练习靶场平台
+一个开箱即用的 **动态 Flag / 练习靶场 / 比赛平台**，支持容器化题目、题库管理、排行榜、公告通知，以及漏洞复现（Vulhub/自维护库）等能力，适合学校社团、战队训练、内部演练与小型赛事。
 
-## ✅ TODO
+## 🔥 立刻开始（推荐）
 
-- [x] 容器管理
-- [x] 题库管理
-- [x] 动态 flag
-- [x] 作弊检测
-- [x] 公告通知
-- [x] 动态启动题库
-- [x] 题库隔离
-- [x] 公告通知
-- [x] 排行榜
-- [x] 快速部署
-- [ ] 大屏展示
-- [x] 权限分离
-- [x] 一键部署
-- [x] 多端口开放
-- [ ] compose 容器支持
-- [ ] fix bug
-- [ ] 添加镜像功能页面重构
-- [x] 漏洞复现
+- **赛事版在线体验**：http://ctf-docs.lostpeach.cn
 
-## 🚀 预览
+## 🎯 适用场景
 
-线上地址 http://ctf.lostpeach.cn/
+- **训练靶场**：战队日常训练、课程实验、入门练习
+- **小型比赛**：校内赛/社团赛/内部赛快速搭建
+- **漏洞复现**：沉淀可复现环境，便于演示与复盘
 
-`测试用户: test/test`
 
-管理后台 http://ctf.lostpeach.cn/manager
 
-`访客管理账号 guest/guest`
+## ✨ 核心特性
 
-## SASS
+- **动态 Flag**：题目容器化运行，Flag 动态生成
+- **题库管理**：题目资源中心、编译（Pull/Build）、题库隔离
+- **容器管理**：题目容器启停、实例信息展示、多端口开放
+- **作弊检测**：基础反作弊能力
+- **公告通知**：用户端顶部通知/公告列表
+- **排行榜**：积分排行与记录
+- **漏洞复现**：支持导入漏洞资源，提供 WebShell/日志等能力（见下文说明）
 
-赛事版 http://ocean.lostpeach.cn
+## 🗺️ Roadmap
 
-## 📖 安装
+- 大屏展示
+- compose 容器支持
+- 镜像功能页面重构
 
-##### clone
+## 🚀 在线演示
 
-- 克隆代码
+- **用户端**：http://ctf.lostpeach.cn/
+  - 测试账号：`test/test`
+- **管理端**：http://ctf.lostpeach.cn/manager
+  - 访客账号：`guest/guest`
 
-```
+## 🧩 关联仓库
+
+- 后台管理前端（ocean_manager）：https://github.com/tongchengbin/ocean_manager
+- 题库仓库（CTFDB）：https://github.com/tongchengbin/ctfdb
+
+## 📚 赛事版私有化部署文档
+
+- http://ctf-docs.lostpeach.cn/
+
+## 🏁 赛事版（推荐）
+
+- 在线体验：http://ocean.lostpeach.cn
+- 私有化部署文档：http://ctf-docs.lostpeach.cn/
+
+赛事版面向 **真实比赛场景** 做了更偏“赛事运营”的能力组合，适合校赛/社团赛/企业内部赛快速落地。
+
+- **赛事运营更友好**：赛事配置/题库投放/公告与通知/排行榜
+- **更适合多人并发**：题目容器化与隔离，支持多端口开放
+- **更贴近比赛体验**：统一的参赛入口与交互流程
+
+## 📖 快速开始（Docker Compose）
+
+1) 克隆代码
+
+```bash
 git clone https://github.com/tongchengbin/ocean_ctf.git /opt/ocean_ctf
 ```
 
-- docker-compose 编排镜像
+2) 启动服务
 
-```
+```bash
 cd /opt/ocean_ctf
 cp .env_example .env
 docker-compose up -d
 ```
 
-- 初始化系统
-  访问 /manager
+3) 初始化系统
 
-`默认账号
-admin/admin`
+- 访问管理端：`/manager`
+- 默认管理账号：`admin/admin`
 
-## 使用
+## 使用说明（题库 / 动态题目）
 
-#### 小记
+平台支持通过 **资源中心** 管理题目镜像与题库。
 
-经过几次的改版还是觉得单纯的 docker 方式比 docker-compose 更加方便;启动和关闭的速度更快、
-题目共享、磁盘释放更方便等，
-同时对于 ctf 比赛 docker-compose 的场景比较小，因此 CTF 动态仅支持 docker 启动。后续会有靶场相关会支持 docker-compose 以及 docker 启动，
-关于为何移除 docker 远程调用目前是觉得增加了初级用户的使用难度所以暂时移除。
+说明：实际运行题目更推荐使用 **Docker 方式**（启动/关闭更快、共享更方便、磁盘释放更直观）。因此当前 **CTF 动态题目** 主要以 Docker 启动为主，后续靶场场景会同时完善 docker-compose 与 docker 两种方式。
 
 ### 动态题目
 
@@ -90,8 +104,6 @@ admin/admin`
 漏洞复现支持 vulhub 部分镜像可以直接导入，但是推荐使用[CTFDB Vulnerability](https://github.com/tongchengbin/ctfdb) 仓库进行维护,内置 export 脚本支持自动扫描导出漏洞文件，该文件可以在平台 漏洞复现-漏洞资源中导入
 
 ## 开发
-
-后台管理源码：https://github.com/tongchengbin/ocean_manager
 
 ### 依赖管理与代码质量
 
@@ -173,7 +185,7 @@ QQ 群: 836641851
 
 ## License
 
-[MIT](https://github.com/tongchengbin/ocean_ctf/blob/master/LICENSE)
+[MIT](./LICENSE)
 
 Copyright (c) 2022-present tongcb
 
@@ -217,7 +229,7 @@ Copyright (c) 2022-present tongcb
 - 漏洞复现 Shell
   ![](./doc/image/漏洞复现shell.png)
 - 靶场
-  ![]()![动态靶场](./doc/image/动态靶场.png)
+  ![](./doc/image/动态靶场.png)
 
 - 漏洞复现
   ![](./doc/image/漏洞复现.png)
