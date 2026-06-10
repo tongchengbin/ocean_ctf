@@ -48,7 +48,7 @@
 
 ## 🏁 赛事版（推荐）
 
-- 在线体验：http://ocean.lostpeach.cn
+- 在线体验：http://cloud-ctf.lostpeach.cn
 - 私有化部署文档：http://ctf-docs.lostpeach.cn/
 
 赛事版面向 **真实比赛场景** 做了更偏“赛事运营”的能力组合，适合校赛/社团赛/企业内部赛快速落地。
